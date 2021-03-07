@@ -43,7 +43,7 @@ private:
 	void idaapi get_row(qstrvec_t* cols_, int* icon_, chooser_item_attrs_t* attrs, size_t n) const
 	{
 		qstrvec_t& cols = *cols_;
-		qvector<BinSource>& vec_Bin = g_MyDecompiler.m_eAppInfo.m_VecUserResource;
+		qvector<BinSource>& vec_Bin = g_MyDecompiler.m_eAppInfo.mVec_UserResource;
 
 		cols[0].sprnt("%08a", vec_Bin[n].binAddr);
 
@@ -72,12 +72,12 @@ private:
 
 	cbret_t idaapi enter(size_t n)
 	{
-		jumpto(g_MyDecompiler.m_eAppInfo.m_VecUserResource[n].binAddr);
+		jumpto(g_MyDecompiler.m_eAppInfo.mVec_UserResource[n].binAddr);
 		return cbret_t();
 	}
 	size_t idaapi get_count(void) const
 	{
-		return g_MyDecompiler.m_eAppInfo.m_VecUserResource.size();
+		return g_MyDecompiler.m_eAppInfo.mVec_UserResource.size();
 	}
 };
 
@@ -151,7 +151,7 @@ bool EDecompilerEngine::IsFloatConstValue(ea_t addr)
 
 bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize)
 {
-	m_eAppInfo.m_VecUserResource.clear();
+	m_eAppInfo.mVec_UserResource.clear();
 
 	qvector<unsigned char> tmpResouceBuf;
 	tmpResouceBuf.resize(StringSize);
@@ -168,13 +168,13 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 			tmpSource.itype = 2;
 			tmpSource.binAddr = lpStringStart + index;
 			get_bytes(&tmpSource.floatData, sizeof(double), tmpSource.binAddr);
-			m_eAppInfo.m_VecUserResource.push_back(tmpSource);
+			m_eAppInfo.mVec_UserResource.push_back(tmpSource);
 			index = index + 8 - 1;
 		}
 		else if (tmpResouceBuf[index] == 0x0) {
 			tmpSource.itype = 0;
 			tmpSource.binAddr = lpStringStart + index;
-			m_eAppInfo.m_VecUserResource.push_back(tmpSource);
+			m_eAppInfo.mVec_UserResource.push_back(tmpSource);
 		}
 		else if (tmpResouceBuf[index] == 0x1) {
 			if ((index + 8) > tmpResouceBuf.size()) {
@@ -194,7 +194,7 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 				tmpSource.binData.resize(binSize);
 				memcpy(&tmpSource.binData[0], &tmpResouceBuf[index + 8], binSize);
 			}
-			m_eAppInfo.m_VecUserResource.push_back(tmpSource);
+			m_eAppInfo.mVec_UserResource.push_back(tmpSource);
 			index = index + 8 + binSize - 1;
 		}
 		else {
@@ -203,7 +203,7 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 			tmpSource.binAddr = lpStringStart + index;
 			tmpSource.binData.resize(sLen + 1);
 			memcpy(&tmpSource.binData[0], &tmpResouceBuf[index], sLen + 1);
-			m_eAppInfo.m_VecUserResource.push_back(tmpSource);
+			m_eAppInfo.mVec_UserResource.push_back(tmpSource);
 			index = index + sLen;
 		}
 	}
@@ -213,6 +213,40 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 
 bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCount)
 {
+	for (unsigned int nLibIndex = 0; nLibIndex < dwLibCount; ++nLibIndex) {
+		LIB_INFO tmpLibInfo;
+		get_bytes(&tmpLibInfo, sizeof(LIB_INFO), get_dword(lpLibStartAddr));
+		lpLibStartAddr = lpLibStartAddr + 4;
+
+		//判断是否符合支持库格式
+		if (tmpLibInfo.m_dwLibFormatVer != 0x1312D65) {
+			continue;
+		}
+
+		mid_ELibInfo eLibInfo;
+		eLibInfo.m_Name = get_shortstring(tmpLibInfo.m_lpName);
+		eLibInfo.m_Guid = get_shortstring(tmpLibInfo.m_lpGuid);
+		eLibInfo.m_nMajorVersion = tmpLibInfo.m_nMajorVersion;
+		eLibInfo.m_nMinorVersion = tmpLibInfo.m_nMinorVersion;
+
+		ea_t lpFirstDataType = tmpLibInfo.m_lpDataType;
+		for (int nDataTypeIndex = 0; nDataTypeIndex < tmpLibInfo.m_nDataTypeCount; ++nDataTypeIndex) {
+			LIB_DATA_TYPE_INFO tmpDataTypeInfo;
+			get_bytes(&tmpDataTypeInfo, sizeof(LIB_DATA_TYPE_INFO), lpFirstDataType);
+			lpFirstDataType += sizeof(LIB_DATA_TYPE_INFO);
+
+			//验证数据是否真的被抹除了......
+			if (tmpDataTypeInfo.m_nCmdCount || tmpDataTypeInfo.m_nEventCount) {
+				msg("[E-Decompiler]:Find DataType Field,Please contact the author!\n");
+			}
+
+			if (tmpDataTypeInfo.m_lpszName) {
+				mid_EDataTypeInfo eDataType;
+				eDataType.m_Name = get_shortstring(tmpDataTypeInfo.m_lpszName);
+				int a = 0;
+			}
+		}
+	}
 	return true;
 }
 
@@ -278,22 +312,21 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 	m_eAppInfo.m_UserCodeStartAddr = eHead.lpStartCode;
 	m_eAppInfo.m_UserCodeEndAddr = m_EHeadAddr;
 
+	if (!eHead.dwLibNum || !eHead.lpLibEntry) {
+		return false;
+	}
+	ParseLibInfomation(eHead.lpLibEntry, eHead.dwLibNum);
+
 	if (eHead.lpEString != 0 && eHead.dwEStringSize != 0) {
 		ParseStringResource(eHead.lpEString, eHead.dwEStringSize);
-	}
-
-	if (eHead.dwLibNum != 0 && eHead.lpLibEntry != 0) {
-		ParseLibInfomation(eHead.lpLibEntry, eHead.dwLibNum);
+		qstring 菜单_用户资源菜单;
+		acp_utf8(&菜单_用户资源菜单, "易语言/用户常量资源");
+		gMenu_ShowResource = IDAMenu::CreateMenu(菜单_用户资源菜单.c_str(), MenuHandle_ShowUserResource);
 	}
 
 	if (eHead.lpEWindow != 0 && eHead.dwEWindowSize != 0) {
 		ParseGUIResource(eHead.lpEWindow, eHead.dwEWindowSize);
 	}
-
-	qstring 菜单_用户资源菜单;
-	acp_utf8(&菜单_用户资源菜单, "易语言/用户常量资源");
-	gMenu_ShowResource = IDAMenu::CreateMenu(菜单_用户资源菜单.c_str(), MenuHandle_ShowUserResource);
-
 
 	return true;
 }

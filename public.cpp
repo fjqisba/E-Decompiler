@@ -1,5 +1,6 @@
 #include "public.h"
 #include <xref.hpp>
+#include <bytes.hpp>
 
 const char* UCharToStr(unsigned char c)
 {
@@ -98,5 +99,20 @@ qvector<ea_t> GetAllDataRef(ea_t addr)
 		ret.push_back(XrefAddr);
 		XrefAddr = get_next_dref_to(addr, XrefAddr);
 	}
+	return ret;
+}
+
+qstring get_shortstring(int32 addr)
+{
+	if (addr <= 0)
+	{
+		return "";
+	}
+	char buffer[255] = { 0 };
+	if (get_bytes(buffer, sizeof(buffer), addr, GMB_READALL, NULL) != sizeof(buffer))			//没读取到完整的字节应该算是错误了
+	{
+		return "";
+	}
+	qstring ret = buffer;
 	return ret;
 }
