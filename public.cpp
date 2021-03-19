@@ -116,3 +116,10 @@ qstring get_shortstring(int32 addr)
 	qstring ret = buffer;
 	return ret;
 }
+
+qstring getUTF8String(const char* data)
+{
+	qstring out;
+	acp_utf8(&out, data);
+	return out;
+}

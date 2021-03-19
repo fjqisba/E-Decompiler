@@ -11,14 +11,6 @@
 
 EDecompilerEngine g_MyDecompiler;
 
-bool IsFloatInstruction(ea_t addr)
-{
-	insn_t ins;
-	decode_insn(&ins, addr);
-	int a = 0;
-	return true;
-}
-
 struct chooser_UserResource :public chooser_t 
 {
 protected:
@@ -45,34 +37,59 @@ private:
 		qstrvec_t& cols = *cols_;
 		qvector<BinSource>& vec_Bin = g_MyDecompiler.m_eAppInfo.mVec_UserResource;
 
-		cols[0].sprnt("%08a", vec_Bin[n].binAddr);
+		cols[0].sprnt("%08a", vec_Bin[n].address);
 
-		if (vec_Bin[n].binData.size())
+		switch (vec_Bin[n].itype)
 		{
-			if (vec_Bin[n].itype == 0) {
-				acp_utf8(&cols[1], "文本型");
-				acp_utf8(&cols[2], (char*)&vec_Bin[n].binData[0]);
-			}
-			else {
-				acp_utf8(&cols[1], "字节集");
-				cols[2] = 字节集_字节集到十六进制(vec_Bin[n].binData);
-			}
+		case e_BinValue:
+		{
+			qvector<unsigned char> tmpBin;
+			acp_utf8(&cols[1], "字节集");
+			int maxSize = qmax(vec_Bin[n].extraData, 64);
+			tmpBin.resize(maxSize);
+			get_bytes(&tmpBin[0], maxSize, vec_Bin[n].address + 8);
+			cols[2] = 字节集_字节集到十六进制(tmpBin);
 		}
-		else if (vec_Bin[n].itype == 0) {
+			break;
+		case e_StringValue:
+		{
+			acp_utf8(&cols[1], "文本型");
+			qstring tmpStr;
+			tmpStr.resize(vec_Bin[n].extraData);
+			get_bytes(&tmpStr[0], vec_Bin[n].extraData, vec_Bin[n].address);
+			acp_utf8(&cols[2], tmpStr.c_str());
+		}
+			break;
+		case e_NullStr:
 			acp_utf8(&cols[1], "空白文本");
-		}
-		else if (vec_Bin[n].itype == 1) {
+			break;
+		case e_NullBin:
 			acp_utf8(&cols[1], "空白字节集");
-		}
-		else if (vec_Bin[n].itype == 2) {
+			break;
+		case e_ArrayHead:
+			acp_utf8(&cols[1], "数组头");
+			break;
+		case e_FloatValue:
+		{
 			acp_utf8(&cols[1], "浮点数");
-			cols[2].sprnt("%lf", vec_Bin[n].floatData);
+			double tmpFloatdata;
+			get_bytes(&tmpFloatdata, sizeof(double), vec_Bin[n].address);
+			cols[2].sprnt("%lf", tmpFloatdata);
 		}
+			break;
+		case e_ClassTable:
+			acp_utf8(&cols[1], "类虚表");
+			break;
+		default:
+			break;
+		}
+
+		return;
 	}
 
 	cbret_t idaapi enter(size_t n)
 	{
-		jumpto(g_MyDecompiler.m_eAppInfo.mVec_UserResource[n].binAddr);
+		jumpto(g_MyDecompiler.m_eAppInfo.mVec_UserResource[n].address);
 		return cbret_t();
 	}
 	size_t idaapi get_count(void) const
@@ -106,48 +123,44 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 	GuiObject.Serialize(tmpArchive);
 	tmpArchive.Close();
 	
-
-	int a = 0;
 	
 	return true;
 }
 
-bool EDecompilerEngine::IsArrayHeadValue(ea_t addr)
+
+BinType_t EDecompilerEngine::GetBinValueType(ea_t addr)
 {
 	qvector<ea_t> DataRef = GetAllDataRef(addr);
 	if (!DataRef.size()) {
-		return false;
+		return e_UnknownValue;
 	}
 
+	//交叉引用必须在用户代码范围之内
 	if (DataRef[0] <= m_eAppInfo.m_UserCodeStartAddr || DataRef[0] >= m_eAppInfo.m_UserCodeEndAddr) {
-		return false;
-	}
-	insn_t ins;
-	decode_insn(&ins, DataRef[0]);
-	if (ins.itype == NN_mov && get_dword(DataRef[0] + 5) == 0xABADABAD) {
-		return true;
-	}
-	return false;
-}
-
-bool EDecompilerEngine::IsFloatConstValue(ea_t addr)
-{
-	qvector<ea_t> DataRef = GetAllDataRef(addr);
-	if (!DataRef.size()) {
-		return false;
+		return e_UnknownValue;
 	}
 
-	if (DataRef[0] <= m_eAppInfo.m_UserCodeStartAddr || DataRef[0] >= m_eAppInfo.m_UserCodeEndAddr) {
-		return false;
-	}
-	insn_t ins;
-	decode_insn(&ins, DataRef[0]);
-	if (ins.itype == NN_fadd || ins.itype == NN_fsub || ins.itype == NN_fmul || ins.itype == NN_fdiv || ins.itype == NN_fcomp || ins.itype == NN_fld)
+	insn_t FirstIns;
+	int FirstLen = decode_insn(&FirstIns, DataRef[0]);
+	if (FirstIns.itype == NN_fadd || FirstIns.itype == NN_fsub || FirstIns.itype == NN_fmul || FirstIns.itype == NN_fdiv || FirstIns.itype == NN_fcomp || FirstIns.itype == NN_fld)
 	{
-		return true;
+		return e_FloatValue;
 	}
-	return false;
+	else if (FirstIns.itype == NN_mov && FirstIns.ops[0].reg == 0x6) {			//mov esi,xxx
+		return e_ArrayHead;
+	}
+	else if (FirstIns.itype == NN_mov && FirstIns.ops[0].reg == 0x3)			//mov [ebx],xxx
+	{
+		return e_ClassTable;
+	}
+	else if (get_byte(addr) == 0x0 && (FirstIns.itype == NN_push || (FirstIns.itype == NN_mov && FirstIns.ops[0].reg == 0x0)))
+	{
+		return e_NullStr;
+	}
+
+	return e_UnknownValue;
 }
+
 
 bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize)
 {
@@ -157,57 +170,67 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 	tmpResouceBuf.resize(StringSize);
 	get_bytes(&tmpResouceBuf[0], StringSize, lpStringStart);
 
-	for (unsigned int index = 0; index < tmpResouceBuf.size(); ++index) {
+	ea_t lpStringEnd = lpStringStart + tmpResouceBuf.size();
+	//目前推测只准出现一个空字符串,一个空字节集
+	bool bOnlyOneNullStr = false;
+	bool bOnlyOneNullBin = false;
+
+	int index = 0;
+	while (index < StringSize) {
 		BinSource tmpSource = {};
+		tmpSource.itype = GetBinValueType(lpStringStart + index);
+		tmpSource.address = lpStringStart + index;
 
-		if (IsArrayHeadValue(lpStringStart + index)) {         //数组头
-			tmpSource.itype = -1;
-			index = index + 8 - 1;
+		if (tmpSource.itype == e_NullStr && !bOnlyOneNullStr) {    //空字符串
+			tmpSource.itype = e_NullStr;
+			bOnlyOneNullStr = true;
+			index++;
 		}
-		else if (IsFloatConstValue(lpStringStart + index)) {   //检查浮点数或者小数
-			tmpSource.itype = 2;
-			tmpSource.binAddr = lpStringStart + index;
-			get_bytes(&tmpSource.floatData, sizeof(double), tmpSource.binAddr);
-			m_eAppInfo.mVec_UserResource.push_back(tmpSource);
-			index = index + 8 - 1;
-		}
-		else if (tmpResouceBuf[index] == 0x0) {
-			tmpSource.itype = 0;
-			tmpSource.binAddr = lpStringStart + index;
-			m_eAppInfo.mVec_UserResource.push_back(tmpSource);
-		}
-		else if (tmpResouceBuf[index] == 0x1) {
-			if ((index + 8) > tmpResouceBuf.size()) {
-				return false;
+		else if (tmpSource.itype == e_ArrayHead) {                //数组头
+			if (get_dword(tmpSource.address) == 0x0 && !bOnlyOneNullBin) {
+				tmpSource.itype = e_NullBin;
+				bOnlyOneNullBin = true;
 			}
-			uint32 binHead = *(uint32*)&tmpResouceBuf[index];
-			if (binHead != 0x1) {
-				return false;
+			else {
+				tmpSource.itype = e_ArrayHead;
 			}
-			uint32 binSize = *(uint32*)&tmpResouceBuf[index + 4];
-			if (index + 8 + binSize > tmpResouceBuf.size()) {
-				return false;
-			}
-			tmpSource.itype = 1;
-			tmpSource.binAddr = lpStringStart + index;
-			if (binSize) {
-				tmpSource.binData.resize(binSize);
-				memcpy(&tmpSource.binData[0], &tmpResouceBuf[index + 8], binSize);
-			}
-			m_eAppInfo.mVec_UserResource.push_back(tmpSource);
-			index = index + 8 + binSize - 1;
+			index += 8;
 		}
-		else {
-			tmpSource.itype = 0;
-			uint32 sLen = qstrlen(&tmpResouceBuf[index]);
-			tmpSource.binAddr = lpStringStart + index;
-			tmpSource.binData.resize(sLen + 1);
-			memcpy(&tmpSource.binData[0], &tmpResouceBuf[index], sLen + 1);
-			m_eAppInfo.mVec_UserResource.push_back(tmpSource);
-			index = index + sLen;
+		else if (tmpSource.itype == e_FloatValue) {               //浮点数
+			tmpSource.itype = e_FloatValue;
+			index += 8;
 		}
+		else if (tmpSource.itype == e_ClassTable) {
+			tmpSource.itype == e_ClassTable;
+			do
+			{
+				index++;
+			} while (!GetAllDataRef(lpStringStart + index).size());
+		}
+		else if (get_dword(tmpSource.address) == 0x1) {		//字节集
+			int size = get_dword(tmpSource.address + 4);
+			if (!size && !bOnlyOneNullBin) {
+				tmpSource.itype = e_NullBin;
+				bOnlyOneNullBin = true;
+				index += 8;
+			}
+			else {
+				tmpSource.itype = e_BinValue;
+				tmpSource.extraData = size;
+				index += 8 + size;
+				while (!GetAllDataRef(lpStringStart + index).size()) {
+					index++;
+				}
+			}
+		}
+		else {												//任意字符串处理,这是最终的手段
+			tmpSource.itype = e_StringValue;
+			tmpSource.extraData = qstrlen(&tmpResouceBuf[index]) + 1;
+			index += tmpSource.extraData;
+		}
+		m_eAppInfo.mVec_UserResource.push_back(tmpSource);
 	}
-
+	
 	return true;
 }
 
@@ -234,11 +257,6 @@ bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCoun
 			LIB_DATA_TYPE_INFO tmpDataTypeInfo;
 			get_bytes(&tmpDataTypeInfo, sizeof(LIB_DATA_TYPE_INFO), lpFirstDataType);
 			lpFirstDataType += sizeof(LIB_DATA_TYPE_INFO);
-
-			//验证数据是否真的被抹除了......
-			if (tmpDataTypeInfo.m_nCmdCount || tmpDataTypeInfo.m_nEventCount) {
-				msg("[E-Decompiler]:Find DataType Field,Please contact the author!\n");
-			}
 
 			if (tmpDataTypeInfo.m_lpszName) {
 				mid_EDataTypeInfo eDataType;
@@ -287,6 +305,8 @@ bool EDecompilerEngine::InitDecompilerEngine()
 		m_ProgramType = E_STATIC;
 		m_EHeadAddr = get_dword(searchAddr + 0x26);
 	}
+	
+	//To do...即便是静态编译特征被VM了,应该还有一些解决的思路,暂时先不管。
 
 	return true;
 }
@@ -328,5 +348,7 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 		ParseGUIResource(eHead.lpEWindow, eHead.dwEWindowSize);
 	}
 
+	
+	msg("%s\n", getUTF8String("检测到是易语言静态编译程序").c_str());
 	return true;
 }

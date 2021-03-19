@@ -38,7 +38,7 @@ struct LIB_DATA_TYPE_INFO   //库定义数据类型结构
 	uint32 m_lpszEGName;   //英文名称,可为空
 	uint32 m_szExplain;    //详细解释,可为空
 	int32  m_nCmdCount;    //本数据类型成员方法的数目(可为0)
-	uint32 m_lpnCmdsIndex; //指向所有成员方法命令在支持库命令表中的索引值指针,编译后数据被抹除???
+	uint32 m_lpnCmdsIndex; //指向所有成员方法命令在支持库命令表中的索引值指针,编译后数据被抹除
 	uint32 m_dwState;      //数据类型的特殊属性
 
 	 ////////////////////////////////////////////
@@ -46,7 +46,7 @@ struct LIB_DATA_TYPE_INFO   //库定义数据类型结构
 
 	uint32 m_dwUnitBmpID;     //指定在支持库中的单元图像资源ID
 	int32  m_nEventCount;     //本单元的事件数目
-	uint32 m_lpEventBegin;    //指向单元的所有事件的指针,EVENT_INFO,编译后数据被抹除???
+	uint32 m_lpEventBegin;    //指向单元的所有事件的指针,EVENT_INFO,编译后数据被抹除
 	int32 m_nPropertyCount;   //本单元的属性数目
 	uint32 m_lpPropertyBegin; //指向单元的所有属性的指针,UNIT_PROPERTY
 
@@ -116,7 +116,7 @@ struct EHead
 	uint32 dwMagic;  //未知,值固定为3
 	uint32 szNone2;  //未知,值固定为0
 	uint32 szNone3;  //未知,好像是个随机数,修改不影响程序
-	uint32 lpStartCode;   //起始程序地址,不可修改
+	uint32 lpStartCode;   //起始用户代码地址,不可修改
 	uint32 lpEString;     //字符串资源,如果没有字符串资源,则为0
 	uint32 dwEStringSize; //字符串资源大小,如果没有字符串资源,则为0
 	uint32 lpEWindow;     //创建组件信息
@@ -132,18 +132,23 @@ struct EHead
 
 
 //下面以mid开头的是自定义的存储信息结构体
+enum BinType_t
+{
+	e_UnknownValue = 0,
+	e_NullBin,
+	e_BinValue,
+	e_NullStr,
+	e_StringValue,
+	e_ArrayHead,
+	e_FloatValue,
+	e_ClassTable,
+};
 
 struct BinSource
 {
-	//-1表示是数组头
-	//0表示是字符串
-    //1表示是字节集
-    //2表示是浮点数
-	int itype;
-
-	ea_t binAddr;
-	qvector<unsigned char> binData;
-	double floatData;
+	BinType_t itype;
+	ea_t address;
+	int extraData;	//附加数据
 };
 
 struct mid_ELibInfo
@@ -182,11 +187,9 @@ public:
 	bool DoDecompile();
 private:
 	bool DoDecompiler_EStatic();
+	//根据交叉引用来判断指定地址的数据类型
+	BinType_t GetBinValueType(ea_t addr);
 
-	//判断指定地址的数据是否为易语言浮点常量
-	bool IsFloatConstValue(ea_t);
-	//判断指定地址的数据是否为易语言数组头
-	bool IsArrayHeadValue(ea_t);
 	//解析界面控件信息
 	bool ParseGUIResource(ea_t, uint32);
 	//解析常量资源信息
