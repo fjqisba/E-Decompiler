@@ -152,7 +152,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EDecompiler.cpp" />
-    <ClCompile Include="EGuiInfoObject.cpp" />
     <ClCompile Include="EsigLoader.cpp" />
     <ClCompile Include="IDAMenu.cpp" />
     <ClCompile Include="main.cpp" />
@@ -162,7 +161,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EDecompiler.h" />
-    <ClInclude Include="EGuiInfoObject.h" />
     <ClInclude Include="EsigLoader.h" />
     <ClInclude Include="IDAMenu.h" />
     <ClInclude Include="public.h" />

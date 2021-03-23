@@ -18,3 +18,10 @@ qvector<ea_t> GetAllDataRef(ea_t addr);
 qstring get_shortstring(int32 addr);
 
 qstring getUTF8String(const char*);
+
+uint32 ReadUInt(unsigned char* pBuf);
+
+int32 ReadInt(unsigned char* pBuf);
+
+qstring ReadStr(unsigned char* pBuf);
+

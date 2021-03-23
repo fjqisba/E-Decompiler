@@ -33,9 +33,6 @@
     <ClCompile Include="EDecompiler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="EGuiInfoObject.cpp">
-      <Filter>头文件</Filter>
-    </ClCompile>
     <ClCompile Include="IDAMenu.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
@@ -54,9 +51,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="EDecompiler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="EGuiInfoObject.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="IDAMenu.h">

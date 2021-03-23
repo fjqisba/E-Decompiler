@@ -148,7 +148,12 @@ struct BinSource
 {
 	BinType_t itype;
 	ea_t address;
-	int extraData;	//附加数据
+	unsigned int extraData;	//附加数据
+};
+
+struct mid_EDataTypeInfo
+{
+	qstring m_Name;  //数据类型名称
 };
 
 struct mid_ELibInfo
@@ -157,11 +162,17 @@ struct mid_ELibInfo
 	qstring m_Guid;          //支持库的GUID
 	int32  m_nMajorVersion;  //支持库的主版本号，必须大于0。
 	int32  m_nMinorVersion;  //支持库的次版本号。
+
+	qvector<mid_EDataTypeInfo> mVec_DataTypeInfo;      //数据类型信息
 };
 
-struct mid_EDataTypeInfo
+struct mid_GuiControlInfo
 {
-	qstring m_Name;  //数据类型名称
+	uint32 m_windowId;              //控件所属窗口ID
+	uint32 m_controlId;             //控件自身ID
+	uint32 m_controlTypeId;         //控件所属数据类型的ID
+	qstring m_controlTypeName;      //控件类型名称
+	qstring m_controlName;          //控件名称
 };
 
 struct mid_EAppInfo
@@ -169,11 +180,9 @@ struct mid_EAppInfo
 	ea_t m_UserCodeStartAddr;                          //用户起始地址
 	ea_t m_UserCodeEndAddr;                            //用户结束地址,目前暂时还没有什么好办法获取这个地址,如果有好的想法欢迎提issue
 	qvector<BinSource> mVec_UserResource;              //用户资源
+	qvector<mid_GuiControlInfo> mVec_ControlInfo;      //控件信息
 	qvector<mid_ELibInfo> mVec_LibInfo;                //支持库信息
-	qvector<mid_EDataTypeInfo> mVec_DataTypeInfo;      //数据类型信息
 };
-
-
 
 class IDAMenu;
 class EDecompilerEngine:public SectionManager
@@ -189,19 +198,23 @@ private:
 	bool DoDecompiler_EStatic();
 	//根据交叉引用来判断指定地址的数据类型
 	BinType_t GetBinValueType(ea_t addr);
-
+	//根据菜单的类型ID来得到名称
+	qstring GetLibDataTypeInfo(uint32 typeId);
 	//解析界面控件信息
 	bool ParseGUIResource(ea_t, uint32);
 	//解析常量资源信息
 	bool ParseStringResource(ea_t, uint32);
 	//解析支持库信息
 	bool ParseLibInfomation(ea_t, uint32);
+	//是否为菜单项
+	static bool krnln_IsMenuItemID(unsigned int ID);
 public:
 	EProgramsType_t m_ProgramType;
 	mid_EAppInfo m_eAppInfo;
 private:
 	ea_t m_EHeadAddr;
 	IDAMenu* gMenu_ShowResource = nullptr;
+	IDAMenu* gMenu_ShowGUIInfo = nullptr;
 };
 
 extern EDecompilerEngine g_MyDecompiler;

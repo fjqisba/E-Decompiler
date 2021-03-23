@@ -123,3 +123,20 @@ qstring getUTF8String(const char* data)
 	acp_utf8(&out, data);
 	return out;
 }
+
+uint32 ReadUInt(unsigned char* pBuf)
+{
+	return *(uint32*)pBuf;
+}
+
+inline int32 ReadInt(unsigned char* pBuf)
+{
+	return *(int*)pBuf;
+}
+
+qstring ReadStr(unsigned char* pBuf)
+{
+	int Len = qstrlen(pBuf);
+	qstring ret((const char*)pBuf, Len);
+	return ret;
+}
