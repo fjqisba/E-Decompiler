@@ -6,30 +6,30 @@
 #include <kernwin.hpp>
 
 
- // Hex-Rays API pointer
+// Hex-Rays API pointer
 hexdsp_t* hexdsp = nullptr;
 
 //--------------------------------------------------------------------------
 struct plugin_ctx_t : public plugmod_t
 {
-    bool inited = true;
-  
-    ~plugin_ctx_t()
-    {
-        if (inited) {
-            term_hexrays_plugin();
-        }
-    }
-    virtual bool idaapi run(size_t) override;
+	bool inited = true;
+
+	~plugin_ctx_t()
+	{
+		if (inited) {
+			term_hexrays_plugin();
+		}
+	}
+	virtual bool idaapi run(size_t) override;
 };
 
 //--------------------------------------------------------------------------
 static plugmod_t* idaapi init()
 {
-    if (!init_hexrays_plugin())
-        return nullptr; // no decompiler
-    const char* hxver = get_hexrays_version();
-    return new plugin_ctx_t;
+	if (!init_hexrays_plugin())
+		return nullptr; // no decompiler
+	const char* hxver = get_hexrays_version();
+	return new plugin_ctx_t;
 }
 
 //--------------------------------------------------------------------------
@@ -44,23 +44,23 @@ bool idaapi plugin_ctx_t::run(size_t)
 		msg("Error,InitDecompilerEngine Failed\n");
 		return false;
 	}
-   
-    if (!g_MyDecompiler.DoDecompile()) {
-        msg("Error,DoDecompile\n");
-        return false;
-    }
 
-    return true;
-    qstring sigPath = ChooseEsig();
-    if (sigPath.empty()) {
-        return true;
-    }
-    
-    if (!ApplyEsig(sigPath)) {
-        return true;
-    }
+	if (!g_MyDecompiler.DoDecompile()) {
+		msg("Error,DoDecompile\n");
+		return false;
+	}
 
-    return true;
+	return true;
+	qstring sigPath = ChooseEsig();
+	if (sigPath.empty()) {
+		return true;
+	}
+
+	if (!ApplyEsig(sigPath)) {
+		return true;
+	}
+
+	return true;
 }
 
 //--------------------------------------------------------------------------

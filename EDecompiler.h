@@ -144,7 +144,7 @@ enum BinType_t
 	e_ClassTable,
 };
 
-struct BinSource
+struct mid_BinSource
 {
 	BinType_t itype;
 	ea_t address;
@@ -154,6 +154,24 @@ struct BinSource
 struct mid_EDataTypeInfo
 {
 	qstring m_Name;  //数据类型名称
+};
+
+struct mid_EventInfo
+{
+	int m_nEventIndex;       //事件索引
+	uint32 m_EventAddr;      //事件地址
+};
+
+//控件的基本属性
+struct mid_EBasicProperty
+{
+	qstring m_controlName;   //名称
+	int m_left;              //左边
+	int m_top;               //顶边
+	int m_width;             //宽度
+	int m_height;            //高度
+	qstring m_tag;           //标记
+	qvector<mid_EventInfo> mVec_eventInfo;   //事件处理
 };
 
 struct mid_ELibInfo
@@ -166,22 +184,28 @@ struct mid_ELibInfo
 	qvector<mid_EDataTypeInfo> mVec_DataTypeInfo;      //数据类型信息
 };
 
-struct mid_GuiControlInfo
+struct mid_ControlInfo
 {
-	uint32 m_windowId;              //控件所属窗口ID
-	uint32 m_controlId;             //控件自身ID
-	uint32 m_controlTypeId;         //控件所属数据类型的ID
-	qstring m_controlTypeName;      //控件类型名称
-	qstring m_controlName;          //控件名称
+	uint32 m_controlId;                 //控件自身ID
+	uint32 m_controlTypeId;             //控件所属数据类型的ID
+	qstring m_controlTypeName;          //控件类型名称
+	bool b_isMenu;                      //是否为菜单控件
+	mid_EBasicProperty m_basicProperty; //控件的基础属性
+};
+
+struct mid_GuiInfo
+{
+	uint32 m_windowId;                           //控件所属窗口ID
+	qvector<mid_ControlInfo> mVec_ControlInfo;   //窗口中的控件
 };
 
 struct mid_EAppInfo
 {
 	ea_t m_UserCodeStartAddr;                          //用户起始地址
 	ea_t m_UserCodeEndAddr;                            //用户结束地址,目前暂时还没有什么好办法获取这个地址,如果有好的想法欢迎提issue
-	qvector<BinSource> mVec_UserResource;              //用户资源
-	qvector<mid_GuiControlInfo> mVec_ControlInfo;      //控件信息
-	qvector<mid_ELibInfo> mVec_LibInfo;                //支持库信息
+	qvector<mid_BinSource> mVec_UserResource;          //用户资源
+	qvector<mid_GuiInfo>   mVec_GuiInfo;               //控件信息
+	qvector<mid_ELibInfo>  mVec_LibInfo;               //支持库信息
 };
 
 class IDAMenu;

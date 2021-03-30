@@ -129,9 +129,9 @@ uint32 ReadUInt(unsigned char* pBuf)
 	return *(uint32*)pBuf;
 }
 
-inline int32 ReadInt(unsigned char* pBuf)
+int32 ReadInt(unsigned char* pBuf)
 {
-	return *(int*)pBuf;
+	return *(int32*)pBuf;
 }
 
 qstring ReadStr(unsigned char* pBuf)

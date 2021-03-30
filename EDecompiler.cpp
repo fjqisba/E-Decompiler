@@ -2,44 +2,15 @@
 #include <bytes.hpp>
 #include <segment.hpp>
 #include <kernwin.hpp>
-#include <afx.h>
 #include "IDAMenu.h"
 #include "public.h"
 #include <ua.hpp>
 #include <allins.hpp>
+#include <name.hpp>
+#include "ControlInfoWidget.h"
 
 EDecompilerEngine g_MyDecompiler;
 
-struct chooser_GUIResource :public chooser_multi_t
-{
-protected:
-	const int widths_[3] = { 10,10,50 };
-	const char* header_[3] = { "WindowID","ControlID","Name" };
-public:
-	chooser_GUIResource(const char* title) :chooser_multi_t(0, qnumber(widths_), widths_, header_, title)
-	{
-
-	}
-	const void* get_obj_id(size_t* len) const
-	{
-		*len = strlen(title);
-		return title;
-	}
-	size_t idaapi get_count(void) const
-	{
-		return g_MyDecompiler.m_eAppInfo.mVec_ControlInfo.size();
-	}
-
-	void idaapi get_row(qstrvec_t* cols_, int* icon_, chooser_item_attrs_t* attrs, size_t n)const
-	{
-		qstrvec_t& cols = *cols_;
-		qvector<mid_GuiControlInfo>& vec_Control = g_MyDecompiler.m_eAppInfo.mVec_ControlInfo;
-
-		cols[0].sprnt("0x%08a", vec_Control[n].m_windowId);
-		cols[1].sprnt("0x%08a", vec_Control[n].m_controlId);
-		acp_utf8(&cols[2],vec_Control[n].m_controlName.c_str());
-	}
-};
 
 struct chooser_UserResource :public chooser_multi_t
 {
@@ -65,7 +36,7 @@ private:
 	void idaapi get_row(qstrvec_t* cols_, int* icon_, chooser_item_attrs_t* attrs, size_t n) const
 	{
 		qstrvec_t& cols = *cols_;
-		qvector<BinSource>& vec_Bin = g_MyDecompiler.m_eAppInfo.mVec_UserResource;
+		qvector<mid_BinSource>& vec_Bin = g_MyDecompiler.m_eAppInfo.mVec_UserResource;
 
 		cols[0].sprnt("%08a", vec_Bin[n].address);
 
@@ -75,9 +46,9 @@ private:
 		{
 			qvector<unsigned char> tmpBin;
 			acp_utf8(&cols[1], "字节集");
-			int maxSize = qmax(vec_Bin[n].extraData, 64);
-			tmpBin.resize(maxSize);
-			get_bytes(&tmpBin[0], maxSize, vec_Bin[n].address + 8);
+			int minSize = qmin(vec_Bin[n].extraData, 64);
+			tmpBin.resize(minSize);
+			get_bytes(&tmpBin[0], minSize, vec_Bin[n].address + 8);
 			cols[2] = 字节集_字节集到十六进制(tmpBin);
 		}
 			break;
@@ -132,10 +103,23 @@ private:
 
 int MenuHandle_ShowGuiInfo()
 {
-	qstring 标题;
-	acp_utf8(&标题, "窗口控件信息");
-	chooser_GUIResource* pGuiChoose = new chooser_GUIResource(标题.c_str());
-	pGuiChoose->choose();
+	TWidget* widget = find_widget("Sample Qt subwindow");
+	if (widget == nullptr) {
+		widget = create_empty_widget("Sample Qt subwindow");
+		ControlInfoWidget* Qwidget = (ControlInfoWidget*)widget;
+		Qwidget->InitUi();
+
+		QTreeWidgetItem* root = new QTreeWidgetItem(Qwidget->ui.treeWidget);
+		for (unsigned int n = 0; n < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo.size(); ++n) {
+			//new QTreeWidgetItem();
+			//root->addChild();
+			
+			g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[n].m_windowId;
+		}
+
+		display_widget(widget, WOPN_DP_TAB | WOPN_RESTORE);
+	}
+	
 	return 0;
 }
 
@@ -182,7 +166,7 @@ bool EDecompilerEngine::krnln_IsMenuItemID(unsigned int ID)
 
 bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 {
-	m_eAppInfo.mVec_ControlInfo.clear();
+	m_eAppInfo.mVec_GuiInfo.clear();
 
 	qvector<unsigned char> tmpGuiBuf;
 	tmpGuiBuf.resize(infoSize);
@@ -209,6 +193,9 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 	for (unsigned int nIndexWindow = 0; nIndexWindow < dwTotalWindowCount; ++nIndexWindow) {
 		unsigned char* lpWindowInfo = lpCurrentParseAddr;
 
+		mid_GuiInfo eGuiInfo;
+		eGuiInfo.m_windowId = vec_WindowId[nIndexWindow];
+
 		//暂时未知
 		uint32 unKnownFieldA = ReadUInt(lpWindowInfo);
 		lpWindowInfo += 4;
@@ -223,7 +210,7 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 		lpWindowInfo += 4;
 
 		//单个窗口中的控件总占用大小
-		DWORD dwTotalControlSize = ReadUInt(lpWindowInfo);
+		uint32 dwTotalControlSize = ReadUInt(lpWindowInfo);
 		lpWindowInfo += 4;
 
 		//开始解析控件
@@ -247,8 +234,8 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 			for (unsigned int nIndexControl = 0; nIndexControl < dwTotalControlCount; ++nIndexControl) {
 				unsigned char* lpControlInfo = lpControlArray + vec_ControlOffset[nIndexControl];
 
-				mid_GuiControlInfo eControlInfo;
-
+				mid_ControlInfo eControlInfo;
+				
 				//控件占用的大小
 				uint32 dwControlSize = ReadUInt(lpControlInfo);
 				lpControlInfo += 4;
@@ -260,31 +247,83 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 				//固定的20个空字节,保留使用?
 				lpControlInfo += 20;
 
-				
 				if (dwControlTypeId == 0x10001) {
 					//这是主窗口
+
+					//无用字符串1?
+					ReadStr(lpControlInfo);
+					lpControlInfo += qstrlen(lpControlInfo) + 1;
+
+					//无用字符串1?
+					ReadStr(lpControlInfo);
+					lpControlInfo += qstrlen(lpControlInfo) + 1;
+
+					//存储数据?
+					ReadUInt(lpControlInfo);
+					lpControlInfo += 4;
+
+					eControlInfo.m_basicProperty.m_left = ReadUInt(lpControlInfo);
+					lpControlInfo += 4;
+
+					eControlInfo.m_basicProperty.m_top = ReadUInt(lpControlInfo);
+					lpControlInfo += 4;
+
+					eControlInfo.m_basicProperty.m_width = ReadUInt(lpControlInfo);
+					lpControlInfo += 4;
+
+					eControlInfo.m_basicProperty.m_height = ReadUInt(lpControlInfo);
+					lpControlInfo += 4;
+
+					//未知值
+					lpControlInfo += 8;
+
+					//一级索引?
+					unsigned int index1 = ReadUInt(lpControlInfo);
+					lpControlInfo += 4;
+
+					//二级偏移?
+					unsigned int offset2 = lpControlInfo[index1];
+					lpControlInfo += index1 * 4;
+					lpControlInfo += offset2 + 4;
+
+					//标记
+					eControlInfo.m_basicProperty.m_tag = ReadStr(lpControlInfo);
+					lpControlInfo += qstrlen(lpControlInfo) + 1;
+
+					//未知的值
+					lpControlInfo += 12;
+
+					int dwEventCount = ReadInt(lpControlInfo);
+					for (int nIndexEvent = 0; nIndexEvent < dwEventCount; ++nIndexEvent) {
+						mid_EventInfo tmpEvent;
+						tmpEvent.m_nEventIndex = ReadInt(lpControlInfo);
+						lpControlInfo += 4;
+						tmpEvent.m_EventAddr = ReadUInt(lpControlInfo) + m_eAppInfo.m_UserCodeStartAddr;
+						eControlInfo.m_basicProperty.mVec_eventInfo.push_back(tmpEvent);
+					}
+					
+					//To do...
 				}
 				else if (EDecompilerEngine::krnln_IsMenuItemID(vec_ControlId[nIndexControl])) {
+					eControlInfo.b_isMenu = true;
 					lpControlInfo += 14;
-					eControlInfo.m_controlName = ReadStr(lpControlInfo);
+					eControlInfo.m_basicProperty.m_controlName = ReadStr(lpControlInfo);
 				}
 				else {
-					eControlInfo.m_controlName = ReadStr(lpControlInfo);
+					eControlInfo.m_basicProperty.m_controlName = ReadStr(lpControlInfo);
 				}
 
-				eControlInfo.m_windowId = vec_WindowId[nIndexWindow];
 				eControlInfo.m_controlId = vec_ControlId[nIndexControl];
 				eControlInfo.m_controlTypeId = dwControlTypeId;
 				eControlInfo.m_controlTypeName = GetLibDataTypeInfo(dwControlTypeId);
 
-				m_eAppInfo.mVec_ControlInfo.push_back(eControlInfo);
+				eGuiInfo.mVec_ControlInfo.push_back(eControlInfo);
 			}
 		}
 
+		m_eAppInfo.mVec_GuiInfo.push_back(eGuiInfo);
 		lpCurrentParseAddr = lpWindowInfo + dwTotalControlSize;
 	}
-
-
 
 	return true;
 }
@@ -358,7 +397,7 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 
 	unsigned int index = 0;
 	while (index < StringSize) {
-		BinSource tmpSource = {};
+		mid_BinSource tmpSource = {};
 		tmpSource.itype = GetBinValueType(lpStringStart + index);
 		tmpSource.address = lpStringStart + index;
 
