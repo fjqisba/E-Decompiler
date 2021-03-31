@@ -142,6 +142,7 @@ enum BinType_t
 	e_ArrayHead,
 	e_FloatValue,
 	e_ClassTable,
+	e_SwitchTable,         //switch case±í
 };
 
 struct mid_BinSource

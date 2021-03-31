@@ -8,6 +8,7 @@
 #include <allins.hpp>
 #include <name.hpp>
 #include "ControlInfoWidget.h"
+#include <QString>
 
 EDecompilerEngine g_MyDecompiler;
 
@@ -81,6 +82,9 @@ private:
 		case e_ClassTable:
 			acp_utf8(&cols[1], "类虚表");
 			break;
+		case e_SwitchTable:
+			acp_utf8(&cols[1], "分支表");
+			break;
 		default:
 			break;
 		}
@@ -103,21 +107,29 @@ private:
 
 int MenuHandle_ShowGuiInfo()
 {
-	TWidget* widget = find_widget("Sample Qt subwindow");
-	if (widget == nullptr) {
-		widget = create_empty_widget("Sample Qt subwindow");
-		ControlInfoWidget* Qwidget = (ControlInfoWidget*)widget;
-		Qwidget->InitUi();
+	qstring widgetTitle;
+	acp_utf8(&widgetTitle, "窗口控件信息");
+	TWidget* widget = find_widget(widgetTitle.c_str());
 
-		QTreeWidgetItem* root = new QTreeWidgetItem(Qwidget->ui.treeWidget);
-		for (unsigned int n = 0; n < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo.size(); ++n) {
-			//new QTreeWidgetItem();
-			//root->addChild();
-			
-			g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[n].m_windowId;
+	if (widget == nullptr) {
+		ControlInfoWidget* Qwidget = new ControlInfoWidget();
+		widget = (TWidget*)Qwidget;
+	
+		Qwidget->ui.treeWidget->setHeaderLabel(QStringLiteral("易语言窗口"));
+		for (unsigned int nWindowIndex = 0; nWindowIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo.size(); ++nWindowIndex) {
+			QTreeWidgetItem* pWindowItem = new QTreeWidgetItem(Qwidget->ui.treeWidget);
+			pWindowItem->setText(0, QString::asprintf("0x%08X", g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].m_windowId));
+			qvector<mid_ControlInfo>& vec_ControlInfo = g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo;
+			for (unsigned int nControlIndex = 0; nControlIndex < vec_ControlInfo.size(); ++nControlIndex) {
+				QTreeWidgetItem* pControlItem = new QTreeWidgetItem(pWindowItem);
+				pControlItem->setText(0, QString::asprintf("0x%08X", vec_ControlInfo[nControlIndex].m_controlId));
+			}
 		}
 
 		display_widget(widget, WOPN_DP_TAB | WOPN_RESTORE);
+	}
+	else {
+		activate_widget(widget, true);
 	}
 	
 	return 0;
@@ -377,6 +389,9 @@ BinType_t EDecompilerEngine::GetBinValueType(ea_t addr)
 	{
 		return e_NullStr;
 	}
+	else if (FirstIns.itype == NN_add && FirstIns.ops[0].reg == 0x3) {
+		return e_SwitchTable;
+	}
 
 	return e_UnknownValue;
 }
@@ -401,8 +416,8 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 		tmpSource.itype = GetBinValueType(lpStringStart + index);
 		tmpSource.address = lpStringStart + index;
 
+
 		if (tmpSource.itype == e_NullStr && !bOnlyOneNullStr) {    //空字符串
-			tmpSource.itype = e_NullStr;
 			bOnlyOneNullStr = true;
 			index++;
 		}
@@ -411,17 +426,18 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 				tmpSource.itype = e_NullBin;
 				bOnlyOneNullBin = true;
 			}
-			else {
-				tmpSource.itype = e_ArrayHead;
-			}
 			index += 8;
 		}
 		else if (tmpSource.itype == e_FloatValue) {               //浮点数
-			tmpSource.itype = e_FloatValue;
 			index += 8;
 		}
 		else if (tmpSource.itype == e_ClassTable) {
-			tmpSource.itype = e_ClassTable;
+			do
+			{
+				index++;
+			} while (!GetAllDataRef(lpStringStart + index).size());
+		}
+		else if (tmpSource.itype == e_SwitchTable) {
 			do
 			{
 				index++;

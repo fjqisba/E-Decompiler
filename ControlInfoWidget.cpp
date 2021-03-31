@@ -2,16 +2,10 @@
 
 ControlInfoWidget::ControlInfoWidget()
 {
-
+	ui.setupUi(this);
 }
 
 ControlInfoWidget::~ControlInfoWidget()
 {
-
-}
-
-void ControlInfoWidget::InitUi()
-{
-	ui.setupUi(this);
 
 }
