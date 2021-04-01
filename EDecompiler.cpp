@@ -4,6 +4,7 @@
 #include <kernwin.hpp>
 #include "IDAMenu.h"
 #include "public.h"
+#include <dirtree.hpp>
 #include <ua.hpp>
 #include <allins.hpp>
 #include <name.hpp>
@@ -118,15 +119,39 @@ int MenuHandle_ShowGuiInfo()
 		Qwidget->ui.treeWidget->setHeaderLabel(QStringLiteral("易语言窗口"));
 		for (unsigned int nWindowIndex = 0; nWindowIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo.size(); ++nWindowIndex) {
 			QTreeWidgetItem* pWindowItem = new QTreeWidgetItem(Qwidget->ui.treeWidget);
+			pWindowItem->setData(0, Qt::UserRole, g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].m_windowId);
 			pWindowItem->setText(0, QString::asprintf("0x%08X", g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].m_windowId));
 			qvector<mid_ControlInfo>& vec_ControlInfo = g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo;
 			for (unsigned int nControlIndex = 0; nControlIndex < vec_ControlInfo.size(); ++nControlIndex) {
 				QTreeWidgetItem* pControlItem = new QTreeWidgetItem(pWindowItem);
+				pControlItem->setData(0,Qt::UserRole, vec_ControlInfo[nControlIndex].m_controlId);
 				pControlItem->setText(0, QString::asprintf("0x%08X", vec_ControlInfo[nControlIndex].m_controlId));
 			}
 		}
 
 		display_widget(widget, WOPN_DP_TAB | WOPN_RESTORE);
+
+		//修改函数目录
+		dirtree_t* pFuncTree = get_std_dirtree(dirtree_id_t::DIRTREE_FUNCS);
+		pFuncTree->chdir("/");
+		for (unsigned int nWindowIndex = 0; nWindowIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo.size(); ++nWindowIndex) {
+			qvector<mid_ControlInfo>& vec_ControlInfo = g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo;
+			for (unsigned int nControlIndex = 0; nControlIndex < vec_ControlInfo.size(); ++nControlIndex) {
+
+				if (vec_ControlInfo[nControlIndex].m_controlTypeId == 0x10001) {
+					//如果是主窗口
+
+				}
+				else if (vec_ControlInfo[nControlIndex].m_basicProperty.m_controlName.empty()) {
+					continue;
+				}
+				pFuncTree->mkdir(vec_ControlInfo[nControlIndex].m_basicProperty.m_controlName.c_str());
+				pFuncTree->chdir(vec_ControlInfo[nControlIndex].m_basicProperty.m_controlName.c_str());
+				for (unsigned int nEventIndex = 0; nEventIndex < vec_ControlInfo[nControlIndex].m_basicProperty.mVec_eventInfo.size(); ++nEventIndex) {
+					pFuncTree->link(vec_ControlInfo[nControlIndex].m_basicProperty.mVec_eventInfo[nEventIndex].m_EventAddr);
+				}
+			}
+		}
 	}
 	else {
 		activate_widget(widget, true);
@@ -174,7 +199,62 @@ bool EDecompilerEngine::krnln_IsMenuItemID(unsigned int ID)
 	return krnln_GetIDGroupType(ID) == 0x6000000 && krnln_GetIDSubType(ID) == 0x20000000;
 }
 
+void EDecompilerEngine::Parse_MainWindow(unsigned char* lpControlInfo, mid_EBasicProperty& out_Property)
+{
+	//无用字符串1?
+	ReadStr(lpControlInfo);
+	lpControlInfo += qstrlen(lpControlInfo) + 1;
 
+	//无用字符串1?
+	ReadStr(lpControlInfo);
+	lpControlInfo += qstrlen(lpControlInfo) + 1;
+
+	//存储数据?
+	ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	out_Property.m_left = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	out_Property.m_top = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	out_Property.m_width = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	out_Property.m_height = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	//未知值
+	lpControlInfo += 8;
+
+	//一级索引?
+	unsigned int index1 = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	//二级偏移?
+	unsigned int offset2 = lpControlInfo[index1];
+	lpControlInfo += index1 * 4;
+	lpControlInfo += offset2 + 4;
+
+	//标记
+	out_Property.m_tag = ReadStr(lpControlInfo);
+	lpControlInfo += qstrlen(lpControlInfo) + 1;
+
+	//未知的值
+	lpControlInfo += 12;
+
+	int dwEventCount = ReadInt(lpControlInfo);
+	for (int nIndexEvent = 0; nIndexEvent < dwEventCount; ++nIndexEvent) {
+		mid_EventInfo tmpEvent;
+		tmpEvent.m_nEventIndex = ReadInt(lpControlInfo);
+		lpControlInfo += 4;
+		tmpEvent.m_EventAddr = ReadUInt(lpControlInfo) + m_eAppInfo.m_UserCodeStartAddr;
+		out_Property.mVec_eventInfo.push_back(tmpEvent);
+	}
+
+	//To do...
+}
 
 bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 {
@@ -262,59 +342,7 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 				if (dwControlTypeId == 0x10001) {
 					//这是主窗口
 
-					//无用字符串1?
-					ReadStr(lpControlInfo);
-					lpControlInfo += qstrlen(lpControlInfo) + 1;
-
-					//无用字符串1?
-					ReadStr(lpControlInfo);
-					lpControlInfo += qstrlen(lpControlInfo) + 1;
-
-					//存储数据?
-					ReadUInt(lpControlInfo);
-					lpControlInfo += 4;
-
-					eControlInfo.m_basicProperty.m_left = ReadUInt(lpControlInfo);
-					lpControlInfo += 4;
-
-					eControlInfo.m_basicProperty.m_top = ReadUInt(lpControlInfo);
-					lpControlInfo += 4;
-
-					eControlInfo.m_basicProperty.m_width = ReadUInt(lpControlInfo);
-					lpControlInfo += 4;
-
-					eControlInfo.m_basicProperty.m_height = ReadUInt(lpControlInfo);
-					lpControlInfo += 4;
-
-					//未知值
-					lpControlInfo += 8;
-
-					//一级索引?
-					unsigned int index1 = ReadUInt(lpControlInfo);
-					lpControlInfo += 4;
-
-					//二级偏移?
-					unsigned int offset2 = lpControlInfo[index1];
-					lpControlInfo += index1 * 4;
-					lpControlInfo += offset2 + 4;
-
-					//标记
-					eControlInfo.m_basicProperty.m_tag = ReadStr(lpControlInfo);
-					lpControlInfo += qstrlen(lpControlInfo) + 1;
-
-					//未知的值
-					lpControlInfo += 12;
-
-					int dwEventCount = ReadInt(lpControlInfo);
-					for (int nIndexEvent = 0; nIndexEvent < dwEventCount; ++nIndexEvent) {
-						mid_EventInfo tmpEvent;
-						tmpEvent.m_nEventIndex = ReadInt(lpControlInfo);
-						lpControlInfo += 4;
-						tmpEvent.m_EventAddr = ReadUInt(lpControlInfo) + m_eAppInfo.m_UserCodeStartAddr;
-						eControlInfo.m_basicProperty.mVec_eventInfo.push_back(tmpEvent);
-					}
-					
-					//To do...
+					Parse_MainWindow(lpControlInfo, eControlInfo.m_basicProperty);
 				}
 				else if (EDecompilerEngine::krnln_IsMenuItemID(vec_ControlId[nIndexControl])) {
 					eControlInfo.b_isMenu = true;
@@ -470,6 +498,8 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 	return true;
 }
 
+
+
 bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCount)
 {
 	for (unsigned int nLibIndex = 0; nLibIndex < dwLibCount; ++nLibIndex) {
@@ -558,6 +588,13 @@ bool EDecompilerEngine::DoDecompile()
 	return true;
 }
 
+bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
+{
+	lpKrnlEntry -= sizeof(mid_KrnlApp);
+	get_bytes(&m_eAppInfo.m_KrnlApp, sizeof(mid_KrnlApp), lpKrnlEntry);
+	return true;
+}
+
 bool EDecompilerEngine::DoDecompiler_EStatic()
 {
 	EHead eHead;
@@ -574,6 +611,13 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 	}
 
 	ParseLibInfomation(eHead.lpLibEntry, eHead.dwLibNum);
+
+
+	ea_t dwKrnlEntry = eHead.lpEString;
+	if (dwKrnlEntry == 0) {
+		dwKrnlEntry = eHead.lpEWindow;
+	}
+	ParseKrnlInterface(dwKrnlEntry);
 
 	if (eHead.lpEString != 0 && eHead.dwEStringSize != 0) {
 		ParseStringResource(eHead.lpEString, eHead.dwEStringSize);

@@ -200,6 +200,23 @@ struct mid_GuiInfo
 	qvector<mid_ControlInfo> mVec_ControlInfo;   //窗口中的控件
 };
 
+struct mid_KrnlApp
+{
+	ea_t krnl_MReportError;               //错误回调
+	ea_t krnl_MCallDllCmd;                //DLL命令
+	ea_t krnl_MCallLibCmd;                //三方支持库命令
+	ea_t krnl_MCallKrnlLibCmd;            //核心支持库命令
+	ea_t krnl_MReadProperty;              //读取组件属性
+	ea_t krnl_MWriteProperty;             //设置组件属性
+	ea_t krnl_MMalloc;                    //分配内存
+	ea_t krnl_MRealloc;                   //重新分配内存
+	ea_t krnl_MFree;                      //释放内存
+	ea_t krnl_MExitProcess;               //结束
+	ea_t krnl_MMessageLoop;               //窗口消息循环
+	ea_t krnl_MLoadBeginWin;              //载入启动窗口
+	ea_t krnl_MOtherHelp;                 //辅助功能
+};
+
 struct mid_EAppInfo
 {
 	ea_t m_UserCodeStartAddr;                          //用户起始地址
@@ -207,6 +224,9 @@ struct mid_EAppInfo
 	qvector<mid_BinSource> mVec_UserResource;          //用户资源
 	qvector<mid_GuiInfo>   mVec_GuiInfo;               //控件信息
 	qvector<mid_ELibInfo>  mVec_LibInfo;               //支持库信息
+
+	mid_KrnlApp m_KrnlApp;
+	bool b_IsWindowProgram;                            //是否是窗体程序
 };
 
 class IDAMenu;
@@ -231,8 +251,12 @@ private:
 	bool ParseStringResource(ea_t, uint32);
 	//解析支持库信息
 	bool ParseLibInfomation(ea_t, uint32);
+	//解析系统接口函数
+	bool ParseKrnlInterface(ea_t);
 	//是否为菜单项
 	static bool krnln_IsMenuItemID(unsigned int ID);
+	//解析窗体资源属性
+	void Parse_MainWindow(unsigned char* lpControlInfo, mid_EBasicProperty& out_Property);
 public:
 	EProgramsType_t m_ProgramType;
 	mid_EAppInfo m_eAppInfo;
