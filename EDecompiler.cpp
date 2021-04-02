@@ -13,7 +13,6 @@
 
 EDecompilerEngine g_MyDecompiler;
 
-
 struct chooser_UserResource :public chooser_multi_t
 {
 protected:
@@ -259,6 +258,7 @@ void EDecompilerEngine::Parse_MainWindow(unsigned char* lpControlInfo, mid_EBasi
 bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 {
 	m_eAppInfo.mVec_GuiInfo.clear();
+	m_eAppInfo.mMap_ControlIndex.clear();
 
 	qvector<unsigned char> tmpGuiBuf;
 	tmpGuiBuf.resize(infoSize);
@@ -353,6 +353,11 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 					eControlInfo.m_basicProperty.m_controlName = ReadStr(lpControlInfo);
 				}
 
+				ControlIndex eControlIndex;
+				eControlIndex.nWindowIndex = nIndexWindow;
+				eControlIndex.nControlIndex = nIndexControl;
+				m_eAppInfo.mMap_ControlIndex[vec_ControlId[nIndexControl]] = eControlIndex;
+
 				eControlInfo.m_controlId = vec_ControlId[nIndexControl];
 				eControlInfo.m_controlTypeId = dwControlTypeId;
 				eControlInfo.m_controlTypeName = GetLibDataTypeInfo(dwControlTypeId);
@@ -386,6 +391,15 @@ qstring EDecompilerEngine::GetLibDataTypeInfo(uint32 typeId)
 	ret = m_eAppInfo.mVec_LibInfo[libIndex].mVec_DataTypeInfo[typeIndex].m_Name;
 
 	return ret;
+}
+
+ControlType_t EDecompilerEngine::GetControlType(unsigned int controlTypeId)
+{
+	QMap<unsigned int, ControlType_t>::iterator it = g_MyDecompiler.mMap_ControlTypeIndex.find(controlTypeId);
+	if (it != g_MyDecompiler.mMap_ControlTypeIndex.end()) {
+		return *it;
+	}
+	return EC_UnknownControl;
 }
 
 BinType_t EDecompilerEngine::GetBinValueType(ea_t addr)
@@ -502,7 +516,17 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 
 bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCount)
 {
+	mMap_ControlTypeIndex.clear();
+
+	//库Guid + 控件名称 => 控件类型
+	static QMap<qstring, ControlType_t> ControlMap;
+	if (!ControlMap.size()) {
+		ControlMap["d09f2340818511d396f6aaf844c7e325窗口"] = EC_Window;
+		ControlMap["d09f2340818511d396f6aaf844c7e325标签"] = EC_Label;
+	}
+
 	for (unsigned int nLibIndex = 0; nLibIndex < dwLibCount; ++nLibIndex) {
+		unsigned int controlTypeId = 0;
 		LIB_INFO tmpLibInfo;
 		get_bytes(&tmpLibInfo, sizeof(LIB_INFO), get_dword(lpLibStartAddr));
 		lpLibStartAddr = lpLibStartAddr + 4;
@@ -511,6 +535,8 @@ bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCoun
 		if (tmpLibInfo.m_dwLibFormatVer != 0x1312D65) {
 			continue;
 		}
+
+		
 
 		mid_ELibInfo eLibInfo;
 		eLibInfo.m_Name = get_shortstring(tmpLibInfo.m_lpName);
@@ -526,7 +552,14 @@ bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCoun
 
 			mid_EDataTypeInfo eDataType;
 			if (tmpDataTypeInfo.m_lpszName) {
+				controlTypeId = (nLibIndex + 1) << 0x10;
+				controlTypeId = controlTypeId + (nDataTypeIndex + 1);
 				eDataType.m_Name = get_shortstring(tmpDataTypeInfo.m_lpszName);
+
+				QMap<qstring, ControlType_t>::iterator it = ControlMap.find(eLibInfo.m_Guid + eDataType.m_Name);
+				if (it != ControlMap.end()) {
+					mMap_ControlTypeIndex[controlTypeId] = *it;
+				}
 			}
 			eLibInfo.mVec_DataTypeInfo.push_back(eDataType);
 		}
@@ -544,6 +577,11 @@ EDecompilerEngine::~EDecompilerEngine()
 {
 	if (gMenu_ShowResource) {
 		gMenu_ShowResource->DestroyMenu();
+		gMenu_ShowResource = nullptr;
+	}
+	if (gMenu_ShowGUIInfo) {
+		gMenu_ShowGUIInfo->DestroyMenu();
+		gMenu_ShowGUIInfo = nullptr;
 	}
 }
 
@@ -621,16 +659,12 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 
 	if (eHead.lpEString != 0 && eHead.dwEStringSize != 0) {
 		ParseStringResource(eHead.lpEString, eHead.dwEStringSize);
-		qstring 菜单_用户资源菜单;
-		acp_utf8(&菜单_用户资源菜单, "易语言/用户常量资源");
-		gMenu_ShowResource = IDAMenu::CreateMenu(菜单_用户资源菜单.c_str(), MenuHandle_ShowUserResource);
+		gMenu_ShowResource = IDAMenu::CreateMenu(getUTF8String("易语言/用户常量资源").c_str(), MenuHandle_ShowUserResource);
 	}
 
 	if (eHead.lpEWindow != 0 && eHead.dwEWindowSize != 0) {
 		ParseGUIResource(eHead.lpEWindow, eHead.dwEWindowSize);
-		qstring 菜单_窗口控件信息;
-		acp_utf8(&菜单_窗口控件信息, "易语言/窗口控件信息");
-		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(菜单_窗口控件信息.c_str(), MenuHandle_ShowGuiInfo);
+		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/窗口控件信息").c_str(), MenuHandle_ShowGuiInfo);
 	}
 
 	

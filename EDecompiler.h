@@ -1,5 +1,7 @@
 #pragma once
 #include <pro.h>
+#include <QMap>
+#include <QVariant>
 #include "SectionManager.h"
 
 
@@ -145,6 +147,13 @@ enum BinType_t
 	e_SwitchTable,         //switch case表
 };
 
+enum ControlType_t
+{
+	EC_UnknownControl = 0,
+	EC_Window,
+	EC_Label,
+};
+
 struct mid_BinSource
 {
 	BinType_t itype;
@@ -163,15 +172,15 @@ struct mid_EventInfo
 	uint32 m_EventAddr;      //事件地址
 };
 
-//控件的基本属性
+//每个控件都有的基本属性
 struct mid_EBasicProperty
 {
-	qstring m_controlName;   //名称
-	int m_left;              //左边
-	int m_top;               //顶边
-	int m_width;             //宽度
-	int m_height;            //高度
-	qstring m_tag;           //标记
+	qstring m_controlName;     //名称
+	int m_left;                //左边
+	int m_top;                 //顶边
+	int m_width;               //宽度
+	int m_height;              //高度
+	qstring m_tag;             //标记
 	qvector<mid_EventInfo> mVec_eventInfo;   //事件处理
 };
 
@@ -192,6 +201,13 @@ struct mid_ControlInfo
 	qstring m_controlTypeName;          //控件类型名称
 	bool b_isMenu;                      //是否为菜单控件
 	mid_EBasicProperty m_basicProperty; //控件的基础属性
+	QMap<qstring, QVariant>  m_extraProperty;   //控件的额外属性
+};
+
+struct ControlIndex
+{
+	unsigned int nWindowIndex;
+	unsigned int nControlIndex;
 };
 
 struct mid_GuiInfo
@@ -222,9 +238,11 @@ struct mid_EAppInfo
 	ea_t m_UserCodeStartAddr;                          //用户起始地址
 	ea_t m_UserCodeEndAddr;                            //用户结束地址,目前暂时还没有什么好办法获取这个地址,如果有好的想法欢迎提issue
 	qvector<mid_BinSource> mVec_UserResource;          //用户资源
-	qvector<mid_GuiInfo>   mVec_GuiInfo;               //控件信息
-	qvector<mid_ELibInfo>  mVec_LibInfo;               //支持库信息
 
+	qvector<mid_GuiInfo>   mVec_GuiInfo;               //控件信息
+	QMap<unsigned int, ControlIndex> mMap_ControlIndex;//快查表,根据控件ID直接定位到控件索引
+
+	qvector<mid_ELibInfo>  mVec_LibInfo;               //支持库信息
 	mid_KrnlApp m_KrnlApp;
 	bool b_IsWindowProgram;                            //是否是窗体程序
 };
@@ -239,6 +257,8 @@ public:
 public:
 	bool InitDecompilerEngine();
 	bool DoDecompile();
+	//根据控件类型ID来获得具体的类型
+	static ControlType_t GetControlType(unsigned int controlTypeId);
 private:
 	bool DoDecompiler_EStatic();
 	//根据交叉引用来判断指定地址的数据类型
@@ -264,6 +284,9 @@ private:
 	ea_t m_EHeadAddr;
 	IDAMenu* gMenu_ShowResource = nullptr;
 	IDAMenu* gMenu_ShowGUIInfo = nullptr;
+
+	//快查表,根据控件类型ID快速定位到控件类型
+	QMap<unsigned int, ControlType_t> mMap_ControlTypeIndex;
 };
 
 extern EDecompilerEngine g_MyDecompiler;
