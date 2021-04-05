@@ -175,7 +175,7 @@ struct mid_EventInfo
 //每个控件都有的基本属性
 struct mid_EBasicProperty
 {
-	qstring m_controlName;     //名称
+	
 	int m_left;                //左边
 	int m_top;                 //顶边
 	int m_width;               //宽度
@@ -197,11 +197,13 @@ struct mid_ELibInfo
 struct mid_ControlInfo
 {
 	uint32 m_controlId;                 //控件自身ID
+	qstring m_controlName;              //控件名称
 	uint32 m_controlTypeId;             //控件所属数据类型的ID
 	qstring m_controlTypeName;          //控件类型名称
 	bool b_isMenu;                      //是否为菜单控件
 	mid_EBasicProperty m_basicProperty; //控件的基础属性
-	QMap<qstring, QVariant>  m_extraProperty;   //控件的额外属性
+	ea_t m_propertyAddr;                //属性地址
+	int32 m_propertySize;              //属性大小
 };
 
 struct ControlIndex
@@ -238,10 +240,7 @@ struct mid_EAppInfo
 	ea_t m_UserCodeStartAddr;                          //用户起始地址
 	ea_t m_UserCodeEndAddr;                            //用户结束地址,目前暂时还没有什么好办法获取这个地址,如果有好的想法欢迎提issue
 	qvector<mid_BinSource> mVec_UserResource;          //用户资源
-
 	qvector<mid_GuiInfo>   mVec_GuiInfo;               //控件信息
-	QMap<unsigned int, ControlIndex> mMap_ControlIndex;//快查表,根据控件ID直接定位到控件索引
-
 	qvector<mid_ELibInfo>  mVec_LibInfo;               //支持库信息
 	mid_KrnlApp m_KrnlApp;
 	bool b_IsWindowProgram;                            //是否是窗体程序
@@ -259,6 +258,8 @@ public:
 	bool DoDecompile();
 	//根据控件类型ID来获得具体的类型
 	static ControlType_t GetControlType(unsigned int controlTypeId);
+	//根据控件ID直接获取控件属性
+	static bool GetControlInfo(unsigned int controlId, mid_ControlInfo& out_ControlInfo);
 private:
 	bool DoDecompiler_EStatic();
 	//根据交叉引用来判断指定地址的数据类型
@@ -287,6 +288,8 @@ private:
 
 	//快查表,根据控件类型ID快速定位到控件类型
 	QMap<unsigned int, ControlType_t> mMap_ControlTypeIndex;
+	//快查表,根据控件ID直接定位到控件索引
+	QMap<unsigned int, ControlIndex> mMap_ControlIndex;
 };
 
 extern EDecompilerEngine g_MyDecompiler;

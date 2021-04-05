@@ -140,3 +140,42 @@ qstring ReadStr(unsigned char* pBuf)
 	qstring ret((const char*)pBuf, Len);
 	return ret;
 }
+
+int CDR_ReadInt(unsigned char*& currentPoint)
+{
+	int ret = *(int32*)currentPoint;
+	currentPoint += 4;
+	return ret;
+}
+
+unsigned int CDR_ReadUInt(unsigned char*& currentPoint)
+{
+	unsigned int ret = *(uint32*)currentPoint;
+	currentPoint += 4;
+	return ret;
+}
+
+qstring CDR_ReadCString(unsigned char*& currentPoint)
+{
+	qstring ret;
+	int len = CDR_ReadInt(currentPoint);
+	if (len > 0) {
+		ret.resize(len);
+		memcpy(&ret[0], currentPoint, len);
+		currentPoint += len;
+	}
+	return ret;
+}
+
+
+qvector<unsigned char> CDR_ReadCFreqMem(unsigned char*& currentPoint)
+{
+	qvector<unsigned char> ret;
+	int len = CDR_ReadInt(currentPoint);
+	if (len > 0) {
+		ret.resize(len);
+		memcpy(&ret[0], currentPoint, len);
+		currentPoint += len;
+	}
+	return ret;
+}

@@ -25,3 +25,14 @@ int32 ReadInt(unsigned char* pBuf);
 
 qstring ReadStr(unsigned char* pBuf);
 
+//序列化_读取Int
+int CDR_ReadInt(unsigned char*& currentPoint);
+
+//序列化_读取Uint
+unsigned int CDR_ReadUInt(unsigned char*& currentPoint);
+
+//序列化_读取字符串
+qstring CDR_ReadCString(unsigned char*& currentPoint);
+
+//序列化_读取数据
+qvector<unsigned char> CDR_ReadCFreqMem(unsigned char*& currentPoint);

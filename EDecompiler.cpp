@@ -141,11 +141,11 @@ int MenuHandle_ShowGuiInfo()
 					//如果是主窗口
 
 				}
-				else if (vec_ControlInfo[nControlIndex].m_basicProperty.m_controlName.empty()) {
+				else if (vec_ControlInfo[nControlIndex].m_controlName.empty()) {
 					continue;
 				}
-				pFuncTree->mkdir(vec_ControlInfo[nControlIndex].m_basicProperty.m_controlName.c_str());
-				pFuncTree->chdir(vec_ControlInfo[nControlIndex].m_basicProperty.m_controlName.c_str());
+				pFuncTree->mkdir(vec_ControlInfo[nControlIndex].m_controlName.c_str());
+				pFuncTree->chdir(vec_ControlInfo[nControlIndex].m_controlName.c_str());
 				for (unsigned int nEventIndex = 0; nEventIndex < vec_ControlInfo[nControlIndex].m_basicProperty.mVec_eventInfo.size(); ++nEventIndex) {
 					pFuncTree->link(vec_ControlInfo[nControlIndex].m_basicProperty.mVec_eventInfo[nEventIndex].m_EventAddr);
 				}
@@ -258,7 +258,7 @@ void EDecompilerEngine::Parse_MainWindow(unsigned char* lpControlInfo, mid_EBasi
 bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 {
 	m_eAppInfo.mVec_GuiInfo.clear();
-	m_eAppInfo.mMap_ControlIndex.clear();
+	mMap_ControlIndex.clear();
 
 	qvector<unsigned char> tmpGuiBuf;
 	tmpGuiBuf.resize(infoSize);
@@ -329,9 +329,12 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 				mid_ControlInfo eControlInfo;
 				
 				//控件占用的大小
-				uint32 dwControlSize = ReadUInt(lpControlInfo);
+				int32 dwControlSize = ReadInt(lpControlInfo);
 				lpControlInfo += 4;
 				
+				eControlInfo.m_propertyAddr = lpGUIStart + (lpControlInfo - &tmpGuiBuf[0]);
+				eControlInfo.m_propertySize = dwControlSize;
+
 				//控件类型ID
 				uint32 dwControlTypeId = ReadUInt(lpControlInfo);
 				lpControlInfo += 4;
@@ -341,22 +344,21 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 
 				if (dwControlTypeId == 0x10001) {
 					//这是主窗口
-
 					Parse_MainWindow(lpControlInfo, eControlInfo.m_basicProperty);
 				}
 				else if (EDecompilerEngine::krnln_IsMenuItemID(vec_ControlId[nIndexControl])) {
 					eControlInfo.b_isMenu = true;
 					lpControlInfo += 14;
-					eControlInfo.m_basicProperty.m_controlName = ReadStr(lpControlInfo);
+					eControlInfo.m_controlName = ReadStr(lpControlInfo);
 				}
 				else {
-					eControlInfo.m_basicProperty.m_controlName = ReadStr(lpControlInfo);
+					eControlInfo.m_controlName = ReadStr(lpControlInfo);
 				}
 
 				ControlIndex eControlIndex;
 				eControlIndex.nWindowIndex = nIndexWindow;
 				eControlIndex.nControlIndex = nIndexControl;
-				m_eAppInfo.mMap_ControlIndex[vec_ControlId[nIndexControl]] = eControlIndex;
+				g_MyDecompiler.mMap_ControlIndex[vec_ControlId[nIndexControl]] = eControlIndex;
 
 				eControlInfo.m_controlId = vec_ControlId[nIndexControl];
 				eControlInfo.m_controlTypeId = dwControlTypeId;
@@ -391,6 +393,16 @@ qstring EDecompilerEngine::GetLibDataTypeInfo(uint32 typeId)
 	ret = m_eAppInfo.mVec_LibInfo[libIndex].mVec_DataTypeInfo[typeIndex].m_Name;
 
 	return ret;
+}
+
+bool EDecompilerEngine::GetControlInfo(unsigned int controlId, mid_ControlInfo& out_ControlInfo)
+{
+	QMap<unsigned int, ControlIndex>::iterator it = g_MyDecompiler.mMap_ControlIndex.find(controlId);
+	if (it != g_MyDecompiler.mMap_ControlIndex.end()) {
+		out_ControlInfo = g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[it->nWindowIndex].mVec_ControlInfo[it->nControlIndex];
+		return true;
+	}
+	return false;
 }
 
 ControlType_t EDecompilerEngine::GetControlType(unsigned int controlTypeId)
@@ -536,7 +548,6 @@ bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCoun
 			continue;
 		}
 
-		
 
 		mid_ELibInfo eLibInfo;
 		eLibInfo.m_Name = get_shortstring(tmpLibInfo.m_lpName);
