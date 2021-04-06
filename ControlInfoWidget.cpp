@@ -10,7 +10,14 @@ extern EDecompilerEngine g_MyDecompiler;
 #define COLUMN_PropertyName  0
 #define COLUMN_PropertyValue 1
 
-
+QString Control_GetBoolStr(unsigned int value)
+{
+	QString ret = QStringLiteral("真");
+	if (!value) {
+		ret = QStringLiteral("假");
+	}
+	return ret;
+}
 
 void ControlInfoWidget::InitKernelControl_Window(mid_ControlInfo* pControl)
 {
@@ -183,6 +190,159 @@ void ControlInfoWidget::InitKernelControl_Window(mid_ControlInfo* pControl)
 	if (WinData.标题.size()) {
 		ui.ControlTable->setItem(9, COLUMN_PropertyValue, new QTableWidgetItem(QString::fromLocal8Bit(WinData.标题.c_str())));
 	}
+
+	ui.ControlTable->setItem(10, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("边框")));
+	QString str_边框;
+	switch (WinData.边框)
+	{
+	case 0x0:
+		str_边框 = QStringLiteral("无边框");
+		break;
+	case 1:
+		str_边框 = QStringLiteral("普通可调边框");
+		break;
+	case 2:
+		str_边框 = QStringLiteral("普通固定边框");
+		break;
+	case 3:
+		str_边框 = QStringLiteral("窄标题可调边框");
+		break;
+	case 4:
+		str_边框 = QStringLiteral("窄标题固定边框");
+		break;
+	case 5:
+		str_边框 = QStringLiteral("镜框式可调边框");
+		break;
+	case 6:
+		str_边框 = QStringLiteral("镜框式固定边框");
+		break;
+	default:
+		str_边框 = QStringLiteral("未知边框");
+		break;
+	}
+	ui.ControlTable->setItem(10, COLUMN_PropertyValue, new QTableWidgetItem(str_边框));
+
+	ui.ControlTable->setItem(11, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("底色")));
+	if (WinData.底色 == 0xFF000000) {
+		uint32 color = GetSysColor(COLOR_BTNFACE);
+		ui.ControlTable->setItem(11, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("默认底色"), ui_ColorDialog));
+		ui.ControlTable->item(11, COLUMN_PropertyValue)->setBackgroundColor(QColor(GetRValue(color), GetGValue(color), GetBValue(color)));
+	}
+	else {
+		ui.ControlTable->setItem(11, COLUMN_PropertyValue, new QTableWidgetItem("", ui_ColorDialog));
+		ui.ControlTable->item(11, COLUMN_PropertyValue)->setBackgroundColor(QColor(GetRValue(WinData.底色), GetGValue(WinData.底色), GetBValue(WinData.底色)));
+	}
+
+	ui.ControlTable->setItem(12, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("底图")));
+	if (WinData.底图.size()) {
+		ui.ControlTable->setItem(12, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("有数据")));
+		//懒得显图了...
+	}
+
+	ui.ControlTable->setItem(13, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("    底图方式")));
+	QString str_底图方式;
+	switch (WinData.底图方式)
+	{
+	case 0:
+		str_底图方式 = QStringLiteral("图片居左上");
+		break;
+	case 1:
+		str_底图方式 = QStringLiteral("图片平铺");
+		break;
+	case 2:
+		str_底图方式 = QStringLiteral("图片居中");
+		break;
+	case 3:
+		str_底图方式 = QStringLiteral("缩放图片");
+		break;
+	default:
+		str_底图方式 = QStringLiteral("未知方式");
+		break;
+	}
+	ui.ControlTable->setItem(13, COLUMN_PropertyValue, new QTableWidgetItem(str_底图方式));
+
+	ui.ControlTable->setItem(14, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("背景音乐")));
+	if (WinData.背景音乐.size()) {
+		ui.ControlTable->setItem(14, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("有数据")));
+	}
+
+	ui.ControlTable->setItem(15, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("    播放次数")));
+	QString str_播放次数;
+	if (WinData.播放次数 == 0) {
+		str_播放次数 = QStringLiteral("循环播放");
+	}
+	else if (WinData.播放次数 == 1) {
+		str_播放次数 = QStringLiteral("仅播放一次");
+	}
+	else if (WinData.播放次数 == 2) {
+		str_播放次数 = QStringLiteral("不播放");
+	}
+	else {
+		str_播放次数 = QStringLiteral("未知播放");
+	}
+	ui.ControlTable->setItem(15, COLUMN_PropertyValue, new QTableWidgetItem(str_播放次数));
+
+	ui.ControlTable->setItem(16, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("控制按钮")));
+	ui.ControlTable->setItem(16, COLUMN_PropertyValue, new QTableWidgetItem(Control_GetBoolStr(WinData.控制按钮)));
+
+	ui.ControlTable->setItem(17, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("    最大化按钮")));
+	ui.ControlTable->setItem(17, COLUMN_PropertyValue, new QTableWidgetItem(Control_GetBoolStr(WinData.最大化按钮)));
+
+	ui.ControlTable->setItem(18, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("    最小化按钮")));
+	ui.ControlTable->setItem(18, COLUMN_PropertyValue, new QTableWidgetItem(Control_GetBoolStr(WinData.最小化按钮)));
+
+	ui.ControlTable->setItem(19, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("位置")));
+	QString str_位置;
+	switch (WinData.位置)
+	{
+	case 0:
+		str_位置 = QStringLiteral("通常");
+		break;
+	case 1:
+		str_位置 = QStringLiteral("居中");
+		break;
+	case 2:
+		str_位置 = QStringLiteral("最小化");
+		break;
+	case 3:
+		str_位置 = QStringLiteral("最大化");
+		break;
+	default:
+		str_位置 = QStringLiteral("未知位置");
+		break;
+	}
+	ui.ControlTable->setItem(19, COLUMN_PropertyValue, new QTableWidgetItem(str_位置));
+
+	ui.ControlTable->setItem(20, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("可否移动")));
+	ui.ControlTable->setItem(20, COLUMN_PropertyValue, new QTableWidgetItem(Control_GetBoolStr(WinData.可否移动)));
+
+	ui.ControlTable->setItem(21, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("图标")));
+	if (WinData.图标.size()) {
+		ui.ControlTable->setItem(21, COLUMN_PropertyValue, new QTableWidgetItem("有数据"));
+	}
+
+	ui.ControlTable->setItem(22, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("回车下移焦点")));
+	ui.ControlTable->setItem(22, COLUMN_PropertyValue, new QTableWidgetItem(Control_GetBoolStr(WinData.回车下移焦点)));
+
+	ui.ControlTable->setItem(23, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("Esc键关闭")));
+	ui.ControlTable->setItem(23, COLUMN_PropertyValue, new QTableWidgetItem(Control_GetBoolStr(WinData.Esc键关闭)));
+
+	ui.ControlTable->setItem(24, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("F1键打开帮助")));
+	ui.ControlTable->setItem(24, COLUMN_PropertyValue, new QTableWidgetItem(Control_GetBoolStr(WinData.F1键打开帮助)));
+
+	ui.ControlTable->setItem(25, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("    帮助文件名")));
+	ui.ControlTable->setItem(25, COLUMN_PropertyValue, new QTableWidgetItem(QString::fromLocal8Bit(WinData.帮助文件名.c_str())));
+
+	//To do...
+
+	ui.ControlTable->setItem(31, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("总在最前")));
+	ui.ControlTable->setItem(31, COLUMN_PropertyValue, new QTableWidgetItem(Control_GetBoolStr(WinData.总在最前)));
+
+	ui.ControlTable->setItem(31, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("保持标题条激活")));
+	ui.ControlTable->setItem(31, COLUMN_PropertyValue, new QTableWidgetItem(Control_GetBoolStr(WinData.保持标题条激活)));
+
+	ui.ControlTable->setItem(32, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("窗口类名")));
+	ui.ControlTable->setItem(32, COLUMN_PropertyValue, new QTableWidgetItem(QString::fromLocal8Bit(WinData.窗口类名.c_str())));
 	return;
 }
 

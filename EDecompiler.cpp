@@ -59,6 +59,7 @@ private:
 			qstring tmpStr;
 			tmpStr.resize(vec_Bin[n].extraData);
 			get_bytes(&tmpStr[0], vec_Bin[n].extraData, vec_Bin[n].address);
+			tmpStr.replace("\x0D\x0A", "\r\n");
 			acp_utf8(&cols[2], tmpStr.c_str());
 		}
 			break;
@@ -470,7 +471,6 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 		tmpSource.itype = GetBinValueType(lpStringStart + index);
 		tmpSource.address = lpStringStart + index;
 
-
 		if (tmpSource.itype == e_NullStr && !bOnlyOneNullStr) {    //空字符串
 			bOnlyOneNullStr = true;
 			index++;
@@ -481,21 +481,25 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 				bOnlyOneNullBin = true;
 			}
 			index += 8;
+			continue;
 		}
 		else if (tmpSource.itype == e_FloatValue) {               //浮点数
 			index += 8;
+			continue;
 		}
 		else if (tmpSource.itype == e_ClassTable) {
 			do
 			{
 				index++;
 			} while (!GetAllDataRef(lpStringStart + index).size());
+			continue;
 		}
 		else if (tmpSource.itype == e_SwitchTable) {
 			do
 			{
 				index++;
 			} while (!GetAllDataRef(lpStringStart + index).size());
+			continue;
 		}
 		else if (get_dword(tmpSource.address) == 0x1) {		//字节集
 			int size = get_dword(tmpSource.address + 4);

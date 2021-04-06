@@ -7,19 +7,19 @@ void Unserialize_WinFormData(unsigned char* lpControlData, WinFrom_UnitData* out
 	lpControlData += 4;
 
 	if (out_Data->version <= 6) {
-		out_Data->field_4 = CDR_ReadUInt(lpControlData);
-		out_Data->field_8 = CDR_ReadUInt(lpControlData);
-		out_Data->field_C = CDR_ReadUInt(lpControlData);
+		out_Data->边框 = CDR_ReadUInt(lpControlData);
+		out_Data->底图方式 = CDR_ReadUInt(lpControlData);
+		out_Data->底色 = CDR_ReadUInt(lpControlData);
 
-		out_Data->field_10 = CDR_ReadUInt(lpControlData);
-		out_Data->field_14 = CDR_ReadUInt(lpControlData);
-		out_Data->field_18 = CDR_ReadUInt(lpControlData);
-		out_Data->field_1C = CDR_ReadUInt(lpControlData);
-		out_Data->field_20 = CDR_ReadUInt(lpControlData);
-		out_Data->field_24 = CDR_ReadUInt(lpControlData);
-		out_Data->field_28 = CDR_ReadUInt(lpControlData);
-		out_Data->field_2C = CDR_ReadUInt(lpControlData);
-		out_Data->field_30 = CDR_ReadUInt(lpControlData);
+		out_Data->最大化按钮 = CDR_ReadUInt(lpControlData);
+		out_Data->最小化按钮 = CDR_ReadUInt(lpControlData);
+		out_Data->控制按钮 = CDR_ReadUInt(lpControlData);
+		out_Data->位置 = CDR_ReadUInt(lpControlData);
+		out_Data->可否移动 = CDR_ReadUInt(lpControlData);
+		out_Data->播放次数 = CDR_ReadUInt(lpControlData);
+		out_Data->回车下移焦点 = CDR_ReadUInt(lpControlData);
+		out_Data->Esc键关闭 = CDR_ReadUInt(lpControlData);
+		out_Data->F1键打开帮助 = CDR_ReadUInt(lpControlData);
 		out_Data->field_34 = CDR_ReadUInt(lpControlData);
 
 		if (out_Data->version >= 2) {
@@ -30,21 +30,21 @@ void Unserialize_WinFormData(unsigned char* lpControlData, WinFrom_UnitData* out
 			out_Data->field_40 = CDR_ReadUInt(lpControlData);
 		}
 		if (out_Data->version >= 4) {
-			out_Data->field_44 = CDR_ReadUInt(lpControlData);
+			out_Data->总在最前 = CDR_ReadUInt(lpControlData);
 		}
 		if (out_Data->version >= 5) {
-			out_Data->field_48 = CDR_ReadUInt(lpControlData);
+			out_Data->保持标题条激活 = CDR_ReadUInt(lpControlData);
 		}
 		if (out_Data->version == 6) {
-			out_Data->unknowStringA = CDR_ReadCString(lpControlData);
+			out_Data->窗口类名 = CDR_ReadCString(lpControlData);
 		}
 
-		out_Data->unknowDataA = CDR_ReadCFreqMem(lpControlData);
-		out_Data->unknowDataB = CDR_ReadCFreqMem(lpControlData);
-		out_Data->unknowDataC = CDR_ReadCFreqMem(lpControlData);
+		out_Data->底图 = CDR_ReadCFreqMem(lpControlData);
+		out_Data->图标 = CDR_ReadCFreqMem(lpControlData);
+		out_Data->背景音乐 = CDR_ReadCFreqMem(lpControlData);
 
 		out_Data->标题 = CDR_ReadCString(lpControlData);
-		CDR_ReadCString(lpControlData);
+		out_Data->帮助文件名 = CDR_ReadCString(lpControlData);
 	}
 	return;
 }
