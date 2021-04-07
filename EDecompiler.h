@@ -175,7 +175,6 @@ struct mid_EventInfo
 //每个控件都有的基本属性
 struct mid_EBasicProperty
 {
-	
 	int m_left;                //左边
 	int m_top;                 //顶边
 	int m_width;               //宽度
@@ -203,7 +202,7 @@ struct mid_ControlInfo
 	bool b_isMenu;                      //是否为菜单控件
 	mid_EBasicProperty m_basicProperty; //控件的基础属性
 	ea_t m_propertyAddr;                //属性地址
-	int32 m_propertySize;              //属性大小
+	int32 m_propertySize;               //属性大小
 };
 
 struct ControlIndex

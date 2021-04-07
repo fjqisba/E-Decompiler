@@ -16,10 +16,10 @@ struct WinFrom_UnitData
 	unsigned int 回车下移焦点;
 	unsigned int Esc键关闭;
 	unsigned int F1键打开帮助;
-	unsigned int field_34;
-	unsigned int field_38;
-	unsigned int field_3C;
-	unsigned int field_40;
+	unsigned int 帮助标记值;
+	unsigned int 在任务条中显示;
+	unsigned int 随意移动;
+	unsigned int 外形;
 	unsigned int 总在最前;
 	unsigned int 保持标题条激活;
 	qstring 窗口类名;
@@ -31,3 +31,17 @@ struct WinFrom_UnitData
 };
 
 void Unserialize_WinFormData(unsigned char* lpControlData, WinFrom_UnitData* out_Data);
+
+void 取窗口属性_默认(WinFrom_UnitData* out_Data);
+
+qstring 取窗口属性_外形(unsigned int index);
+
+qstring 取窗口属性_位置(unsigned int index);
+
+qstring 取窗口属性_鼠标指针(unsigned int index);
+
+qstring 取窗口属性_边框(unsigned int index);
+
+qstring 取窗口属性_底图方式(unsigned int index);
+
+qstring 取窗口属性_播放次数(unsigned int index);

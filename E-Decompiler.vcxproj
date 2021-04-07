@@ -61,6 +61,7 @@
     <OutDir>D:\fjqisba\IDA 7.5 SP3\plugins</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutDir>D:\fjqisba\IDA 7.5 SP3\plugins</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -80,7 +81,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\MyLib\idasdk75\lib\x64_win_vc_32;C:\MyLib\idasdk75\lib\x64_win_qt;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ida.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ida.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Widgets.lib;user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">

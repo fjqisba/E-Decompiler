@@ -4,9 +4,10 @@
 enum PropertyType_t
 {
 	ui_default = 0,                   //Ä¬ÈÏÊý¾Ý
-	ui_LineEditor = 1000,		      //ÆÕÍ¨µÄ±à¼­¿ò
+	ui_LineEditor = 1000,             //ÆÕÍ¨µÄ±à¼­¿ò
 	ui_LineEditor_Disabled = 1001,    //½ûÖ¹µÄ±à¼­¿ò
-	ui_ColorDialog = 1002,            //ÑÕÉ«Ñ¡Ôñ¿ò
+	ui_LineEditor_ReadOnly = 1002,    //Ö»¶ÁµÄ±à¼­¿ò
+	ui_ColorDialog = 1003,            //ÑÕÉ«Ñ¡Ôñ¿ò
 };
 
 class PropertyDelegate :public QStyledItemDelegate
@@ -32,6 +33,12 @@ public:
 				ret->setEnabled(false);
 				return ret;
 			}
+			case ui_LineEditor_ReadOnly:
+			{
+				QLineEdit* ret = new QLineEdit(parent);
+				ret->setReadOnly(true);
+				return ret;
+			}
 			case ui_ColorDialog:
 			{
 				QColorDialog* ret = new QColorDialog(parent);
@@ -51,6 +58,7 @@ public:
 			switch (pItem->type())
 			{
 			case ui_LineEditor_Disabled:
+			case ui_LineEditor_ReadOnly:
 			{
 				QString value = index.model()->data(index, Qt::EditRole).toString();
 				QLineEdit* pLineEditor = static_cast<QLineEdit*>(editor);
