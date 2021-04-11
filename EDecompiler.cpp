@@ -10,107 +10,92 @@
 #include <name.hpp>
 #include "ControlInfoWidget.h"
 #include <QString>
+#include <QLocale>
+#include "E_WinForm.h"
+#include "E_Button.h"
 
 EDecompilerEngine g_MyDecompiler;
 
-struct chooser_UserResource :public chooser_multi_t
+int MenuHandle_ShowEventInfo()
 {
-protected:
-	const int widths_[3] = { 10,10,50 };
-	const char* header_[3] = { "Address","Type","Data" };
-public:
-	chooser_UserResource(const char* title) :chooser_multi_t(0, qnumber(widths_), widths_, header_, title)
+	struct eventInfo
 	{
+		ea_t EventAddr;
+		qstring ControlName;
+		qstring EventName;
+	};
 
-	}
-private:
-	~chooser_UserResource()
+	struct chooser_EventInfo :public chooser_multi_t
 	{
-
-	}
-	const void* get_obj_id(size_t* len) const
-	{
-		*len = strlen(title);
-		return title;
-	}
-
-	void idaapi get_row(qstrvec_t* cols_, int* icon_, chooser_item_attrs_t* attrs, size_t n) const
-	{
-		qstrvec_t& cols = *cols_;
-		qvector<mid_BinSource>& vec_Bin = g_MyDecompiler.m_eAppInfo.mVec_UserResource;
-
-		cols[0].sprnt("%08a", vec_Bin[n].address);
-
-		switch (vec_Bin[n].itype)
+	public:
+		qvector<eventInfo> vec_EventInfo;
+	protected:
+		const int widths_[3] = { 10,10,50 };
+		const char* header_[3] = { "Address","ControlType","EventName" };
+	public:
+		chooser_EventInfo(const char* title) :chooser_multi_t(0, qnumber(widths_), widths_, header_, title) {}
+	private:
+		~chooser_EventInfo() {}
+		const void* get_obj_id(size_t* len) const
 		{
-		case e_BinValue:
+			*len = strlen(title);
+			return title;
+		}
+		size_t idaapi get_count(void) const
 		{
-			qvector<unsigned char> tmpBin;
-			acp_utf8(&cols[1], "字节集");
-			int minSize = qmin(vec_Bin[n].extraData, 64);
-			tmpBin.resize(minSize);
-			get_bytes(&tmpBin[0], minSize, vec_Bin[n].address + 8);
-			cols[2] = 字节集_字节集到十六进制(tmpBin);
+			return vec_EventInfo.size();
 		}
-			break;
-		case e_StringValue:
+		cbres_t idaapi enter(sizevec_t* sel)
 		{
-			acp_utf8(&cols[1], "文本型");
-			qstring tmpStr;
-			tmpStr.resize(vec_Bin[n].extraData);
-			get_bytes(&tmpStr[0], vec_Bin[n].extraData, vec_Bin[n].address);
-			tmpStr.replace("\x0D\x0A", "\r\n");
-			acp_utf8(&cols[2], tmpStr.c_str());
+			if (sel->size()) {
+				jumpto(vec_EventInfo[sel->at(0)].EventAddr);
+			}
+			return cbres_t();
 		}
-			break;
-		case e_NullStr:
-			acp_utf8(&cols[1], "空白文本");
-			break;
-		case e_NullBin:
-			acp_utf8(&cols[1], "空白字节集");
-			break;
-		case e_ArrayHead:
-			acp_utf8(&cols[1], "数组头");
-			break;
-		case e_FloatValue:
+		void idaapi get_row(qstrvec_t* cols_, int* icon_, chooser_item_attrs_t* attrs, size_t n) const
 		{
-			acp_utf8(&cols[1], "浮点数");
-			double tmpFloatdata;
-			get_bytes(&tmpFloatdata, sizeof(double), vec_Bin[n].address);
-			cols[2].sprnt("%lf", tmpFloatdata);
+			qstrvec_t& cols = *cols_;
+			cols[0].sprnt("%08a", vec_EventInfo[n].EventAddr);
+			acp_utf8(&cols[1], vec_EventInfo[n].ControlName.c_str());
+			acp_utf8(&cols[2], vec_EventInfo[n].EventName.c_str());
 		}
-			break;
-		case e_ClassTable:
-			acp_utf8(&cols[1], "类虚表");
-			break;
-		case e_SwitchTable:
-			acp_utf8(&cols[1], "分支表");
-			break;
-		default:
-			break;
-		}
+	};
 
-		return;
-	}
-	cbres_t idaapi enter(sizevec_t* sel)
-	{
-		if (sel->size()) {
-			jumpto(g_MyDecompiler.m_eAppInfo.mVec_UserResource[sel->at(0)].address);
+	qstring title = getUTF8String("控件事件信息");
+	chooser_EventInfo* pEventWindow = new chooser_EventInfo(title.c_str());
+	for (unsigned int nWindowIndex = 0; nWindowIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo.size(); ++nWindowIndex) {
+		for (unsigned int nControlIndex = 0; nControlIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo.size(); ++nControlIndex) {
+			ControlType_t type = EDecompilerEngine::GetControlType(g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlTypeId);
+			for (unsigned int nEventIndex = 0; nEventIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_basicProperty.mVec_eventInfo.size(); ++nEventIndex) {
+				eventInfo eEventInfo;
+				eEventInfo.EventAddr = g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_basicProperty.mVec_eventInfo[nEventIndex].m_EventAddr;
+				eEventInfo.ControlName = g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlTypeName;
+				unsigned int index = g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_basicProperty.mVec_eventInfo[nEventIndex].m_nEventIndex;
+				switch (type)
+				{
+				case EC_Window:
+					eEventInfo.EventName.sprnt("_窗口0x%08X_%s", g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].m_windowId, 取窗口事件名称(index).c_str());
+					break;
+				case EC_Label:
+					break;
+				case EC_Button:
+					eEventInfo.EventName.sprnt("_%s_%s", g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlName.c_str(), 取按钮事件名称(index).c_str());
+					break;
+				default:
+					break;
+				}
+				pEventWindow->vec_EventInfo.push_back(eEventInfo);
+			}
 		}
-		return cbres_t();
 	}
 
-	size_t idaapi get_count(void) const
-	{
-		return g_MyDecompiler.m_eAppInfo.mVec_UserResource.size();
-	}
-};
+	pEventWindow->choose();
+	return 0;
+}
 
 int MenuHandle_ShowGuiInfo()
 {
-	qstring widgetTitle;
-	acp_utf8(&widgetTitle, "窗口控件信息");
-	TWidget* widget = find_widget(widgetTitle.c_str());
+	TWidget* widget = find_widget(getUTF8String("窗口控件信息").c_str());
 
 	if (widget == nullptr) {
 		ControlInfoWidget* Qwidget = new ControlInfoWidget();
@@ -162,9 +147,101 @@ int MenuHandle_ShowGuiInfo()
 
 int MenuHandle_ShowUserResource()
 {
-	qstring 标题;
-	acp_utf8(&标题, "用户常量资源");
-	chooser_UserResource* pUserChoose = new chooser_UserResource(标题.c_str());
+	struct chooser_UserResource :public chooser_multi_t
+	{
+	protected:
+		const int widths_[3] = { 10,10,50 };
+		const char* header_[3] = { "Address","Type","Data" };
+	public:
+		chooser_UserResource(const char* title) :chooser_multi_t(0, qnumber(widths_), widths_, header_, title)
+		{
+
+		}
+	private:
+		~chooser_UserResource()
+		{
+
+		}
+		const void* get_obj_id(size_t* len) const
+		{
+			*len = strlen(title);
+			return title;
+		}
+
+		void idaapi get_row(qstrvec_t* cols_, int* icon_, chooser_item_attrs_t* attrs, size_t n) const
+		{
+			qstrvec_t& cols = *cols_;
+			qvector<mid_BinSource>& vec_Bin = g_MyDecompiler.m_eAppInfo.mVec_UserResource;
+
+			cols[0].sprnt("%08a", vec_Bin[n].address);
+
+			switch (vec_Bin[n].itype)
+			{
+			case e_BinValue:
+			{
+				qvector<unsigned char> tmpBin;
+				acp_utf8(&cols[1], "字节集");
+				int minSize = qmin(vec_Bin[n].extraData, 64);
+				tmpBin.resize(minSize);
+				get_bytes(&tmpBin[0], minSize, vec_Bin[n].address + 8);
+				cols[2] = 字节集_字节集到十六进制(tmpBin);
+			}
+			break;
+			case e_StringValue:
+			{
+				acp_utf8(&cols[1], "文本型");
+				qstring tmpStr;
+				tmpStr.resize(vec_Bin[n].extraData);
+				get_bytes(&tmpStr[0], vec_Bin[n].extraData, vec_Bin[n].address);
+				tmpStr.replace("\x0D\x0A", "\r\n");
+				acp_utf8(&cols[2], tmpStr.c_str());
+			}
+			break;
+			case e_NullStr:
+				acp_utf8(&cols[1], "空白文本");
+				break;
+			case e_NullBin:
+				acp_utf8(&cols[1], "空白字节集");
+				break;
+			case e_ArrayHead:
+				acp_utf8(&cols[1], "数组头");
+				break;
+			case e_FloatValue:
+			{
+				acp_utf8(&cols[1], "浮点数");
+				double tmpFloatdata;
+				get_bytes(&tmpFloatdata, sizeof(double), vec_Bin[n].address);
+				cols[2].sprnt("%lf", tmpFloatdata);
+			}
+			break;
+			case e_ClassTable:
+				acp_utf8(&cols[1], "类虚表");
+				break;
+			case e_SwitchTable:
+				acp_utf8(&cols[1], "分支表");
+				break;
+			default:
+				break;
+			}
+
+			return;
+		}
+		cbres_t idaapi enter(sizevec_t* sel)
+		{
+			if (sel->size()) {
+				jumpto(g_MyDecompiler.m_eAppInfo.mVec_UserResource[sel->at(0)].address);
+			}
+			return cbres_t();
+		}
+
+		size_t idaapi get_count(void) const
+		{
+			return g_MyDecompiler.m_eAppInfo.mVec_UserResource.size();
+		}
+	};
+
+	qstring title = getUTF8String("用户常量资源");
+	chooser_UserResource* pUserChoose = new chooser_UserResource(title.c_str());
 	pUserChoose->choose();
 	return 0;
 }
@@ -199,12 +276,8 @@ bool EDecompilerEngine::krnln_IsMenuItemID(unsigned int ID)
 	return krnln_GetIDGroupType(ID) == 0x6000000 && krnln_GetIDSubType(ID) == 0x20000000;
 }
 
-void EDecompilerEngine::Parse_MainWindow(unsigned char* lpControlInfo, mid_EBasicProperty& out_Property)
+void EDecompilerEngine::ParseControlBasciProperty(unsigned char* lpControlInfo, mid_EBasicProperty& out_Property)
 {
-	//无用字符串1?
-	ReadStr(lpControlInfo);
-	lpControlInfo += qstrlen(lpControlInfo) + 1;
-
 	//无用字符串1?
 	ReadStr(lpControlInfo);
 	lpControlInfo += qstrlen(lpControlInfo) + 1;
@@ -225,16 +298,26 @@ void EDecompilerEngine::Parse_MainWindow(unsigned char* lpControlInfo, mid_EBasi
 	out_Property.m_height = ReadUInt(lpControlInfo);
 	lpControlInfo += 4;
 
-	//未知值
-	lpControlInfo += 8;
-
-	//一级索引?
-	unsigned int index1 = ReadUInt(lpControlInfo);
+	//值为0,用来存储LoadCursorA返回的句柄值的
+	unsigned int hCURSOR = ReadUInt(lpControlInfo);
 	lpControlInfo += 4;
 
-	//二级偏移?
-	unsigned int offset2 = lpControlInfo[index1];
-	lpControlInfo += index1 * 4;
+	//父控件ID
+	unsigned int fatherControlId = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	//子控件数目
+	unsigned int childControlCount = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	for (unsigned int n = 0; n < childControlCount; ++n) {
+		unsigned int tmpChildControlId = ReadUInt(lpControlInfo);
+		lpControlInfo += 4;
+		out_Property.mVec_childControl.push_back(tmpChildControlId);
+	}
+
+	//未知偏移
+	unsigned int offset2 = ReadUInt(lpControlInfo);
 	lpControlInfo += offset2 + 4;
 
 	//标记
@@ -245,19 +328,22 @@ void EDecompilerEngine::Parse_MainWindow(unsigned char* lpControlInfo, mid_EBasi
 	lpControlInfo += 12;
 
 	int dwEventCount = ReadInt(lpControlInfo);
+	lpControlInfo += 4;
+	m_eAppInfo.m_EventSum += dwEventCount;
 	for (int nIndexEvent = 0; nIndexEvent < dwEventCount; ++nIndexEvent) {
 		mid_EventInfo tmpEvent;
 		tmpEvent.m_nEventIndex = ReadInt(lpControlInfo);
 		lpControlInfo += 4;
 		tmpEvent.m_EventAddr = ReadUInt(lpControlInfo) + m_eAppInfo.m_UserCodeStartAddr;
+		lpControlInfo += 4;
 		out_Property.mVec_eventInfo.push_back(tmpEvent);
 	}
-
-	//To do...
+	return;
 }
 
 bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 {
+	m_eAppInfo.m_EventSum = 0;
 	m_eAppInfo.mVec_GuiInfo.clear();
 	mMap_ControlIndex.clear();
 
@@ -344,16 +430,23 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 				lpControlInfo += 20;
 
 				if (dwControlTypeId == 0x10001) {
+					eControlInfo.m_controlName = ReadStr(lpControlInfo);
+					lpControlInfo += qstrlen(lpControlInfo) + 1;
+
 					//这是主窗口
-					Parse_MainWindow(lpControlInfo, eControlInfo.m_basicProperty);
+					ParseControlBasciProperty(lpControlInfo, eControlInfo.m_basicProperty);
 				}
 				else if (EDecompilerEngine::krnln_IsMenuItemID(vec_ControlId[nIndexControl])) {
 					eControlInfo.b_isMenu = true;
 					lpControlInfo += 14;
+
 					eControlInfo.m_controlName = ReadStr(lpControlInfo);
 				}
 				else {
 					eControlInfo.m_controlName = ReadStr(lpControlInfo);
+					lpControlInfo += qstrlen(lpControlInfo) + 1;
+
+					ParseControlBasciProperty(lpControlInfo, eControlInfo.m_basicProperty);
 				}
 
 				ControlIndex eControlIndex;
@@ -539,6 +632,7 @@ bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCoun
 	if (!ControlMap.size()) {
 		ControlMap["d09f2340818511d396f6aaf844c7e325窗口"] = EC_Window;
 		ControlMap["d09f2340818511d396f6aaf844c7e325标签"] = EC_Label;
+		ControlMap["d09f2340818511d396f6aaf844c7e325按钮"] = EC_Button;
 	}
 
 	for (unsigned int nLibIndex = 0; nLibIndex < dwLibCount; ++nLibIndex) {
@@ -597,6 +691,10 @@ EDecompilerEngine::~EDecompilerEngine()
 	if (gMenu_ShowGUIInfo) {
 		gMenu_ShowGUIInfo->DestroyMenu();
 		gMenu_ShowGUIInfo = nullptr;
+	}
+	if (gMenu_ShowEventInfo) {
+		gMenu_ShowEventInfo->DestroyMenu();
+		gMenu_ShowEventInfo = nullptr;
 	}
 }
 
@@ -680,6 +778,9 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 	if (eHead.lpEWindow != 0 && eHead.dwEWindowSize != 0) {
 		ParseGUIResource(eHead.lpEWindow, eHead.dwEWindowSize);
 		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/窗口控件信息").c_str(), MenuHandle_ShowGuiInfo);
+		if (m_eAppInfo.m_EventSum) {
+			gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("易语言/控件事件信息").c_str(), MenuHandle_ShowEventInfo);
+		}
 	}
 
 	

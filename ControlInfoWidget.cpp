@@ -3,6 +3,7 @@
 #include <bytes.hpp>
 #include "public.h"
 #include "E_WinForm.h"
+#include "E_Label.h"
 #include "PropertyDelegate.h"
 
 extern EDecompilerEngine g_MyDecompiler;
@@ -21,14 +22,13 @@ QString Control_GetBoolStr(unsigned int value)
 }
 
 void ControlInfoWidget::InitKernelControl_Window(mid_ControlInfo* pControl)
-{
+{	
 	qvector<unsigned char> tmpBuf;
 	tmpBuf.resize(pControl->m_propertySize);
 	get_bytes(&tmpBuf[0], pControl->m_propertySize, pControl->m_propertyAddr);
 	unsigned char* lpControlInfo = &tmpBuf[0];
 
 	ui.ControlTable->setRowCount(33);
-
 	//窗口其实是没有名字的
 	//qstring controlName;
 	//controlName.sprnt("窗口_%08a", pControl->m_controlId);
@@ -329,6 +329,14 @@ void ControlInfoWidget::InitKernelControl_Label(mid_ControlInfo* pControl)
 
 	//——————————————剩下的数据为UnitData——————————————
 	int UnitDataSize = (&tmpBuf[0] - lpControlInfo) + pControl->m_propertySize;
+
+	Label_UnitData LabelData = {};
+	if (!UnitDataSize) {
+		
+	}
+	else {
+		Unserialize_LabelData(lpControlInfo, &LabelData);
+	}
 
 	return;
 }

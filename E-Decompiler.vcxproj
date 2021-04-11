@@ -114,6 +114,8 @@
     <ClCompile Include="ControlInfoWidget.cpp" />
     <ClCompile Include="EDecompiler.cpp" />
     <ClCompile Include="EsigLoader.cpp" />
+    <ClCompile Include="E_Button.cpp" />
+    <ClCompile Include="E_Label.cpp" />
     <ClCompile Include="E_WinForm.cpp" />
     <ClCompile Include="IDAMenu.cpp" />
     <ClCompile Include="main.cpp" />
@@ -123,6 +125,8 @@
     <ClCompile Include="TrieTree.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="E_Button.h" />
+    <ClInclude Include="E_Label.h" />
     <ClInclude Include="E_WinForm.h" />
     <ClInclude Include="PropertyDelegate.h" />
     <ClInclude Include="resource.h" />

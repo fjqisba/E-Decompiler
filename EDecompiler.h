@@ -152,6 +152,7 @@ enum ControlType_t
 	EC_UnknownControl = 0,
 	EC_Window,
 	EC_Label,
+	EC_Button,
 };
 
 struct mid_BinSource
@@ -175,11 +176,12 @@ struct mid_EventInfo
 //每个控件都有的基本属性
 struct mid_EBasicProperty
 {
-	int m_left;                //左边
-	int m_top;                 //顶边
-	int m_width;               //宽度
-	int m_height;              //高度
-	qstring m_tag;             //标记
+	int m_left;                              //左边
+	int m_top;                               //顶边
+	int m_width;                             //宽度
+	int m_height;                            //高度
+	qvector<unsigned int> mVec_childControl; //子控件
+	qstring m_tag;                            //标记
 	qvector<mid_EventInfo> mVec_eventInfo;   //事件处理
 };
 
@@ -243,6 +245,8 @@ struct mid_EAppInfo
 	qvector<mid_ELibInfo>  mVec_LibInfo;               //支持库信息
 	mid_KrnlApp m_KrnlApp;
 	bool b_IsWindowProgram;                            //是否是窗体程序
+
+	unsigned int m_EventSum;                           //所有的控件事件个数
 };
 
 class IDAMenu;
@@ -259,6 +263,10 @@ public:
 	static ControlType_t GetControlType(unsigned int controlTypeId);
 	//根据控件ID直接获取控件属性
 	static bool GetControlInfo(unsigned int controlId, mid_ControlInfo& out_ControlInfo);
+	//是否为菜单项
+	static bool krnln_IsMenuItemID(unsigned int ID);
+	//解析控件基本属性
+	void ParseControlBasciProperty(unsigned char* lpControlInfo, mid_EBasicProperty& out_Property);
 private:
 	bool DoDecompiler_EStatic();
 	//根据交叉引用来判断指定地址的数据类型
@@ -273,10 +281,7 @@ private:
 	bool ParseLibInfomation(ea_t, uint32);
 	//解析系统接口函数
 	bool ParseKrnlInterface(ea_t);
-	//是否为菜单项
-	static bool krnln_IsMenuItemID(unsigned int ID);
-	//解析窗体资源属性
-	void Parse_MainWindow(unsigned char* lpControlInfo, mid_EBasicProperty& out_Property);
+
 public:
 	EProgramsType_t m_ProgramType;
 	mid_EAppInfo m_eAppInfo;
@@ -284,6 +289,7 @@ private:
 	ea_t m_EHeadAddr;
 	IDAMenu* gMenu_ShowResource = nullptr;
 	IDAMenu* gMenu_ShowGUIInfo = nullptr;
+	IDAMenu* gMenu_ShowEventInfo = nullptr;
 
 	//快查表,根据控件类型ID快速定位到控件类型
 	QMap<unsigned int, ControlType_t> mMap_ControlTypeIndex;

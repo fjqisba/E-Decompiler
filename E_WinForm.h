@@ -45,3 +45,5 @@ qstring 取窗口属性_边框(unsigned int index);
 qstring 取窗口属性_底图方式(unsigned int index);
 
 qstring 取窗口属性_播放次数(unsigned int index);
+
+qstring 取窗口事件名称(int eventIndex);

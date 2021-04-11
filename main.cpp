@@ -4,7 +4,7 @@
 #include "EsigLoader.h"
 #include "EDecompiler.h"
 #include <kernwin.hpp>
-
+#include <QTextCodec>
 
 // Hex-Rays API pointer
 hexdsp_t* hexdsp = nullptr;

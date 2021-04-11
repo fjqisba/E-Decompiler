@@ -9,7 +9,7 @@ SectionManager::SectionManager()
 
 SectionManager::~SectionManager()
 {
-
+	
 }
 
 bool SectionManager::InitSectionManager()
