@@ -61,7 +61,7 @@ int MenuHandle_ShowEventInfo()
 		}
 	};
 
-	qstring title = getUTF8String("¿Ø¼şÊÂ¼şĞÅÏ¢");
+	qstring title = getUTF8String("æ§ä»¶äº‹ä»¶ä¿¡æ¯");
 	chooser_EventInfo* pEventWindow = new chooser_EventInfo(title.c_str());
 	for (unsigned int nWindowIndex = 0; nWindowIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo.size(); ++nWindowIndex) {
 		for (unsigned int nControlIndex = 0; nControlIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo.size(); ++nControlIndex) {
@@ -74,12 +74,12 @@ int MenuHandle_ShowEventInfo()
 				switch (type)
 				{
 				case EC_Window:
-					eEventInfo.EventName.sprnt("_´°¿Ú0x%08X_%s", g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].m_windowId, È¡´°¿ÚÊÂ¼şÃû³Æ(index).c_str());
+					eEventInfo.EventName.sprnt("_çª—å£0x%08X_%s", g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].m_windowId, å–çª—å£äº‹ä»¶åç§°(index).c_str());
 					break;
 				case EC_Label:
 					break;
 				case EC_Button:
-					eEventInfo.EventName.sprnt("_%s_%s", g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlName.c_str(), È¡°´Å¥ÊÂ¼şÃû³Æ(index).c_str());
+					eEventInfo.EventName.sprnt("_%s_%s", g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlName.c_str(), å–æŒ‰é’®äº‹ä»¶åç§°(index).c_str());
 					break;
 				default:
 					break;
@@ -95,13 +95,13 @@ int MenuHandle_ShowEventInfo()
 
 int MenuHandle_ShowGuiInfo()
 {
-	TWidget* widget = find_widget(getUTF8String("´°¿Ú¿Ø¼şĞÅÏ¢").c_str());
+	TWidget* widget = find_widget(getUTF8String("çª—å£æ§ä»¶ä¿¡æ¯").c_str());
 
 	if (widget == nullptr) {
 		ControlInfoWidget* Qwidget = new ControlInfoWidget();
 		widget = (TWidget*)Qwidget;
 	
-		Qwidget->ui.treeWidget->setHeaderLabel(QStringLiteral("Ò×ÓïÑÔ´°¿Ú"));
+		Qwidget->ui.treeWidget->setHeaderLabel(QStringLiteral("æ˜“è¯­è¨€çª—å£"));
 		for (unsigned int nWindowIndex = 0; nWindowIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo.size(); ++nWindowIndex) {
 			QTreeWidgetItem* pWindowItem = new QTreeWidgetItem(Qwidget->ui.treeWidget);
 			pWindowItem->setData(0, Qt::UserRole, g_MyDecompiler.m_eAppInfo.mVec_GuiInfo[nWindowIndex].m_windowId);
@@ -116,7 +116,7 @@ int MenuHandle_ShowGuiInfo()
 
 		display_widget(widget, WOPN_DP_TAB | WOPN_RESTORE);
 
-		//ĞŞ¸Äº¯ÊıÄ¿Â¼
+		//ä¿®æ”¹å‡½æ•°ç›®å½•
 		dirtree_t* pFuncTree = get_std_dirtree(dirtree_id_t::DIRTREE_FUNCS);
 		pFuncTree->chdir("/");
 		for (unsigned int nWindowIndex = 0; nWindowIndex < g_MyDecompiler.m_eAppInfo.mVec_GuiInfo.size(); ++nWindowIndex) {
@@ -124,7 +124,7 @@ int MenuHandle_ShowGuiInfo()
 			for (unsigned int nControlIndex = 0; nControlIndex < vec_ControlInfo.size(); ++nControlIndex) {
 
 				if (vec_ControlInfo[nControlIndex].m_controlTypeId == 0x10001) {
-					//Èç¹ûÊÇÖ÷´°¿Ú
+					//å¦‚æœæ˜¯ä¸»çª—å£
 
 				}
 				else if (vec_ControlInfo[nControlIndex].m_controlName.empty()) {
@@ -180,16 +180,16 @@ int MenuHandle_ShowUserResource()
 			case e_BinValue:
 			{
 				qvector<unsigned char> tmpBin;
-				acp_utf8(&cols[1], "×Ö½Ú¼¯");
+				acp_utf8(&cols[1], "å­—èŠ‚é›†");
 				int minSize = qmin(vec_Bin[n].extraData, 64);
 				tmpBin.resize(minSize);
 				get_bytes(&tmpBin[0], minSize, vec_Bin[n].address + 8);
-				cols[2] = ×Ö½Ú¼¯_×Ö½Ú¼¯µ½Ê®Áù½øÖÆ(tmpBin);
+				cols[2] = å­—èŠ‚é›†_å­—èŠ‚é›†åˆ°åå…­è¿›åˆ¶(tmpBin);
 			}
 			break;
 			case e_StringValue:
 			{
-				acp_utf8(&cols[1], "ÎÄ±¾ĞÍ");
+				acp_utf8(&cols[1], "æ–‡æœ¬å‹");
 				qstring tmpStr;
 				tmpStr.resize(vec_Bin[n].extraData);
 				get_bytes(&tmpStr[0], vec_Bin[n].extraData, vec_Bin[n].address);
@@ -198,27 +198,27 @@ int MenuHandle_ShowUserResource()
 			}
 			break;
 			case e_NullStr:
-				acp_utf8(&cols[1], "¿Õ°×ÎÄ±¾");
+				acp_utf8(&cols[1], "ç©ºç™½æ–‡æœ¬");
 				break;
 			case e_NullBin:
-				acp_utf8(&cols[1], "¿Õ°××Ö½Ú¼¯");
+				acp_utf8(&cols[1], "ç©ºç™½å­—èŠ‚é›†");
 				break;
 			case e_ArrayHead:
-				acp_utf8(&cols[1], "Êı×éÍ·");
+				acp_utf8(&cols[1], "æ•°ç»„å¤´");
 				break;
 			case e_FloatValue:
 			{
-				acp_utf8(&cols[1], "¸¡µãÊı");
+				acp_utf8(&cols[1], "æµ®ç‚¹æ•°");
 				double tmpFloatdata;
 				get_bytes(&tmpFloatdata, sizeof(double), vec_Bin[n].address);
 				cols[2].sprnt("%lf", tmpFloatdata);
 			}
 			break;
 			case e_ClassTable:
-				acp_utf8(&cols[1], "ÀàĞé±í");
+				acp_utf8(&cols[1], "ç±»è™šè¡¨");
 				break;
 			case e_SwitchTable:
-				acp_utf8(&cols[1], "·ÖÖ§±í");
+				acp_utf8(&cols[1], "åˆ†æ”¯è¡¨");
 				break;
 			default:
 				break;
@@ -240,7 +240,7 @@ int MenuHandle_ShowUserResource()
 		}
 	};
 
-	qstring title = getUTF8String("ÓÃ»§³£Á¿×ÊÔ´");
+	qstring title = getUTF8String("ç”¨æˆ·å¸¸é‡èµ„æº");
 	chooser_UserResource* pUserChoose = new chooser_UserResource(title.c_str());
 	pUserChoose->choose();
 	return 0;
@@ -278,11 +278,11 @@ bool EDecompilerEngine::krnln_IsMenuItemID(unsigned int ID)
 
 void EDecompilerEngine::ParseControlBasciProperty(unsigned char* lpControlInfo, mid_EBasicProperty& out_Property)
 {
-	//ÎŞÓÃ×Ö·û´®1?
+	//æ— ç”¨å­—ç¬¦ä¸²1?
 	ReadStr(lpControlInfo);
 	lpControlInfo += qstrlen(lpControlInfo) + 1;
 
-	//´æ´¢Êı¾İ?
+	//å­˜å‚¨æ•°æ®?
 	ReadUInt(lpControlInfo);
 	lpControlInfo += 4;
 
@@ -298,15 +298,15 @@ void EDecompilerEngine::ParseControlBasciProperty(unsigned char* lpControlInfo, 
 	out_Property.m_height = ReadUInt(lpControlInfo);
 	lpControlInfo += 4;
 
-	//ÖµÎª0,ÓÃÀ´´æ´¢LoadCursorA·µ»ØµÄ¾ä±úÖµµÄ
+	//å€¼ä¸º0,ç”¨æ¥å­˜å‚¨LoadCursorAè¿”å›çš„å¥æŸ„å€¼çš„
 	unsigned int hCURSOR = ReadUInt(lpControlInfo);
 	lpControlInfo += 4;
 
-	//¸¸¿Ø¼şID
+	//çˆ¶æ§ä»¶ID
 	unsigned int fatherControlId = ReadUInt(lpControlInfo);
 	lpControlInfo += 4;
 
-	//×Ó¿Ø¼şÊıÄ¿
+	//å­æ§ä»¶æ•°ç›®
 	unsigned int childControlCount = ReadUInt(lpControlInfo);
 	lpControlInfo += 4;
 
@@ -316,15 +316,15 @@ void EDecompilerEngine::ParseControlBasciProperty(unsigned char* lpControlInfo, 
 		out_Property.mVec_childControl.push_back(tmpChildControlId);
 	}
 
-	//Î´ÖªÆ«ÒÆ
+	//æœªçŸ¥åç§»
 	unsigned int offset2 = ReadUInt(lpControlInfo);
 	lpControlInfo += offset2 + 4;
 
-	//±ê¼Ç
+	//æ ‡è®°
 	out_Property.m_tag = ReadStr(lpControlInfo);
 	lpControlInfo += qstrlen(lpControlInfo) + 1;
 
-	//Î´ÖªµÄÖµ
+	//æœªçŸ¥çš„å€¼
 	lpControlInfo += 12;
 
 	int dwEventCount = ReadInt(lpControlInfo);
@@ -351,7 +351,7 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 	tmpGuiBuf.resize(infoSize);
 	get_bytes(&tmpGuiBuf[0], infoSize, lpGUIStart);
 
-	//µ±Ç°½âÎöµØÖ·
+	//å½“å‰è§£æåœ°å€
 	unsigned char* lpCurrentParseAddr = &tmpGuiBuf[0];
 
 	qvector<uint32> vec_WindowId;
@@ -363,7 +363,7 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 		lpCurrentParseAddr += 4;
 	}
 	
-	//±àÒëÆ÷ÒÅÁôÖµ?
+	//ç¼–è¯‘å™¨é—ç•™å€¼?
 	for (unsigned int n = 0; n < dwTotalWindowCount; ++n) {
 		//uint32 unknowId = ReadUInt(lpCurrentParseAddr);
 		lpCurrentParseAddr += 4;
@@ -375,65 +375,65 @@ bool EDecompilerEngine::ParseGUIResource(ea_t lpGUIStart,uint32 infoSize)
 		mid_GuiInfo eGuiInfo;
 		eGuiInfo.m_windowId = vec_WindowId[nIndexWindow];
 
-		//ÔİÊ±Î´Öª
+		//æš‚æ—¶æœªçŸ¥
 		uint32 unKnownFieldA = ReadUInt(lpWindowInfo);
 		lpWindowInfo += 4;
 		uint32 unKnownFieldB = ReadUInt(lpWindowInfo);
 		lpWindowInfo += 4;
 
-		//½ÓÏÂÀ´¸ú×ÅÁ½¸öCString,¶¼Îª¿Õ
+		//æ¥ä¸‹æ¥è·Ÿç€ä¸¤ä¸ªCString,éƒ½ä¸ºç©º
 		lpWindowInfo += 8;
 
-		//µ¥¸ö´°¿ÚÖĞµÄ¿Ø¼ş×Ü¸öÊı
+		//å•ä¸ªçª—å£ä¸­çš„æ§ä»¶æ€»ä¸ªæ•°
 		uint32 dwTotalControlCount = ReadUInt(lpWindowInfo);
 		lpWindowInfo += 4;
 
-		//µ¥¸ö´°¿ÚÖĞµÄ¿Ø¼ş×ÜÕ¼ÓÃ´óĞ¡
+		//å•ä¸ªçª—å£ä¸­çš„æ§ä»¶æ€»å ç”¨å¤§å°
 		uint32 dwTotalControlSize = ReadUInt(lpWindowInfo);
 		lpWindowInfo += 4;
 
-		//¿ªÊ¼½âÎö¿Ø¼ş
+		//å¼€å§‹è§£ææ§ä»¶
 		unsigned char* lpControlArray = lpWindowInfo;
 		{
-			//½âÎö¿Ø¼şID,ÀıÈç0x160612BC
+			//è§£ææ§ä»¶ID,ä¾‹å¦‚0x160612BC
 			qvector<uint32> vec_ControlId;
 			for (unsigned int j = 0; j < dwTotalControlCount; ++j) {
 				vec_ControlId.push_back(ReadUInt(lpControlArray));
 				lpControlArray += 4;
 			}
 
-			//½âÎö¿Ø¼şÆ«ÒÆ
+			//è§£ææ§ä»¶åç§»
 			qvector<uint32> vec_ControlOffset;
 			for (unsigned int j = 0; j < dwTotalControlCount; ++j) {
 				vec_ControlOffset.push_back(ReadUInt(lpControlArray));
 				lpControlArray += 4;
 			}
 
-			//½âÎö¿Ø¼şÊôĞÔ
+			//è§£ææ§ä»¶å±æ€§
 			for (unsigned int nIndexControl = 0; nIndexControl < dwTotalControlCount; ++nIndexControl) {
 				unsigned char* lpControlInfo = lpControlArray + vec_ControlOffset[nIndexControl];
 
 				mid_ControlInfo eControlInfo;
 				
-				//¿Ø¼şÕ¼ÓÃµÄ´óĞ¡
+				//æ§ä»¶å ç”¨çš„å¤§å°
 				int32 dwControlSize = ReadInt(lpControlInfo);
 				lpControlInfo += 4;
 				
 				eControlInfo.m_propertyAddr = lpGUIStart + (lpControlInfo - &tmpGuiBuf[0]);
 				eControlInfo.m_propertySize = dwControlSize;
 
-				//¿Ø¼şÀàĞÍID
+				//æ§ä»¶ç±»å‹ID
 				uint32 dwControlTypeId = ReadUInt(lpControlInfo);
 				lpControlInfo += 4;
 
-				//¹Ì¶¨µÄ20¸ö¿Õ×Ö½Ú,±£ÁôÊ¹ÓÃ?
+				//å›ºå®šçš„20ä¸ªç©ºå­—èŠ‚,ä¿ç•™ä½¿ç”¨?
 				lpControlInfo += 20;
 
 				if (dwControlTypeId == 0x10001) {
 					eControlInfo.m_controlName = ReadStr(lpControlInfo);
 					lpControlInfo += qstrlen(lpControlInfo) + 1;
 
-					//ÕâÊÇÖ÷´°¿Ú
+					//è¿™æ˜¯ä¸»çª—å£
 					ParseControlBasciProperty(lpControlInfo, eControlInfo.m_basicProperty);
 				}
 				else if (EDecompilerEngine::krnln_IsMenuItemID(vec_ControlId[nIndexControl])) {
@@ -515,7 +515,7 @@ BinType_t EDecompilerEngine::GetBinValueType(ea_t addr)
 		return e_UnknownValue;
 	}
 
-	//½»²æÒıÓÃ±ØĞëÔÚÓÃ»§´úÂë·¶Î§Ö®ÄÚ
+	//äº¤å‰å¼•ç”¨å¿…é¡»åœ¨ç”¨æˆ·ä»£ç èŒƒå›´ä¹‹å†…
 	if (DataRef[0] <= m_eAppInfo.m_UserCodeStartAddr || DataRef[0] >= m_eAppInfo.m_UserCodeEndAddr) {
 		return e_UnknownValue;
 	}
@@ -554,7 +554,7 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 	get_bytes(&tmpResouceBuf[0], StringSize, lpStringStart);
 
 
-	//Ä¿Ç°ÍÆ²âÖ»×¼³öÏÖÒ»¸ö¿Õ×Ö·û´®,Ò»¸ö¿Õ×Ö½Ú¼¯
+	//ç›®å‰æ¨æµ‹åªå‡†å‡ºç°ä¸€ä¸ªç©ºå­—ç¬¦ä¸²,ä¸€ä¸ªç©ºå­—èŠ‚é›†
 	bool bOnlyOneNullStr = false;
 	bool bOnlyOneNullBin = false;
 
@@ -564,19 +564,22 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 		tmpSource.itype = GetBinValueType(lpStringStart + index);
 		tmpSource.address = lpStringStart + index;
 
-		if (tmpSource.itype == e_NullStr && !bOnlyOneNullStr) {    //¿Õ×Ö·û´®
+		if (tmpSource.itype == e_NullStr && !bOnlyOneNullStr) {    //ç©ºå­—ç¬¦ä¸²
 			bOnlyOneNullStr = true;
 			index++;
 		}
-		else if (tmpSource.itype == e_ArrayHead) {                //Êı×éÍ·
+		else if (tmpSource.itype == e_ArrayHead) {                //æ•°ç»„å¤´
 			if (get_dword(tmpSource.address) == 0x0 && !bOnlyOneNullBin) {
 				tmpSource.itype = e_NullBin;
 				bOnlyOneNullBin = true;
 			}
-			index += 8;
+			index += 8;    //æ•°ç»„å¤´å¤§å°åº”è‡³å°‘ä¸º8?
+			while (!GetAllDataRef(lpStringStart + index).size()) {
+				index++;
+			}
 			continue;
 		}
-		else if (tmpSource.itype == e_FloatValue) {               //¸¡µãÊı
+		else if (tmpSource.itype == e_FloatValue) {               //æµ®ç‚¹æ•°
 			index += 8;
 			continue;
 		}
@@ -594,7 +597,7 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 			} while (!GetAllDataRef(lpStringStart + index).size());
 			continue;
 		}
-		else if (get_dword(tmpSource.address) == 0x1) {		//×Ö½Ú¼¯
+		else if (get_dword(tmpSource.address) == 0x1) {		//å­—èŠ‚é›†
 			int size = get_dword(tmpSource.address + 4);
 			if (!size && !bOnlyOneNullBin) {
 				tmpSource.itype = e_NullBin;
@@ -610,7 +613,7 @@ bool EDecompilerEngine::ParseStringResource(ea_t lpStringStart,uint32 StringSize
 				}
 			}
 		}
-		else {												//ÈÎÒâ×Ö·û´®´¦Àí,ÕâÊÇ×îÖÕµÄÊÖ¶Î
+		else {												//ä»»æ„å­—ç¬¦ä¸²å¤„ç†,è¿™æ˜¯æœ€ç»ˆçš„æ‰‹æ®µ
 			tmpSource.itype = e_StringValue;
 			tmpSource.extraData = qstrlen(&tmpResouceBuf[index]) + 1;
 			index += tmpSource.extraData;
@@ -627,12 +630,12 @@ bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCoun
 {
 	mMap_ControlTypeIndex.clear();
 
-	//¿âGuid + ¿Ø¼şÃû³Æ => ¿Ø¼şÀàĞÍ
+	//åº“Guid + æ§ä»¶åç§° => æ§ä»¶ç±»å‹
 	static QMap<qstring, ControlType_t> ControlMap;
 	if (!ControlMap.size()) {
-		ControlMap["d09f2340818511d396f6aaf844c7e325´°¿Ú"] = EC_Window;
-		ControlMap["d09f2340818511d396f6aaf844c7e325±êÇ©"] = EC_Label;
-		ControlMap["d09f2340818511d396f6aaf844c7e325°´Å¥"] = EC_Button;
+		ControlMap["d09f2340818511d396f6aaf844c7e325çª—å£"] = EC_Window;
+		ControlMap["d09f2340818511d396f6aaf844c7e325æ ‡ç­¾"] = EC_Label;
+		ControlMap["d09f2340818511d396f6aaf844c7e325æŒ‰é’®"] = EC_Button;
 	}
 
 	for (unsigned int nLibIndex = 0; nLibIndex < dwLibCount; ++nLibIndex) {
@@ -641,7 +644,7 @@ bool EDecompilerEngine::ParseLibInfomation(ea_t lpLibStartAddr, uint32 dwLibCoun
 		get_bytes(&tmpLibInfo, sizeof(LIB_INFO), get_dword(lpLibStartAddr));
 		lpLibStartAddr = lpLibStartAddr + 4;
 
-		//ÅĞ¶ÏÊÇ·ñ·ûºÏÖ§³Ö¿â¸ñÊ½
+		//åˆ¤æ–­æ˜¯å¦ç¬¦åˆæ”¯æŒåº“æ ¼å¼
 		if (tmpLibInfo.m_dwLibFormatVer != 0x1312D65) {
 			continue;
 		}
@@ -706,7 +709,7 @@ bool EDecompilerEngine::InitDecompilerEngine()
 
 	m_ProgramType = E_UNKNOWN;
 
-	//Ì½²âÒ×ÓïÑÔ³ÌĞòÀàĞÍ
+	//æ¢æµ‹æ˜“è¯­è¨€ç¨‹åºç±»å‹
 	compiled_binpat_vec_t binPat;
 	parse_binpat_str(&binPat, 0x0, "50 64 89 25 00 00 00 00 81 EC AC 01 00 00 53 56 57", 16);
 	unsigned int segCount = get_segm_qty();
@@ -724,14 +727,14 @@ bool EDecompilerEngine::InitDecompilerEngine()
 		m_EHeadAddr = get_dword(searchAddr + 0x26);
 	}
 	
-	//To do...¼´±ãÊÇ¾²Ì¬±àÒëÌØÕ÷±»VMÁË,Ó¦¸Ã»¹ÓĞÒ»Ğ©½â¾öµÄË¼Â·,ÔİÊ±ÏÈ²»¹Ü¡£
+	//To do...å³ä¾¿æ˜¯é™æ€ç¼–è¯‘ç‰¹å¾è¢«VMäº†,åº”è¯¥è¿˜æœ‰ä¸€äº›è§£å†³çš„æ€è·¯,æš‚æ—¶å…ˆä¸ç®¡ã€‚
 
 	return true;
 }
 
 bool EDecompilerEngine::DoDecompile()
 {
-	//¾²Ì¬±àÒë³ÌĞò
+	//é™æ€ç¼–è¯‘ç¨‹åº
 	if (m_ProgramType == E_STATIC) {
 		return DoDecompiler_EStatic();
 	}
@@ -772,18 +775,18 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 
 	if (eHead.lpEString != 0 && eHead.dwEStringSize != 0) {
 		ParseStringResource(eHead.lpEString, eHead.dwEStringSize);
-		gMenu_ShowResource = IDAMenu::CreateMenu(getUTF8String("Ò×ÓïÑÔ/ÓÃ»§³£Á¿×ÊÔ´").c_str(), MenuHandle_ShowUserResource);
+		gMenu_ShowResource = IDAMenu::CreateMenu(getUTF8String("æ˜“è¯­è¨€/ç”¨æˆ·å¸¸é‡èµ„æº").c_str(), MenuHandle_ShowUserResource);
 	}
 
 	if (eHead.lpEWindow != 0 && eHead.dwEWindowSize != 0) {
 		ParseGUIResource(eHead.lpEWindow, eHead.dwEWindowSize);
-		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("Ò×ÓïÑÔ/´°¿Ú¿Ø¼şĞÅÏ¢").c_str(), MenuHandle_ShowGuiInfo);
+		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("æ˜“è¯­è¨€/çª—å£æ§ä»¶ä¿¡æ¯").c_str(), MenuHandle_ShowGuiInfo);
 		if (m_eAppInfo.m_EventSum) {
-			gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("Ò×ÓïÑÔ/¿Ø¼şÊÂ¼şĞÅÏ¢").c_str(), MenuHandle_ShowEventInfo);
+			gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("æ˜“è¯­è¨€/æ§ä»¶äº‹ä»¶ä¿¡æ¯").c_str(), MenuHandle_ShowEventInfo);
 		}
 	}
 
 	
-	msg("%s\n", getUTF8String("¼ì²âµ½ÊÇÒ×ÓïÑÔ¾²Ì¬±àÒë³ÌĞò").c_str());
+	msg("%s\n", getUTF8String("æ£€æµ‹åˆ°æ˜¯æ˜“è¯­è¨€é™æ€ç¼–è¯‘ç¨‹åº").c_str());
 	return true;
 }
