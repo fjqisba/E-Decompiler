@@ -133,57 +133,15 @@ struct EHead
 #pragma pack(pop)
 
 
-//下面以mid开头的是自定义的存储信息结构体
-enum BinType_t
-{
-	e_UnknownValue = 0,
-	e_NullBin,
-	e_BinValue,
-	e_NullStr,
-	e_StringValue,
-	e_ArrayHead,
-	e_FloatValue,
-	e_ClassTable,
-	e_SwitchTable,         //switch case表
-};
-
-enum ControlType_t
-{
-	EC_UnknownControl = 0,
-	EC_Window,
-	EC_Label,
-	EC_Button,
-};
-
-struct mid_BinSource
-{
-	BinType_t itype;
-	ea_t address;
-	unsigned int extraData;	//附加数据
-};
 
 struct mid_EDataTypeInfo
 {
 	qstring m_Name;  //数据类型名称
 };
 
-struct mid_EventInfo
-{
-	int m_nEventIndex;       //事件索引
-	uint32 m_EventAddr;      //事件地址
-};
 
-//每个控件都有的基本属性
-struct mid_EBasicProperty
-{
-	int m_left;                              //左边
-	int m_top;                               //顶边
-	int m_width;                             //宽度
-	int m_height;                            //高度
-	qvector<unsigned int> mVec_childControl; //子控件
-	qstring m_tag;                            //标记
-	qvector<mid_EventInfo> mVec_eventInfo;   //事件处理
-};
+
+
 
 struct mid_ELibInfo
 {
@@ -195,29 +153,7 @@ struct mid_ELibInfo
 	qvector<mid_EDataTypeInfo> mVec_DataTypeInfo;      //数据类型信息
 };
 
-struct mid_ControlInfo
-{
-	uint32 m_controlId;                 //控件自身ID
-	qstring m_controlName;              //控件名称
-	uint32 m_controlTypeId;             //控件所属数据类型的ID
-	qstring m_controlTypeName;          //控件类型名称
-	bool b_isMenu;                      //是否为菜单控件
-	mid_EBasicProperty m_basicProperty; //控件的基础属性
-	ea_t m_propertyAddr;                //属性地址
-	int32 m_propertySize;               //属性大小
-};
 
-struct ControlIndex
-{
-	unsigned int nWindowIndex;
-	unsigned int nControlIndex;
-};
-
-struct mid_GuiInfo
-{
-	uint32 m_windowId;                           //控件所属窗口ID
-	qvector<mid_ControlInfo> mVec_ControlInfo;   //窗口中的控件
-};
 
 struct mid_KrnlApp
 {
@@ -240,8 +176,7 @@ struct mid_EAppInfo
 {
 	ea_t m_UserCodeStartAddr;                          //用户起始地址
 	ea_t m_UserCodeEndAddr;                            //用户结束地址,目前暂时还没有什么好办法获取这个地址,如果有好的想法欢迎提issue
-	qvector<mid_BinSource> mVec_UserResource;          //用户资源
-	qvector<mid_GuiInfo>   mVec_GuiInfo;               //控件信息
+	
 	qvector<mid_ELibInfo>  mVec_LibInfo;               //支持库信息
 	mid_KrnlApp m_KrnlApp;
 	bool b_IsWindowProgram;                            //是否是窗体程序
@@ -259,24 +194,16 @@ public:
 public:
 	bool InitDecompilerEngine();
 	bool DoDecompile();
-	//根据控件类型ID来获得具体的类型
-	static ControlType_t GetControlType(unsigned int controlTypeId);
-	//根据控件ID直接获取控件属性
-	static bool GetControlInfo(unsigned int controlId, mid_ControlInfo& out_ControlInfo);
 	//是否为菜单项
 	static bool krnln_IsMenuItemID(unsigned int ID);
-	//解析控件基本属性
-	void ParseControlBasciProperty(unsigned char* lpControlInfo, mid_EBasicProperty& out_Property);
+
+	//根据菜单的类型ID来得到名称
+	static qstring GetControlTypeName(uint32 typeId);
 private:
 	bool DoDecompiler_EStatic();
-	//根据交叉引用来判断指定地址的数据类型
-	BinType_t GetBinValueType(ea_t addr);
-	//根据菜单的类型ID来得到名称
-	qstring GetLibDataTypeInfo(uint32 typeId);
+
 	//解析界面控件信息
 	bool ParseGUIResource(ea_t, uint32);
-	//解析常量资源信息
-	bool ParseStringResource(ea_t, uint32);
 	//解析支持库信息
 	bool ParseLibInfomation(ea_t, uint32);
 	//解析系统接口函数
@@ -290,11 +217,6 @@ private:
 	IDAMenu* gMenu_ShowResource = nullptr;
 	IDAMenu* gMenu_ShowGUIInfo = nullptr;
 	IDAMenu* gMenu_ShowEventInfo = nullptr;
-
-	//快查表,根据控件类型ID快速定位到控件类型
-	QMap<unsigned int, ControlType_t> mMap_ControlTypeIndex;
-	//快查表,根据控件ID直接定位到控件索引
-	QMap<unsigned int, ControlIndex> mMap_ControlIndex;
 };
 
 extern EDecompilerEngine g_MyDecompiler;

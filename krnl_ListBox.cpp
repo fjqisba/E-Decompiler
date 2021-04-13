@@ -1,12 +1,15 @@
-#include "E_Button.h"
+#include "krnl_ListBox.h"
 
-qstring 取按钮事件名称(int eventIndex)
+qstring krnl_ListBox::取事件名称(int eventIndex)
 {
 	qstring ret;
 	switch (eventIndex)
 	{
 	case 0:
-		ret = "被单击";
+		ret = "列表框被选择";
+		break;
+	case 1:
+		ret = "双击选择";
 		break;
 	case -1:
 		ret = "鼠标左键被按下";

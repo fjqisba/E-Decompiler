@@ -102,6 +102,14 @@ qvector<ea_t> GetAllDataRef(ea_t addr)
 	return ret;
 }
 
+bool HasDataRef(ea_t addr)
+{
+	if (get_first_dref_to(addr) == BADADDR) {
+		return false;
+	}
+	return true;
+}
+
 qstring get_shortstring(int32 addr)
 {
 	if (addr <= 0)

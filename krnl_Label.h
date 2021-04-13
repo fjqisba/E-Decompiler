@@ -1,5 +1,6 @@
 #pragma once
 #include <pro.h>
+#include "EControl.h"
 
 struct Label_UnitData
 {
@@ -25,6 +26,12 @@ struct Label_UnitData
 	qstring field_4C;
 	qstring field_50;
 	qstring field_54;
+};
+
+class krnl_Label
+{
+public:
+	
 };
 
 bool Unserialize_LabelData(unsigned char* lpControlData, Label_UnitData* out_Data);

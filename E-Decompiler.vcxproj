@@ -112,22 +112,45 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ControlInfoWidget.cpp" />
+    <ClCompile Include="EControl.cpp" />
     <ClCompile Include="EDecompiler.cpp" />
     <ClCompile Include="EsigLoader.cpp" />
-    <ClCompile Include="E_Button.cpp" />
-    <ClCompile Include="E_Label.cpp" />
-    <ClCompile Include="E_WinForm.cpp" />
+    <ClCompile Include="krnl_Button.cpp" />
+    <ClCompile Include="krnl_CheckBox.cpp" />
+    <ClCompile Include="krnl_DropTarget.cpp" />
+    <ClCompile Include="krnl_EditBox.cpp" />
+    <ClCompile Include="krnl_Label.cpp" />
+    <ClCompile Include="krnl_ListBox.cpp" />
+    <ClCompile Include="krnl_PicBox.cpp" />
+    <ClCompile Include="krnl_PicBtn.cpp" />
+    <ClCompile Include="krnl_RadioBox.cpp" />
+    <ClCompile Include="krnl_ShapeBox.cpp" />
+    <ClCompile Include="krnl_Timer.cpp" />
+    <ClCompile Include="krnl_window.cpp" />
+    <ClCompile Include="GuiParser.cpp" />
     <ClCompile Include="IDAMenu.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PropertyDelegate.cpp" />
     <ClCompile Include="public.cpp" />
     <ClCompile Include="SectionManager.cpp" />
     <ClCompile Include="TrieTree.cpp" />
+    <ClCompile Include="UserResourceParser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="E_Button.h" />
-    <ClInclude Include="E_Label.h" />
-    <ClInclude Include="E_WinForm.h" />
+    <ClInclude Include="EControl.h" />
+    <ClInclude Include="krnl_Button.h" />
+    <ClInclude Include="krnl_CheckBox.h" />
+    <ClInclude Include="krnl_DropTarget.h" />
+    <ClInclude Include="krnl_EditBox.h" />
+    <ClInclude Include="krnl_Label.h" />
+    <ClInclude Include="krnl_ListBox.h" />
+    <ClInclude Include="krnl_PicBox.h" />
+    <ClInclude Include="krnl_PicBtn.h" />
+    <ClInclude Include="krnl_RadioBox.h" />
+    <ClInclude Include="krnl_ShapeBox.h" />
+    <ClInclude Include="krnl_Timer.h" />
+    <ClInclude Include="krnl_window.h" />
+    <ClInclude Include="GuiParser.h" />
     <ClInclude Include="PropertyDelegate.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ControlInfoWidget.h" />
@@ -137,6 +160,7 @@
     <ClInclude Include="public.h" />
     <ClInclude Include="SectionManager.h" />
     <ClInclude Include="TrieTree.h" />
+    <ClInclude Include="UserResourceParser.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="E-Decompiler.rc" />

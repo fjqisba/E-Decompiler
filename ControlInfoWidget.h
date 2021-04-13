@@ -2,7 +2,7 @@
 #include <QtWidgets/QtWidgets>
 #include "ui_ControlInfoWidget.h"
 
-class mid_ControlInfo;
+
 class ControlInfoWidget:public QWidget
 {
 public:
@@ -13,6 +13,6 @@ private:
 public:
 	Ui::ControlInfo ui;
 private:
-	void InitKernelControl_Window(mid_ControlInfo*);
-	void InitKernelControl_Label(mid_ControlInfo*);
+	void InitKernelControl_Window(unsigned int propertyAddr,int propertySize);
+	void InitKernelControl_Label(unsigned int propertyAddr,int propertySize);
 };

@@ -51,4 +51,3 @@ uint8* SectionManager::LinearAddrToVirtualAddr(ea_t LinerAddr)
 	}
 	return NULL;
 }
-

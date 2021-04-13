@@ -1,12 +1,11 @@
 #include "ControlInfoWidget.h"
-#include "EDecompiler.h"
+#include "GuiParser.h"
 #include <bytes.hpp>
 #include "public.h"
-#include "E_WinForm.h"
-#include "E_Label.h"
+#include "krnl_window.h"
+#include "krnl_Label.h"
 #include "PropertyDelegate.h"
 
-extern EDecompilerEngine g_MyDecompiler;
 
 #define COLUMN_PropertyName  0
 #define COLUMN_PropertyValue 1
@@ -21,11 +20,11 @@ QString Control_GetBoolStr(unsigned int value)
 	return ret;
 }
 
-void ControlInfoWidget::InitKernelControl_Window(mid_ControlInfo* pControl)
+void ControlInfoWidget::InitKernelControl_Window(unsigned int propertyAddr, int propertySize)
 {	
 	qvector<unsigned char> tmpBuf;
-	tmpBuf.resize(pControl->m_propertySize);
-	get_bytes(&tmpBuf[0], pControl->m_propertySize, pControl->m_propertyAddr);
+	tmpBuf.resize(propertySize);
+	get_bytes(&tmpBuf[0], propertySize, propertyAddr);
 	unsigned char* lpControlInfo = &tmpBuf[0];
 
 	ui.ControlTable->setRowCount(33);
@@ -126,7 +125,7 @@ void ControlInfoWidget::InitKernelControl_Window(mid_ControlInfo* pControl)
 	lpControlInfo += (index2 * 8) + 0x14;
 
 	//！！！！！！！！！！！！！！複和議方象葎UnitData！！！！！！！！！！！！！！
-	int UnitDataSize = (&tmpBuf[0] - lpControlInfo) + pControl->m_propertySize;
+	int UnitDataSize = (&tmpBuf[0] - lpControlInfo) + propertySize;
 
 	WinFrom_UnitData WinData = {};
 	if (!UnitDataSize) {
@@ -227,17 +226,17 @@ void ControlInfoWidget::InitKernelControl_Window(mid_ControlInfo* pControl)
 	return;
 }
 
-void ControlInfoWidget::InitKernelControl_Label(mid_ControlInfo* pControl)
+void ControlInfoWidget::InitKernelControl_Label(unsigned int propertyAddr, int propertySize)
 {
 	qvector<unsigned char> tmpBuf;
-	tmpBuf.resize(pControl->m_propertySize);
-	get_bytes(&tmpBuf[0], pControl->m_propertySize, pControl->m_propertyAddr);
+	tmpBuf.resize(propertySize);
+	get_bytes(&tmpBuf[0], propertySize, propertyAddr);
 	unsigned char* lpControlInfo = &tmpBuf[0];
 
 	ui.ControlTable->setRowCount(33);
 
 	ui.ControlTable->setItem(0, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("兆各")));
-	ui.ControlTable->setItem(0, COLUMN_PropertyValue, new QTableWidgetItem(QString::fromLocal8Bit(pControl->m_controlName.c_str()), ui_LineEditor_ReadOnly));
+	//ui.ControlTable->setItem(0, COLUMN_PropertyValue, new QTableWidgetItem(QString::fromLocal8Bit(pControl->m_controlName.c_str()), ui_LineEditor_ReadOnly));
 
 	{
 		uint32 dwControlTypeId = ReadUInt(lpControlInfo);
@@ -328,7 +327,7 @@ void ControlInfoWidget::InitKernelControl_Label(mid_ControlInfo* pControl)
 	lpControlInfo += (index2 * 8) + 0x14;
 
 	//！！！！！！！！！！！！！！複和議方象葎UnitData！！！！！！！！！！！！！！
-	int UnitDataSize = (&tmpBuf[0] - lpControlInfo) + pControl->m_propertySize;
+	int UnitDataSize = (&tmpBuf[0] - lpControlInfo) + propertySize;
 
 	Label_UnitData LabelData = {};
 	if (!UnitDataSize) {
@@ -375,21 +374,20 @@ void ControlInfoWidget::on_controlClicked(QTreeWidgetItem* item, int column)
 	else {
 		unsigned int controlId = item->data(0, Qt::UserRole).toUInt();
 
-		mid_ControlInfo currentControl;
-		if (EDecompilerEngine::GetControlInfo(controlId, currentControl)) {
+		GuiParser::mid_ControlInfo currentControl;
+		if (GuiParser::GetControlInfo(controlId, currentControl)) {
 
 			ui.groupBox->setTitle(QString::fromLocal8Bit(currentControl.m_controlTypeName.c_str()));
-
-			ControlType_t controlType = EDecompilerEngine::GetControlType(currentControl.m_controlTypeId);
+			ControlType_t controlType = GuiParser::GetControlType(currentControl.m_controlTypeId);
+			ea_t propertyAddr = currentControl.m_propertyAddr;
+			int propertySize = currentControl.m_propertySize;
 			switch (controlType)
 			{
-			case EC_UnknownControl:
+			case krnl_window:
+				InitKernelControl_Window(propertyAddr, propertySize);
 				break;
-			case EC_Window:
-				InitKernelControl_Window(&currentControl);
-				break;
-			case EC_Label:
-				InitKernelControl_Label(&currentControl);
+			case krnl_Label:
+				InitKernelControl_Label(propertyAddr, propertySize);
 				break;
 			default:
 				break;

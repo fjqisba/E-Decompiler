@@ -15,6 +15,9 @@ qstring 字节集_字节集到十六进制(qvector<unsigned char>& 原始字节集);
 //获取所有的数据交叉引用
 qvector<ea_t> GetAllDataRef(ea_t addr);
 
+//是否有数据交叉引用
+bool HasDataRef(ea_t addr);
+
 qstring get_shortstring(int32 addr);
 
 qstring getUTF8String(const char*);

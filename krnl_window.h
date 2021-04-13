@@ -30,6 +30,12 @@ struct WinFrom_UnitData
 	qstring 帮助文件名;
 };
 
+class krnl_window
+{
+public:
+	static qstring 取事件名称(int eventIndex);
+};
+
 void Unserialize_WinFormData(unsigned char* lpControlData, WinFrom_UnitData* out_Data);
 
 void 取窗口属性_默认(WinFrom_UnitData* out_Data);

@@ -13,6 +13,9 @@
     <Filter Include="头文件\EAppControl">
       <UniqueIdentifier>{249a2c28-d9c2-4338-a77b-1c86969c78f6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\EDecompiler">
+      <UniqueIdentifier>{7e8b0502-070c-46e6-8e45-10eb25138482}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -39,16 +42,52 @@
     <ClCompile Include="ControlInfoWidget.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
-    <ClCompile Include="E_WinForm.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
     <ClCompile Include="PropertyDelegate.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
-    <ClCompile Include="E_Label.cpp">
+    <ClCompile Include="EControl.cpp">
       <Filter>头文件\EAppControl</Filter>
     </ClCompile>
-    <ClCompile Include="E_Button.cpp">
+    <ClCompile Include="UserResourceParser.cpp">
+      <Filter>头文件\EDecompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiParser.cpp">
+      <Filter>头文件\EDecompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_window.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_Label.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_Button.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_Timer.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_ListBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_RadioBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_PicBtn.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_EditBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_PicBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_ShapeBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_CheckBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="krnl_DropTarget.cpp">
       <Filter>头文件\EAppControl</Filter>
     </ClCompile>
   </ItemGroup>
@@ -75,16 +114,52 @@
     <ClInclude Include="ControlInfoWidget.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="E_WinForm.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
     <ClInclude Include="PropertyDelegate.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="E_Label.h">
+    <ClInclude Include="EControl.h">
       <Filter>头文件\EAppControl</Filter>
     </ClInclude>
-    <ClInclude Include="E_Button.h">
+    <ClInclude Include="UserResourceParser.h">
+      <Filter>头文件\EDecompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiParser.h">
+      <Filter>头文件\EDecompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_window.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_Label.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_Button.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_Timer.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_ListBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_RadioBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_PicBtn.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_EditBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_PicBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_ShapeBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_CheckBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="krnl_DropTarget.h">
       <Filter>头文件\EAppControl</Filter>
     </ClInclude>
   </ItemGroup>

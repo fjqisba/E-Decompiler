@@ -7,7 +7,6 @@
 
 - 因为IDA自身使用的QT版本为Qt 5.6.3.0，因此必须和它保持同步，目前有效的下载地址为:https://download.qt.io/new_archive/qt/5.6/5.6.3/qt-opensource-windows-x86-msvc2015_64-5.6.3.exe
 - 使用了Qt Vs插件，目前有效的下载地址为:https://download.qt.io/official_releases/vsaddin/
-- 采用IDA SDK75版本的头文件和lib库，如果你缺少dirtree.hpp这个头文件，那么可以从IDA SDK76中拿过来使用。
 
 配置选项:
 
@@ -78,3 +77,12 @@
 2021年4月11日
 
 完成控件事件的初步解析(击碎易语言的事件外壳(￣▽￣))
+
+2021年4月12日
+
+提升常量资源解析速度。EDecompiler.cpp代码过多，分化各个功能到不同的代码文件中。
+
+2021年4月13日
+
+技术难点基本已掌握，剩下的就是每个控件的工作量，没兴趣维护了。
+
