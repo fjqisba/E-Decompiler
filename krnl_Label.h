@@ -1,6 +1,6 @@
 #pragma once
 #include <pro.h>
-#include "EControl.h"
+#include "EAppControl.h"
 
 struct Label_UnitData
 {

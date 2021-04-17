@@ -42,12 +42,6 @@
     <ClCompile Include="ControlInfoWidget.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
-    <ClCompile Include="PropertyDelegate.cpp">
-      <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="EControl.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
     <ClCompile Include="UserResourceParser.cpp">
       <Filter>头文件\EDecompiler</Filter>
     </ClCompile>
@@ -90,6 +84,9 @@
     <ClCompile Include="krnl_DropTarget.cpp">
       <Filter>头文件\EAppControl</Filter>
     </ClCompile>
+    <ClCompile Include="EAppControl.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EDecompiler.h">
@@ -116,9 +113,6 @@
     </ClInclude>
     <ClInclude Include="PropertyDelegate.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="EControl.h">
-      <Filter>头文件\EAppControl</Filter>
     </ClInclude>
     <ClInclude Include="UserResourceParser.h">
       <Filter>头文件\EDecompiler</Filter>
@@ -160,6 +154,9 @@
       <Filter>头文件\EAppControl</Filter>
     </ClInclude>
     <ClInclude Include="krnl_DropTarget.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl.h">
       <Filter>头文件\EAppControl</Filter>
     </ClInclude>
   </ItemGroup>

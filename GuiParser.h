@@ -1,6 +1,8 @@
 #pragma once
 #include <pro.h>
-#include "EControl.h"
+#include "EAppControl.h"
+
+class ControlInfoWidget;
 
 class GuiParser
 {
@@ -15,6 +17,7 @@ public:
 		int m_nEventIndex;       //事件索引
 		uint32 m_EventAddr;      //事件地址
 	};
+
 	//每个控件都有的基本属性
 	struct mid_EBasicProperty
 	{
@@ -48,7 +51,6 @@ public:
 	static int MenuHandle_ShowGuiInfo();
 	static int MenuHandle_ShowEventInfo();
 
-
 	//根据控件类型ID来获得具体的类型
 	static ControlType_t GetControlType(unsigned int controlTypeId);
 	//根据控件ID直接获取控件属性
@@ -58,4 +60,6 @@ public:
 	static void AddControlType(unsigned int, ControlType_t);
 private:
 	static void ParseControlBasciProperty(unsigned char* lpControlInfo, GuiParser::mid_ControlInfo& out_Property);
+public:
+	static ControlInfoWidget* g_ControlInfoWindow;
 };

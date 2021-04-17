@@ -112,7 +112,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ControlInfoWidget.cpp" />
-    <ClCompile Include="EControl.cpp" />
+    <ClCompile Include="EAppControl.cpp" />
     <ClCompile Include="EDecompiler.cpp" />
     <ClCompile Include="EsigLoader.cpp" />
     <ClCompile Include="krnl_Button.cpp" />
@@ -130,14 +130,13 @@
     <ClCompile Include="GuiParser.cpp" />
     <ClCompile Include="IDAMenu.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PropertyDelegate.cpp" />
     <ClCompile Include="public.cpp" />
     <ClCompile Include="SectionManager.cpp" />
     <ClCompile Include="TrieTree.cpp" />
     <ClCompile Include="UserResourceParser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EControl.h" />
+    <ClInclude Include="EAppControl.h" />
     <ClInclude Include="krnl_Button.h" />
     <ClInclude Include="krnl_CheckBox.h" />
     <ClInclude Include="krnl_DropTarget.h" />

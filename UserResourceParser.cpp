@@ -6,8 +6,16 @@
 #include "public.h"
 
 qvector<UserResourceParser::mid_BinSource> mVec_UserResource;          //用户资源
+ea_t UserResourceParser::m_UserCodeStartAddr = 0;
+ea_t UserResourceParser::m_UserCodeEndAddr = 0;
 
-UserResourceParser::BinType_t GetBinValueType(ea_t DataAddr)
+void UserResourceParser::InitUserCodeAddr(ea_t start, ea_t end)
+{
+	m_UserCodeStartAddr = start;
+	m_UserCodeEndAddr = end;
+}
+
+UserResourceParser::BinType_t UserResourceParser::GetBinValueType(ea_t DataAddr)
 {
 	ea_t CodeAddr = get_first_dref_to(DataAddr);
 	if (CodeAddr == BADADDR) {
@@ -15,9 +23,9 @@ UserResourceParser::BinType_t GetBinValueType(ea_t DataAddr)
 	}
 
 	//交叉引用必须在用户代码范围之内
-	//if (CodeAddr <= m_eAppInfo.m_UserCodeStartAddr || CodeAddr >= m_eAppInfo.m_UserCodeEndAddr) {
-	//	return UserResourceParser::e_UnknownValue;
-	//}
+	if (CodeAddr <= m_UserCodeStartAddr || CodeAddr >= m_UserCodeEndAddr) {
+		return UserResourceParser::e_UnknownValue;
+	}
 
 	insn_t FirstIns;
 	int FirstLen = decode_insn(&FirstIns, CodeAddr);

@@ -226,6 +226,7 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 	m_eAppInfo.m_UserCodeStartAddr = eHead.lpStartCode;
 	m_eAppInfo.m_UserCodeEndAddr = m_EHeadAddr;
 	GuiParser::InitUserCodeStartAddr(m_eAppInfo.m_UserCodeStartAddr);
+	UserResourceParser::InitUserCodeAddr(m_eAppInfo.m_UserCodeStartAddr, m_eAppInfo.m_UserCodeEndAddr);
 
 	if (!eHead.dwLibNum || !eHead.lpLibEntry) {
 		return false;

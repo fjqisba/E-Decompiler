@@ -1,5 +1,9 @@
 #pragma once
 #include <pro.h>
+#include <QVariant>
+
+#define COLUMN_PropertyName  0
+#define COLUMN_PropertyValue 1
 
 enum ControlType_t
 {
@@ -46,12 +50,21 @@ enum ControlType_t
 	krnl_PicBtn,      //图形按钮
 	krnl_ODBCDB,      //外部数据库
 	krnl_ODBCProvider,//外部数据提供者
-
 	krnl_DropTarget,  //拖放对象
 };
 
-class EControl
+
+class ControlInfoWidget;
+class EAppControl
 {
 public:
 	static qstring 取事件名称(ControlType_t type, int eventIndex);
+	//static void 取控件属性(ea_t propertyAddr, int propertySize, QMap<QString, QVariant>* out_Data);
+
+	static void 显示控件信息(ControlType_t type, unsigned int propertyAddr, int propertySize);
+	static void 添加文本控件(ControlInfoWidget* pWindow, QString PropertyName, QString PropertyValue);
+	static void 添加布尔控件(ControlInfoWidget* pWindow, QString PropertyName, bool ProperyValue);
+	static void 添加列表控件(ControlInfoWidget* pWindow, QString PropertyName, unsigned int PropertyValue);
+	static void 添加鼠标控件(ControlInfoWidget* pWindow, unsigned int ProperyValue);
+	static void 添加图片控件(ControlInfoWidget* pWindow, QString PropertyName, QByteArray& PropertyValue);
 };

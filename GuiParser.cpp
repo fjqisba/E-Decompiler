@@ -9,6 +9,7 @@
 qvector<GuiParser::mid_GuiInfo> mVec_GuiInfo;               //控件信息
 ea_t m_UserCodeStartAddr = 0;
 unsigned int m_EventSum = 0;
+ControlInfoWidget* GuiParser::g_ControlInfoWindow = nullptr;
 
 //快查表,根据控件ID直接定位到控件索引
 QMap<unsigned int, GuiParser::ControlIndex> mMap_ControlIndex;
@@ -124,7 +125,7 @@ int GuiParser::MenuHandle_ShowEventInfo()
 				eEventInfo.EventAddr = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].mVec_eventInfo[nEventIndex].m_EventAddr;
 				eEventInfo.ControlName = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlTypeName;
 				unsigned int index = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].mVec_eventInfo[nEventIndex].m_nEventIndex;
-				eEventInfo.EventName.sprnt("_%s_%s", mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlName.c_str(), EControl::取事件名称(type, index).c_str());
+				eEventInfo.EventName.sprnt("_%s_%s", mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlName.c_str(), EAppControl::取事件名称(type, index).c_str());
 				pEventWindow->vec_EventInfo.push_back(eEventInfo);
 			}
 		}
@@ -139,12 +140,12 @@ int GuiParser::MenuHandle_ShowGuiInfo()
 	TWidget* widget = find_widget(getUTF8String("窗口控件信息").c_str());
 
 	if (widget == nullptr) {
-		ControlInfoWidget* Qwidget = new ControlInfoWidget();
-		widget = (TWidget*)Qwidget;
+		g_ControlInfoWindow = new ControlInfoWidget();
+		widget = (TWidget*)g_ControlInfoWindow;
 
-		Qwidget->ui.treeWidget->setHeaderLabel(QStringLiteral("易语言窗口"));
+		g_ControlInfoWindow->ui.treeWidget->setHeaderLabel(QStringLiteral("易语言窗口"));
 		for (unsigned int nWindowIndex = 0; nWindowIndex < mVec_GuiInfo.size(); ++nWindowIndex) {
-			QTreeWidgetItem* pWindowItem = new QTreeWidgetItem(Qwidget->ui.treeWidget);
+			QTreeWidgetItem* pWindowItem = new QTreeWidgetItem(g_ControlInfoWindow->ui.treeWidget);
 			pWindowItem->setData(0, Qt::UserRole, mVec_GuiInfo[nWindowIndex].m_windowId);
 			pWindowItem->setText(0, QString::asprintf("0x%08X", mVec_GuiInfo[nWindowIndex].m_windowId));
 			qvector<mid_ControlInfo>& vec_ControlInfo = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo;

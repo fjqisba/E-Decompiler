@@ -24,8 +24,12 @@ public:
 		unsigned int extraData;	//¸½¼ÓÊý¾Ý
 	};
 public:
+	static void InitUserCodeAddr(ea_t start, ea_t end);
 	static bool ParseUserResource(ea_t lpStringStart, uint32 StringSize);
 	static int MenuHandle_ShowUserResource();
+private:
+	static BinType_t GetBinValueType(ea_t DataAddr);
 public:
-	
+	static ea_t m_UserCodeStartAddr;
+	static ea_t m_UserCodeEndAddr;
 };
