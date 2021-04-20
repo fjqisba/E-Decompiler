@@ -1,33 +1,13 @@
 #pragma once
-#include <pro.h>
-#include <QHash>
-#include <QVariant>
+#include "EAppControl.h"
 
-class ControlInfoWidget;
-class krnl_window
+class krnl_window:public EAppControl
 {
-public:
-	static qstring 取事件名称(int eventIndex);
-	static void 取控件属性(ea_t propertyAddr, int propertySize, QHash<QString, QVariant>* out_Data);
-	static void 显示控件信息(unsigned int propertyAddr, int propertySize);
+protected:
+	void 取控件默认附加属性(QHash<QString, QVariant>& out_data);
+	void 反序列化控件附加属性(unsigned char* pUnitDataPtr, QHash<QString, QVariant>& out_data);
+	void 显示控件属性信息(QHash<QString, QVariant>& out_data);
+	qstring 取事件名称(int eventIndex);
 private:
-	static void 取默认属性(QHash<QString, QVariant>& out_data);
-	static void 反序列化属性(unsigned char* lpControlData, QHash<QString, QVariant>& out_data);
-	static void 添加边框控件(ControlInfoWidget* pWindow, unsigned int ProperyValue);
-	static void 添加底色控件(ControlInfoWidget* pWindow, unsigned int ProperyValue);
+	static void 添加背景音乐控件(QByteArray& ProperyValue);
 };
-
-
-qstring 取窗口属性_外形(unsigned int index);
-
-qstring 取窗口属性_位置(unsigned int index);
-
-qstring 取窗口属性_鼠标指针(unsigned int index);
-
-qstring 取窗口属性_边框(unsigned int index);
-
-qstring 取窗口属性_底图方式(unsigned int index);
-
-qstring 取窗口属性_播放次数(unsigned int index);
-
-qstring 取窗口事件名称(int eventIndex);

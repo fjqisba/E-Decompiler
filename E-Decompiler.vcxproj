@@ -33,8 +33,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>5.6.3_msvc2015_64</QtInstall>
-    <QtModules>
-    </QtModules>
+    <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
@@ -113,6 +112,7 @@
   <ItemGroup>
     <ClCompile Include="ControlInfoWidget.cpp" />
     <ClCompile Include="EAppControl.cpp" />
+    <ClCompile Include="EAppControlFactory.cpp" />
     <ClCompile Include="EDecompiler.cpp" />
     <ClCompile Include="EsigLoader.cpp" />
     <ClCompile Include="krnl_Button.cpp" />
@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EAppControl.h" />
+    <ClInclude Include="EAppControlFactory.h" />
     <ClInclude Include="krnl_Button.h" />
     <ClInclude Include="krnl_CheckBox.h" />
     <ClInclude Include="krnl_DropTarget.h" />

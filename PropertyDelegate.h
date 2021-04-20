@@ -6,11 +6,11 @@ enum PropertyType_t
 {
 	ui_default = 0,                    //默认数据
 	ui_LineEditor = 1000,              //普通的编辑框
-	ui_LineEditor_Disabled = 1001,     //禁止的编辑框
-	ui_LineEditor_ReadOnly = 1002,     //只读的编辑框
-	ui_ColorDialog = 1003,             //颜色选择框
-	ui_ComboBoxList = 1004,            //下拉框
-	ui_ImageBox = 1005,                //图片框
+	ui_LineEditor_Disabled,     //禁止的编辑框
+	ui_LineEditor_ReadOnly,     //只读的编辑框
+	ui_ColorDialog,             //颜色选择框
+	ui_ComboBoxList,            //下拉框
+	ui_ImageBox,                //图片框
 };
 
 class PropertyDelegate :public QStyledItemDelegate
@@ -86,13 +86,6 @@ public:
 				QColorDialog* pColorDiag = static_cast<QColorDialog*>(editor);
 				uint32 color = GetSysColor(COLOR_BTNFACE);
 				QColor value = index.model()->data(index, Qt::BackgroundRole).value<QColor>();
-				if (QColor(GetRValue(color), GetGValue(color), GetBValue(color)) == value) {
-					pItem->setText(QStringLiteral("默认底色"));
-				}
-				else {
-					pItem->setText("");
-				}
-				
 				pColorDiag->setCurrentColor(value);
 				return;
 			}
@@ -104,9 +97,16 @@ public:
 			case ui_ImageBox:
 			{
 				QImage imageValue = index.model()->data(index, Qt::UserRole).value<QImage>();
+				if (!imageValue.isNull()) {
+					pItem->setText(QStringLiteral("有数据"));
+				}
+				else {
+					pItem->setText(QStringLiteral(""));
+				}
 				QLabel* pLabel = static_cast<QLabel*>(editor);
 				pLabel->setPixmap(QPixmap::fromImage(imageValue));
 				pLabel->adjustSize();
+				pLabel->move((QApplication::desktop()->width() - pLabel->width()) / 1.5, (QApplication::desktop()->height() - pLabel->height()) / 2);
 				return;
 			}
 			default:
@@ -149,11 +149,11 @@ public:
 			case ui_ImageBox:
 			{
 				//使图片位置居中
-				QRect centerRect;
-				centerRect.setLeft((QApplication::desktop()->width() - option.rect.width()) / 2);
-				centerRect.setTop((QApplication::desktop()->height() - option.rect.height()) / 2);
-				editor->setGeometry(centerRect);
-				return;
+				//QRect centerRect;
+				//centerRect.setLeft((QApplication::desktop()->width() - option.rect.width()) / 2);
+				//centerRect.setTop((QApplication::desktop()->height() - option.rect.top()) / 2);
+				//editor->setGeometry(centerRect);
+				//return;
 			}
 			default:
 				break;

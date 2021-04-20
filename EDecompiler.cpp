@@ -246,7 +246,7 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 		gMenu_ShowResource = IDAMenu::CreateMenu(getUTF8String("易语言/用户常量资源").c_str(), UserResourceParser::MenuHandle_ShowUserResource);
 	}
 
-	if (eHead.lpEWindow != 0 && eHead.dwEWindowSize != 0) {
+	if (eHead.lpEWindow != 0 && eHead.dwEWindowSize > 4) {
 		GuiParser::ParseGUIResource(eHead.lpEWindow, eHead.dwEWindowSize);
 		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/窗口控件信息").c_str(), GuiParser::MenuHandle_ShowGuiInfo);
 		if (GuiParser::GetEventCount()) {

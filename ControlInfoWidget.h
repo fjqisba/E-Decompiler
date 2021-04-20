@@ -13,6 +13,5 @@ private:
 public:
 	Ui::ControlInfo ui;
 private:
-	void InitKernelControl_Window(unsigned int propertyAddr,int propertySize);
-	void InitKernelControl_Label(unsigned int propertyAddr,int propertySize);
+	
 };

@@ -1,5 +1,20 @@
 #include "krnl_EditBox.h"
 
+void krnl_EditBox::取控件默认附加属性(QHash<QString, QVariant>& out_data)
+{
+
+}
+
+void krnl_EditBox::反序列化控件附加属性(unsigned char* pUnitDataPtr, QHash<QString, QVariant>& out_data)
+{
+
+}
+
+void krnl_EditBox::显示控件属性信息(QHash<QString, QVariant>& out_data)
+{
+
+}
+
 qstring krnl_EditBox::取事件名称(int eventIndex)
 {
 	qstring ret;

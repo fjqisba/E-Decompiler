@@ -5,6 +5,7 @@
 #include "ControlInfoWidget.h"
 #include "public.h"
 #include <QMap>
+#include "EAppControlFactory.h"
 
 qvector<GuiParser::mid_GuiInfo> mVec_GuiInfo;               //控件信息
 ea_t m_UserCodeStartAddr = 0;
@@ -120,13 +121,16 @@ int GuiParser::MenuHandle_ShowEventInfo()
 	for (unsigned int nWindowIndex = 0; nWindowIndex < mVec_GuiInfo.size(); ++nWindowIndex) {
 		for (unsigned int nControlIndex = 0; nControlIndex < mVec_GuiInfo[nWindowIndex].mVec_ControlInfo.size(); ++nControlIndex) {
 			ControlType_t type = GuiParser::GetControlType(mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlTypeId);
-			for (unsigned int nEventIndex = 0; nEventIndex < mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].mVec_eventInfo.size(); ++nEventIndex) {
-				eventInfo eEventInfo;
-				eEventInfo.EventAddr = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].mVec_eventInfo[nEventIndex].m_EventAddr;
-				eEventInfo.ControlName = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlTypeName;
-				unsigned int index = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].mVec_eventInfo[nEventIndex].m_nEventIndex;
-				eEventInfo.EventName.sprnt("_%s_%s", mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlName.c_str(), EAppControl::取事件名称(type, index).c_str());
-				pEventWindow->vec_EventInfo.push_back(eEventInfo);
+			EAppControl* pEAppControl = EAppControlFactory::getEAppControl(type);
+			if (pEAppControl) {
+				for (unsigned int nEventIndex = 0; nEventIndex < mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].mVec_eventInfo.size(); ++nEventIndex) {
+					eventInfo eEventInfo;
+					eEventInfo.EventAddr = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].mVec_eventInfo[nEventIndex].m_EventAddr;
+					eEventInfo.ControlName = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlTypeName;
+					unsigned int index = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].mVec_eventInfo[nEventIndex].m_nEventIndex;
+					eEventInfo.EventName.sprnt("_%s_%s", mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlName.c_str(), pEAppControl->取事件名称(index).c_str());
+					pEventWindow->vec_EventInfo.push_back(eEventInfo);
+				}
 			}
 		}
 	}

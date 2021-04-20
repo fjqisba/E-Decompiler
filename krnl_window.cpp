@@ -5,7 +5,6 @@
 #include "PropertyDelegate.h"
 #include "public.h"
 #include <QtWidgets/QComboBox>
-#include <QVariant>
 
 struct WinFrom_UnitData
 {
@@ -22,7 +21,7 @@ struct WinFrom_UnitData
 	unsigned int 回车下移焦点;
 	unsigned int Esc键关闭;
 	unsigned int F1键打开帮助;
-	unsigned int 帮助标记值;
+	unsigned int 帮助标志值;
 	unsigned int 在任务条中显示;
 	unsigned int 随意移动;
 	unsigned int 外形;
@@ -36,322 +35,77 @@ struct WinFrom_UnitData
 	qstring 帮助文件名;
 };
 
-void krnl_window::反序列化属性(unsigned char* lpControlData, QHash<QString, QVariant>& out_data)
+QStringList 取底图方式列表()
 {
-	WinFrom_UnitData tmpData;
-	tmpData.version = CDR_ReadUInt(lpControlData);
-
-	if (tmpData.version <= 6) {
-		tmpData.边框 = CDR_ReadUInt(lpControlData);
-		tmpData.底图方式 = CDR_ReadUInt(lpControlData);
-		tmpData.底色 = CDR_ReadUInt(lpControlData);
-		tmpData.最大化按钮 = CDR_ReadUInt(lpControlData);
-		tmpData.最小化按钮 = CDR_ReadUInt(lpControlData);
-		tmpData.控制按钮 = CDR_ReadUInt(lpControlData);
-		tmpData.位置 = CDR_ReadUInt(lpControlData);
-		tmpData.可否移动 = CDR_ReadUInt(lpControlData);
-		tmpData.播放次数 = CDR_ReadUInt(lpControlData);
-		tmpData.回车下移焦点 = CDR_ReadUInt(lpControlData);
-		tmpData.Esc键关闭 = CDR_ReadUInt(lpControlData);
-		tmpData.F1键打开帮助 = CDR_ReadUInt(lpControlData);
-		tmpData.帮助标记值 = CDR_ReadUInt(lpControlData);
-
-		if (tmpData.version >= 2) {
-			tmpData.在任务条中显示 = CDR_ReadUInt(lpControlData);
-		}
-		if (tmpData.version >= 3) {
-			tmpData.随意移动 = CDR_ReadUInt(lpControlData);
-			tmpData.外形 = CDR_ReadUInt(lpControlData);
-		}
-		if (tmpData.version >= 4) {
-			tmpData.总在最前 = CDR_ReadUInt(lpControlData);
-		}
-		if (tmpData.version >= 5) {
-			tmpData.保持标题条激活 = CDR_ReadUInt(lpControlData);
-		}
-		if (tmpData.version == 6) {
-			tmpData.窗口类名 = CDR_ReadCString(lpControlData);
-		}
-
-		tmpData.底图 = CDR_ReadCFreqMem(lpControlData);
-		tmpData.图标 = CDR_ReadCFreqMem(lpControlData);
-		tmpData.背景音乐 = CDR_ReadCFreqMem(lpControlData);
-
-		tmpData.标题 = CDR_ReadCString(lpControlData);
-		tmpData.帮助文件名 = CDR_ReadCString(lpControlData);
-	}
-
-	out_data[QStringLiteral("version")] = tmpData.version;
-	out_data[QStringLiteral("边框")] = tmpData.边框;
-	out_data[QStringLiteral("底图方式")] = tmpData.底图方式;
-	out_data[QStringLiteral("底色")] = tmpData.底色;
-	out_data[QStringLiteral("最大化按钮")] = tmpData.最小化按钮;
-	out_data[QStringLiteral("控制按钮")] = tmpData.控制按钮;
-	out_data[QStringLiteral("位置")] = tmpData.位置;
-	out_data[QStringLiteral("可否移动")] = tmpData.可否移动;
-	out_data[QStringLiteral("播放次数")] = tmpData.播放次数;
-	out_data[QStringLiteral("回车下移焦点")] = tmpData.回车下移焦点;
-	out_data[QStringLiteral("Esc键关闭")] = tmpData.Esc键关闭;
-	out_data[QStringLiteral("F1键打开帮助")] = tmpData.F1键打开帮助;
-	out_data[QStringLiteral("帮助标记值")] = tmpData.帮助标记值;
-	out_data[QStringLiteral("在任务条中显示")] = tmpData.在任务条中显示;
-	out_data[QStringLiteral("随意移动")] = tmpData.随意移动;
-	out_data[QStringLiteral("外形")] = tmpData.外形;
-	out_data[QStringLiteral("总在最前")] = tmpData.总在最前;
-	out_data[QStringLiteral("保持标题条激活")] = tmpData.保持标题条激活;
-	out_data[QStringLiteral("窗口类名")] = QString::fromLocal8Bit(tmpData.窗口类名.c_str());
-	
-	if (tmpData.底图.size()) {
-		out_data[QStringLiteral("底图")] = QByteArray((char*)&tmpData.底图[0], tmpData.底图.size());
-	}
-	if (tmpData.图标.size()) {
-		out_data[QStringLiteral("图标")] = QByteArray((char*)&tmpData.图标[0], tmpData.图标.size());
-	}
-	if (tmpData.背景音乐.size()) {
-		out_data[QStringLiteral("背景音乐")] = QByteArray((char*)&tmpData.背景音乐[0], tmpData.背景音乐.size());
-	}
-	
-	out_data[QStringLiteral("标题")] = QString::fromLocal8Bit(tmpData.标题.c_str());
-	out_data[QStringLiteral("帮助文件名")] = QString::fromLocal8Bit(tmpData.帮助文件名.c_str());
-	return;
+	QStringList Items = {
+	QStringLiteral("图片居左上"),
+	QStringLiteral("图片平铺"),
+	QStringLiteral("图片居中"),
+	QStringLiteral("缩放图片"),
+	};
+	return Items;
 }
 
-qstring 取窗口属性_位置(unsigned int index)
+QStringList 取位置列表()
 {
-	qstring ret;
-	switch (index)
-	{
-	case 0:
-		ret = "通常";
-		break;
-	case 1:
-		ret = "居中";
-		break;
-	case 2:
-		ret = "最小化";
-		break;
-	case 3:
-		ret = "最大化";
-		break;
-	default:
-		ret = "未知位置";
-		break;
-	}
-	return ret;
+	QStringList Items = {
+		QStringLiteral("通常"),
+		QStringLiteral("居中"),
+		QStringLiteral("最小化"),
+		QStringLiteral("最大化"),
+	};
+	return Items;
 }
 
-qstring 取窗口属性_外形(unsigned int index)
+QStringList 取外形列表()
 {
-	qstring ret;
-	switch (index)
-	{
-	case 0:
-		ret = "矩形";
-		break;
-	case 1:
-		ret = "椭圆";
-		break;
-	case 2:
-		ret = "圆角矩形";
-		break;
-	case 3:
-		ret = "环";
-		break;
-	case 4:
-		ret = "正三角";
-		break;
-	case 5:
-		ret = "倒三角";
-		break;
-	case 6:
-		ret = "左三角";
-		break;
-	case 7:
-		ret = "右三角";
-		break;
-	case 8:
-		ret = "平行四边形";
-		break;
-	case 9:
-		ret = "五边形";
-		break;
-	case 10:
-		ret = "六边形";
-		break;
-	case 11:
-		ret = "梯形";
-		break;
-	case 12:
-		ret = "菱形";
-		break;
-	case 13:
-		ret = "五角星";
-		break;
-	case 14:
-		ret = "十字星";
-		break;
-	case 15:
-		ret = "闪电形";
-		break;
-	case 16:
-		ret = "爆炸形1";
-		break;
-	case 17:
-		ret = "爆炸形2";
-		break;
-	case 18:
-		ret = "燕尾";
-		break;
-	case 19:
-		ret = "折角矩形";
-		break;
-	case 20:
-		ret = "左箭头";
-		break;
-	case 21:
-		ret = "右箭头";
-		break;
-	case 22:
-		ret = "上箭头";
-		break;
-	case 23:
-		ret = "下箭头";
-		break;
-	case 24:
-		ret = "左右箭头";
-		break;
-	case 25:
-		ret = "上下箭头";
-		break;
-	case 26:
-		ret = "十字箭头";
-		break;
-	case 27:
-		ret = "丁子箭头";
-		break;
-	case 28:
-		ret = "燕尾箭头";
-		break;
-	case 29:
-		ret = "五边形箭头";
-		break;
-	default:
-		ret = "未知箭头";
-		break;
-	}
-	return ret;
-
+	QStringList Items = {
+		QStringLiteral("矩形"),
+		QStringLiteral("椭圆"),
+		QStringLiteral("圆角矩形"),
+		QStringLiteral("环"),
+		QStringLiteral("正三角"),
+		QStringLiteral("倒三角"),
+		QStringLiteral("左三角"),
+		QStringLiteral("右三角"),
+		QStringLiteral("平行四边形"),
+		QStringLiteral("五边形"),
+		QStringLiteral("六边形"),
+		QStringLiteral("梯形"),
+		QStringLiteral("菱形"),
+		QStringLiteral("五角星"),
+		QStringLiteral("十字星"),
+		QStringLiteral("闪电形"),
+		QStringLiteral("爆炸形1"),
+		QStringLiteral("爆炸形2"),
+		QStringLiteral("燕尾"),
+		QStringLiteral("折角矩形"),
+		QStringLiteral("左箭头"),
+		QStringLiteral("右箭头"),
+		QStringLiteral("上箭头"),
+		QStringLiteral("下箭头"),
+		QStringLiteral("左右箭头"),
+		QStringLiteral("上下箭头"),
+		QStringLiteral("十字箭头"),
+		QStringLiteral("丁子箭头"),
+		QStringLiteral("燕尾箭头"),
+		QStringLiteral("五边形箭头"),
+	};
+	return Items;
 }
 
-
-
-qstring 取窗口属性_边框(unsigned int index)
+QStringList 取播放次数列表()
 {
-	qstring ret;
-	switch (index)
-	{
-	case 0x0:
-		ret = "无边框";
-		break;
-	case 1:
-		ret = "普通可调边框";
-		break;
-	case 2:
-		ret = "普通固定边框";
-		break;
-	case 3:
-		ret = "窄标题可调边框";
-		break;
-	case 4:
-		ret = "窄标题固定边框";
-		break;
-	case 5:
-		ret = "镜框式可调边框";
-		break;
-	case 6:
-		ret = "镜框式固定边框";
-		break;
-	default:
-		ret = "未知边框";
-		break;
-	}
-
-	return ret;
+	QStringList Items = {
+		QStringLiteral("循环播放"),
+		QStringLiteral("仅播放一次"),
+		QStringLiteral("不播放"),
+	};
+	return Items;
 }
 
-
-qstring 取窗口属性_底图方式(unsigned int index)
+QStringList 取边框列表()
 {
-	qstring ret;
-	switch (index)
-	{
-	case 0:
-		ret = "图片居左上";
-		break;
-	case 1:
-		ret = "图片平铺";
-		break;
-	case 2:
-		ret = "图片居中";
-		break;
-	case 3:
-		ret = "缩放图片";
-		break;
-	default:
-		ret = "未知方式";
-		break;
-	}
-	return ret;
-}
-
-qstring 取窗口属性_播放次数(unsigned int index)
-{
-	qstring ret;
-	switch (index)
-	{
-	case 0:
-		ret = "循环播放";
-		break;
-	case 1:
-		ret = "仅播放一次";
-		break;
-	case 2:
-		ret = "不播放";
-		break;
-	default:
-		ret = "未知播放";
-		break;
-	}
-	return ret;
-}
-void krnl_window::添加底色控件(ControlInfoWidget* pWindow, unsigned int ProperyValue)
-{
-	int insertRow = pWindow->ui.ControlTable->rowCount();
-	pWindow->ui.ControlTable->insertRow(insertRow);
-
-	pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("底色")));
-
-
-	if (ProperyValue == 0xFF000000) {
-		uint32 color = GetSysColor(COLOR_BTNFACE);
-		pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("默认底色"), ui_ColorDialog));
-		pWindow->ui.ControlTable->item(insertRow, COLUMN_PropertyValue)->setBackgroundColor(QColor(GetRValue(color), GetGValue(color), GetBValue(color)));
-	}
-	else {
-		pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem("", ui_ColorDialog));
-		pWindow->ui.ControlTable->item(insertRow, COLUMN_PropertyValue)->setBackgroundColor(QColor(GetRValue(ProperyValue), GetGValue(ProperyValue), GetBValue(ProperyValue)));
-	}
-}
-
-void krnl_window::添加边框控件(ControlInfoWidget* pWindow, unsigned int ProperyValue)
-{
-	int insertRow = pWindow->ui.ControlTable->rowCount();
-	pWindow->ui.ControlTable->insertRow(insertRow);
-
-	pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("边框")));
-	QComboBox* pComboBox = new QComboBox();
-	pComboBox->setEditable(false);
-
 	QStringList Items = {
 		QStringLiteral("无边框"),
 		QStringLiteral("普通可调边框"),
@@ -361,17 +115,33 @@ void krnl_window::添加边框控件(ControlInfoWidget* pWindow, unsigned int ProperyV
 		QStringLiteral("镜框式可调边框"),
 		QStringLiteral("镜框式固定边框"),
 	};
-	pComboBox->addItems(Items);
-	pComboBox->setCurrentIndex(ProperyValue);
-	pWindow->ui.ControlTable->setCellWidget(insertRow, COLUMN_PropertyValue, pComboBox);
+	return Items;
 }
 
-void krnl_window::取默认属性(QHash<QString, QVariant>& out_data)
+void krnl_window::添加背景音乐控件(QByteArray& ProperyValue)
+{
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
+
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("背景音乐")));
+	if (ProperyValue.size()) {
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("有数据")));
+	}
+	else {
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("")));
+	}
+	return;
+}
+
+
+
+
+void krnl_window::取控件默认附加属性(QHash<QString, QVariant>& out_data)
 {
 	out_data[QStringLiteral("version")] = 6;
 	out_data[QStringLiteral("边框")] = 2;
 	out_data[QStringLiteral("底色")] = 0xFF000000;
-	out_data[QStringLiteral("底图方式")] = 1;	
+	out_data[QStringLiteral("底图方式")] = 1;
 	out_data[QStringLiteral("播放次数")] = 0;
 	out_data[QStringLiteral("控制按钮")] = 1;
 	out_data[QStringLiteral("最大化按钮")] = 0;
@@ -388,120 +158,125 @@ void krnl_window::取默认属性(QHash<QString, QVariant>& out_data)
 	out_data[QStringLiteral("保持标题条激活")] = 0;
 }
 
-void krnl_window::显示控件信息(unsigned int propertyAddr, int propertySize)
+void krnl_window::反序列化控件附加属性(unsigned char* pUnitDataPtr, QHash<QString, QVariant>& out_data)
 {
-	QHash<QString, QVariant> map_ControlData;
+	WinFrom_UnitData tmpData;
+	tmpData.version = CDR_ReadUInt(pUnitDataPtr);
 
-	qvector<unsigned char> tmpBuf;
-	tmpBuf.resize(propertySize);
-	get_bytes(&tmpBuf[0], propertySize, propertyAddr);
-	unsigned char* lpControlInfo = &tmpBuf[0];
+	if (tmpData.version <= 6) {
+		tmpData.边框 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.底图方式 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.底色 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.最大化按钮 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.最小化按钮 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.控制按钮 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.位置 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.可否移动 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.播放次数 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.回车下移焦点 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.Esc键关闭 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.F1键打开帮助 = CDR_ReadUInt(pUnitDataPtr);
+		tmpData.帮助标志值 = CDR_ReadUInt(pUnitDataPtr);
 
-	map_ControlData["控件ID"]= ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
+		if (tmpData.version >= 2) {
+			tmpData.在任务条中显示 = CDR_ReadUInt(pUnitDataPtr);
+		}
+		if (tmpData.version >= 3) {
+			tmpData.随意移动 = CDR_ReadUInt(pUnitDataPtr);
+			tmpData.外形 = CDR_ReadUInt(pUnitDataPtr);
+		}
+		if (tmpData.version >= 4) {
+			tmpData.总在最前 = CDR_ReadUInt(pUnitDataPtr);
+		}
+		if (tmpData.version >= 5) {
+			tmpData.保持标题条激活 = CDR_ReadUInt(pUnitDataPtr);
+		}
+		if (tmpData.version == 6) {
+			tmpData.窗口类名 = CDR_ReadCString(pUnitDataPtr);
+		}
 
-	//固定的20个空字节,保留使用?
-	lpControlInfo += 20;
+		tmpData.底图 = CDR_ReadCFreqMem(pUnitDataPtr);
+		tmpData.图标 = CDR_ReadCFreqMem(pUnitDataPtr);
+		tmpData.背景音乐 = CDR_ReadCFreqMem(pUnitDataPtr);
 
-	map_ControlData[QStringLiteral("名称")] = QString::fromLocal8Bit(ReadStr(lpControlInfo).c_str());
-	lpControlInfo += qstrlen(lpControlInfo) + 1;
-
-	//无用字符串?
-	ReadStr(lpControlInfo);
-	lpControlInfo += qstrlen(lpControlInfo) + 1;
-	
-	//存储数据?
-	ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	map_ControlData[QStringLiteral("左边")] = ReadInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	map_ControlData[QStringLiteral("顶边")] = ReadInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	map_ControlData[QStringLiteral("宽度")] = ReadInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	map_ControlData[QStringLiteral("高度")] = ReadInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	//值为0,用来存储LoadCursorA返回的句柄值的
-	lpControlInfo += 4;
-
-	//父控件ID
-	map_ControlData[QStringLiteral("父控件ID")] = ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	//子控件数目
-	unsigned int childControlCount = ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
-	for (unsigned int n = 0; n < childControlCount; ++n) {
-		unsigned int tmpChildControlId = ReadUInt(lpControlInfo);
-		lpControlInfo += 4;
+		tmpData.标题 = CDR_ReadCString(pUnitDataPtr);
+		tmpData.帮助文件名 = CDR_ReadCString(pUnitDataPtr);
 	}
 
-	//鼠标指针大小
-	unsigned int CursorSize = ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
+	out_data[QStringLiteral("version")] = tmpData.version;
+	out_data[QStringLiteral("边框")] = tmpData.边框;
+	out_data[QStringLiteral("底图方式")] = tmpData.底图方式;
+	out_data[QStringLiteral("底色")] = tmpData.底色;
+	out_data[QStringLiteral("最大化按钮")] = tmpData.最小化按钮;
+	out_data[QStringLiteral("控制按钮")] = tmpData.控制按钮;
+	out_data[QStringLiteral("位置")] = tmpData.位置;
+	out_data[QStringLiteral("可否移动")] = tmpData.可否移动;
+	out_data[QStringLiteral("播放次数")] = tmpData.播放次数;
+	out_data[QStringLiteral("回车下移焦点")] = tmpData.回车下移焦点;
+	out_data[QStringLiteral("Esc键关闭")] = tmpData.Esc键关闭;
+	out_data[QStringLiteral("F1键打开帮助")] = tmpData.F1键打开帮助;
+	out_data[QStringLiteral("帮助标志值")] = tmpData.帮助标志值;
+	out_data[QStringLiteral("在任务条中显示")] = tmpData.在任务条中显示;
+	out_data[QStringLiteral("随意移动")] = tmpData.随意移动;
+	out_data[QStringLiteral("外形")] = tmpData.外形;
+	out_data[QStringLiteral("总在最前")] = tmpData.总在最前;
+	out_data[QStringLiteral("保持标题条激活")] = tmpData.保持标题条激活;
+	out_data[QStringLiteral("窗口类名")] = QString::fromLocal8Bit(tmpData.窗口类名.c_str());
 
-	map_ControlData[QStringLiteral("鼠标指针")] = ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	if (CursorSize > 4) {
-		map_ControlData[QStringLiteral("鼠标指针数据")] = QByteArray((char*)lpControlInfo, CursorSize);
-		lpControlInfo += CursorSize - 4;
+	if (tmpData.底图.size()) {
+		out_data[QStringLiteral("底图")] = QByteArray((char*)&tmpData.底图[0], tmpData.底图.size());
+	}
+	if (tmpData.图标.size()) {
+		out_data[QStringLiteral("图标")] = QByteArray((char*)&tmpData.图标[0], tmpData.图标.size());
+	}
+	if (tmpData.背景音乐.size()) {
+		out_data[QStringLiteral("背景音乐")] = QByteArray((char*)&tmpData.背景音乐[0], tmpData.背景音乐.size());
 	}
 
-	map_ControlData[QStringLiteral("标记")] = QString::fromLocal8Bit(ReadStr(lpControlInfo).c_str());
-	lpControlInfo += qstrlen(lpControlInfo) + 1;
-
-	//未知的值
-	unsigned int unKnowValueA = ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	unsigned int windowFlags = ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	map_ControlData[QStringLiteral("可视")] = windowFlags & 0x1;
-	map_ControlData[QStringLiteral("禁止")] = windowFlags & 0x2;
-
-
-
-	unsigned int unKnowValueB = ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
-
-	unsigned int index2 = ReadUInt(lpControlInfo);
-	lpControlInfo += 4;
-	lpControlInfo += (index2 * 8) + 0x14;
-
-	//——————————————剩下的数据为UnitData——————————————
-	int UnitDataSize = (&tmpBuf[0] - lpControlInfo) + propertySize;
-
-	if (!UnitDataSize) {
-		取默认属性(map_ControlData);
-	}
-	else {
-		反序列化属性(lpControlInfo, map_ControlData);
-	}
-
-	ControlInfoWidget* pWindow = GuiParser::g_ControlInfoWindow;
-	EAppControl::添加文本控件(pWindow, QStringLiteral("名称"), map_ControlData[QStringLiteral("名称")].toString());
-	EAppControl::添加文本控件(pWindow, QStringLiteral("左边"), map_ControlData[QStringLiteral("左边")].toString());
-	EAppControl::添加文本控件(pWindow, QStringLiteral("顶边"), map_ControlData[QStringLiteral("顶边")].toString());
-	EAppControl::添加文本控件(pWindow, QStringLiteral("宽度"), map_ControlData[QStringLiteral("宽度")].toString());
-	EAppControl::添加文本控件(pWindow, QStringLiteral("高度"), map_ControlData[QStringLiteral("高度")].toString());
-	EAppControl::添加文本控件(pWindow, QStringLiteral("标记"), map_ControlData[QStringLiteral("标记")].toString());
-	EAppControl::添加布尔控件(pWindow, QStringLiteral("可视"), map_ControlData[QStringLiteral("可视")].toBool());
-	EAppControl::添加布尔控件(pWindow, QStringLiteral("禁止"), map_ControlData[QStringLiteral("禁止")].toBool());
-	EAppControl::添加鼠标控件(pWindow, map_ControlData[QStringLiteral("鼠标指针")].toUInt());
-	EAppControl::添加文本控件(pWindow, QStringLiteral("标题"), map_ControlData[QStringLiteral("标题")].toString());
-	krnl_window::添加边框控件(pWindow, map_ControlData[QStringLiteral("边框")].toUInt());
-	krnl_window::添加底色控件(pWindow, map_ControlData[QStringLiteral("底色")].toUInt());
-	EAppControl::添加图片控件(pWindow, QStringLiteral("底图"), map_ControlData[QStringLiteral("底图")].toByteArray());
+	out_data[QStringLiteral("标题")] = QString::fromLocal8Bit(tmpData.标题.c_str());
+	out_data[QStringLiteral("帮助文件名")] = QString::fromLocal8Bit(tmpData.帮助文件名.c_str());
 	return;
 }
 
+void krnl_window::显示控件属性信息(QHash<QString, QVariant>& map_ControlData)
+{
+	EAppControl::添加文本控件(QStringLiteral("名称"), map_ControlData[QStringLiteral("名称")].toString());
+	EAppControl::添加文本控件(QStringLiteral("左边"), map_ControlData[QStringLiteral("左边")].toString());
+	EAppControl::添加文本控件(QStringLiteral("顶边"), map_ControlData[QStringLiteral("顶边")].toString());
+	EAppControl::添加文本控件(QStringLiteral("宽度"), map_ControlData[QStringLiteral("宽度")].toString());
+	EAppControl::添加文本控件(QStringLiteral("高度"), map_ControlData[QStringLiteral("高度")].toString());
+	EAppControl::添加文本控件(QStringLiteral("标记"), map_ControlData[QStringLiteral("标记")].toString());
+	EAppControl::添加布尔控件(QStringLiteral("可视"), map_ControlData[QStringLiteral("可视")].toBool());
+	EAppControl::添加布尔控件(QStringLiteral("禁止"), map_ControlData[QStringLiteral("禁止")].toBool());
+	EAppControl::添加鼠标控件(map_ControlData[QStringLiteral("鼠标指针")].toUInt());
+	EAppControl::添加文本控件(QStringLiteral("标题"), map_ControlData[QStringLiteral("标题")].toString());
+	EAppControl::添加列表控件(QStringLiteral("边框"), 取边框列表(), map_ControlData[QStringLiteral("边框")].toUInt());
+	EAppControl::添加底色控件(QStringLiteral("底色"), map_ControlData[QStringLiteral("底色")].toUInt());
+	EAppControl::添加图片控件(QStringLiteral("底图"), map_ControlData[QStringLiteral("底图")].toByteArray());
+	EAppControl::添加列表控件(QStringLiteral("    底图方式"), 取底图方式列表(), map_ControlData[QStringLiteral("底图方式")].toUInt());
+	krnl_window::添加背景音乐控件(map_ControlData[QStringLiteral("背景音乐")].toByteArray());
+	EAppControl::添加列表控件(QStringLiteral("    播放次数"), 取播放次数列表(), map_ControlData[QStringLiteral("播放次数")].toUInt());
+
+	EAppControl::添加布尔控件(QStringLiteral("控制按钮"), map_ControlData[QStringLiteral("控制按钮")].toBool());
+	EAppControl::添加布尔控件(QStringLiteral("    最大化按钮"), map_ControlData[QStringLiteral("最大化按钮")].toBool());
+	EAppControl::添加布尔控件(QStringLiteral("    最小化按钮"), map_ControlData[QStringLiteral("最小化按钮")].toBool());
+
+	EAppControl::添加列表控件(QStringLiteral("位置"), 取位置列表(), map_ControlData[QStringLiteral("位置")].toUInt());
+	EAppControl::添加布尔控件(QStringLiteral("可否移动"), map_ControlData[QStringLiteral("可否移动")].toBool());
+	EAppControl::添加图片控件(QStringLiteral("图标"), map_ControlData[QStringLiteral("图标")].toByteArray());
+	EAppControl::添加布尔控件(QStringLiteral("回车下移焦点"), map_ControlData[QStringLiteral("回车下移焦点")].toBool());
+	EAppControl::添加布尔控件(QStringLiteral("Esc键关闭"), map_ControlData[QStringLiteral("Esc键关闭")].toBool());
+	EAppControl::添加布尔控件(QStringLiteral("F1键打开帮助"), map_ControlData[QStringLiteral("F1键打开帮助")].toBool());
+	EAppControl::添加文本控件(QStringLiteral("    帮助文件名"), map_ControlData[QStringLiteral("帮助文件名")].toString());
+	EAppControl::添加文本控件(QStringLiteral("    帮助标志值"), map_ControlData[QStringLiteral("帮助标志值")].toString());
+	EAppControl::添加布尔控件(QStringLiteral("在任务条中显示"), map_ControlData[QStringLiteral("在任务条中显示")].toBool());
+	EAppControl::添加布尔控件(QStringLiteral("随意移动"), map_ControlData[QStringLiteral("随意移动")].toBool());
+	EAppControl::添加列表控件(QStringLiteral("外形"), 取外形列表(), map_ControlData[QStringLiteral("外形")].toUInt());
+	EAppControl::添加布尔控件(QStringLiteral("总在最前"), map_ControlData[QStringLiteral("总在最前")].toBool());
+	EAppControl::添加布尔控件(QStringLiteral("保持标题条激活"), map_ControlData[QStringLiteral("保持标题条激活")].toBool());
+	EAppControl::添加文本控件(QStringLiteral("窗口类名"), map_ControlData[QStringLiteral("窗口类名")].toString());
+	return;
+}
 
 qstring krnl_window::取事件名称(int eventIndex)
 {

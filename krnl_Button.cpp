@@ -1,5 +1,18 @@
 #include "krnl_Button.h"
+#include "EAppControl.h"
+#include <bytes.hpp>
+#include "public.h"
 
+
+void krnl_Button::反序列化控件附加属性(unsigned char* pUnitDataPtr, QHash<QString, QVariant>& out_data)
+{
+
+}
+
+void krnl_Button::取控件默认附加属性(QHash<QString, QVariant>& out_data)
+{
+
+}
 
 qstring krnl_Button::取事件名称(int eventIndex)
 {
@@ -50,4 +63,9 @@ qstring krnl_Button::取事件名称(int eventIndex)
 		break;
 	}
 	return ret;
+}
+
+void krnl_Button::显示控件属性信息(QHash<QString, QVariant>& out_data)
+{
+
 }

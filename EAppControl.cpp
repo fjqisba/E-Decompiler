@@ -3,6 +3,8 @@
 #include <QMap>
 #include "GuiParser.h"
 #include "PropertyDelegate.h"
+#include <bytes.hpp>
+#include "public.h"
 #include "krnl_window.h"
 #include "krnl_Button.h"
 #include "krnl_Timer.h"
@@ -14,8 +16,23 @@
 #include "krnl_ShapeBox.h"
 #include "krnl_CheckBox.h"
 #include "krnl_DropTarget.h"
+#include "EAppControlFactory.h"
 
-
+unsigned char* EAppControl::GetUnitDataPtr(unsigned char* propertyAddr)
+{
+	unsigned char* ret = propertyAddr;
+	ret += 0x18;
+	ret += qstrlen(ret) + 1;
+	ret += qstrlen(ret) + 1;
+	ret += 0x1C;
+	ret += (ReadUInt(ret) + 1) * 4;
+	ret += ReadUInt(ret) + 4;
+	ret += qstrlen(ret) + 1;
+	ret += 0xC;
+	ret += ReadUInt(ret) * 8;
+	ret += 0x18;
+	return ret;
+}
 
 QString 取鼠标指针属性(unsigned int index)
 {
@@ -78,87 +95,217 @@ QString 取鼠标指针属性(unsigned int index)
 	return ret;
 }
 
-qstring EAppControl::取事件名称(ControlType_t type, int eventIndex)
+void EAppControl::解析控件基础属性(unsigned char* lpControlInfo, QHash<QString, QVariant>& map_ControlData)
 {
-	qstring ret;
+	map_ControlData["控件ID"] = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
 
-	static QMap<ControlType_t, qstring(*)(int)> map_eventFunc;
-	if (!map_eventFunc.size()) {
-		map_eventFunc[krnl_window] = krnl_window::取事件名称;
-		map_eventFunc[krnl_EditBox] = krnl_EditBox::取事件名称;
-		map_eventFunc[krnl_PicBox] = krnl_PicBox::取事件名称;
-		map_eventFunc[krnl_ShapeBox] = krnl_ShapeBox::取事件名称;
-		map_eventFunc[krnl_CheckBox] = krnl_CheckBox::取事件名称;
-		map_eventFunc[krnl_Button] = krnl_Button::取事件名称;
-		map_eventFunc[krnl_Timer] = krnl_Timer::取事件名称;
-		map_eventFunc[krnl_ListBox] = krnl_ListBox::取事件名称;
-		map_eventFunc[krnl_RadioBox] = krnl_RadioBox::取事件名称;
-		map_eventFunc[krnl_PicBtn] = krnl_PicBtn::取事件名称;
+	//固定的20个空字节,保留使用?
+	lpControlInfo += 20;
 
+	map_ControlData[QStringLiteral("名称")] = QString::fromLocal8Bit(ReadStr(lpControlInfo).c_str());
+	lpControlInfo += qstrlen(lpControlInfo) + 1;
 
-		map_eventFunc[krnl_DropTarget] = krnl_DropTarget::取事件名称;
+	//无用字符串?
+	ReadStr(lpControlInfo);
+	lpControlInfo += qstrlen(lpControlInfo) + 1;
+
+	//存储数据?
+	ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	map_ControlData[QStringLiteral("左边")] = ReadInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	map_ControlData[QStringLiteral("顶边")] = ReadInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	map_ControlData[QStringLiteral("宽度")] = ReadInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	map_ControlData[QStringLiteral("高度")] = ReadInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	//值为0,用来存储LoadCursorA返回的句柄值的
+	lpControlInfo += 4;
+
+	//父控件ID
+	map_ControlData[QStringLiteral("父控件ID")] = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	//子控件数目
+	unsigned int childControlCount = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+	for (unsigned int n = 0; n < childControlCount; ++n) {
+		unsigned int tmpChildControlId = ReadUInt(lpControlInfo);
+		lpControlInfo += 4;
 	}
 
-	QMap<ControlType_t, qstring(*)(int)>::iterator it = map_eventFunc.find(type);
-	if (it != map_eventFunc.end()) {
-		ret = it.value()(eventIndex);
+	//鼠标指针大小
+	unsigned int CursorSize = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	map_ControlData[QStringLiteral("鼠标指针")] = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	if (CursorSize > 4) {
+		map_ControlData[QStringLiteral("鼠标指针数据")] = QByteArray((char*)lpControlInfo, CursorSize);
+		lpControlInfo += CursorSize - 4;
 	}
-	return ret;
+
+	map_ControlData[QStringLiteral("标记")] = QString::fromLocal8Bit(ReadStr(lpControlInfo).c_str());
+	lpControlInfo += qstrlen(lpControlInfo) + 1;
+
+	//未知的值
+	unsigned int unKnowValueA = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	unsigned int windowFlags = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	map_ControlData[QStringLiteral("可视")] = windowFlags & 0x1;
+	map_ControlData[QStringLiteral("禁止")] = windowFlags & 0x2;
+	map_ControlData[QStringLiteral("可停留焦点")] = windowFlags & 0x4;
+
+	map_ControlData[QStringLiteral("停留顺序")] = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+
+	unsigned int index2 = ReadUInt(lpControlInfo);
+	lpControlInfo += 4;
+	lpControlInfo += (index2 * 8) + 0x14;
+
+	return;
 }
+
 
 void EAppControl::显示控件信息(ControlType_t type, unsigned int propertyAddr, int propertySize)
 {
-	static QMap<ControlType_t, void(*)(unsigned int, int)> map_ShowGuiFunc;
-	if (!map_ShowGuiFunc.size()) {
-		map_ShowGuiFunc[krnl_window] = krnl_window::显示控件信息;
+	QHash<QString, QVariant> map_ControlData;
+	qvector<unsigned char> tmpBuf;
+	tmpBuf.resize(propertySize);
+	get_bytes(&tmpBuf[0], propertySize, propertyAddr);
+	EAppControl::解析控件基础属性(&tmpBuf[0], map_ControlData);
 
+	EAppControl* pEAppControl = EAppControlFactory::getEAppControl(type);
+	if (!pEAppControl) {
+		return;
 	}
 
-	QMap<ControlType_t, void(*)(unsigned int, int)>::iterator it = map_ShowGuiFunc.find(type);
-	if (it != map_ShowGuiFunc.end()) {
-		it.value()(propertyAddr, propertySize);
+	unsigned char* pUnitDataPtr = EAppControl::GetUnitDataPtr(&tmpBuf[0]);
+	int UnitDataSize = (&tmpBuf[0] - pUnitDataPtr) + propertySize;
+	if (!UnitDataSize) {
+		pEAppControl->取控件默认附加属性(map_ControlData);
 	}
+	else {
+		pEAppControl->反序列化控件附加属性(pUnitDataPtr, map_ControlData);
+	}
+	pEAppControl->显示控件属性信息(map_ControlData);
 	return;
 }
 
-void EAppControl::添加文本控件(ControlInfoWidget* pWindow, QString PropertyName, QString PropertyValue)
+void EAppControl::添加文本控件(QString PropertyName, QString PropertyValue)
 {
-	int insertRow = pWindow->ui.ControlTable->rowCount();
-	pWindow->ui.ControlTable->insertRow(insertRow);
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
 
-	pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName));
-	pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(PropertyValue));
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName, ui_LineEditor_ReadOnly));
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(PropertyValue));
 }
 
-void EAppControl::添加列表控件(ControlInfoWidget* pWindow, QString PropertyName, unsigned int PropertyValue)
+void EAppControl::添加列表控件(QString PropertyName, QStringList& PropertyList, unsigned int PropertyValue)
 {
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName, ui_LineEditor_ReadOnly));
+	QComboBox* pComboBox = new QComboBox();
+	pComboBox->setEditable(false);
 
+	pComboBox->addItems(PropertyList);
+	pComboBox->setCurrentIndex(PropertyValue);
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setCellWidget(insertRow, COLUMN_PropertyValue, pComboBox);
+	return;
 }
 
-void EAppControl::添加图片控件(ControlInfoWidget* pWindow, QString PropertyName, QByteArray& PropertyValue)
+void EAppControl::添加无效控件(QString PropertyName)
 {
-	int insertRow = pWindow->ui.ControlTable->rowCount();
-	pWindow->ui.ControlTable->insertRow(insertRow);
-	pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName));
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName, ui_LineEditor_ReadOnly));
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("** 无效 **"), ui_LineEditor_Disabled));
+	return;
+}
+
+void EAppControl::添加字体控件(QString PropertyName, QByteArray& PropertyValue)
+{
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName, ui_LineEditor_ReadOnly));
 
 	if (PropertyValue.size()) {
-		pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("有数据"), ui_ImageBox));
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("有数据"), ui_LineEditor_ReadOnly));
 	}
 	else {
-		pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral(""), ui_ImageBox));
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral(""), ui_LineEditor_ReadOnly));
+	}
+}
+
+void EAppControl::添加底色控件(QString propertyName, unsigned int ProperyValue)
+{
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
+
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(propertyName, ui_LineEditor_ReadOnly));
+
+	if (ProperyValue == 0xFF000000) {
+		uint32 color = GetSysColor(COLOR_BTNFACE);
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("默认底色"), ui_ColorDialog));
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->item(insertRow, COLUMN_PropertyValue)->setBackgroundColor(QColor(GetRValue(color), GetGValue(color), GetBValue(color)));
+	}
+	else {
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem("", ui_ColorDialog));
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->item(insertRow, COLUMN_PropertyValue)->setBackgroundColor(QColor(GetRValue(ProperyValue), GetGValue(ProperyValue), GetBValue(ProperyValue)));
+	}
+}
+
+void EAppControl::添加颜色控件(QString PropertyName, unsigned int PropertyValue)
+{
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName, ui_LineEditor_ReadOnly));
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral(""), ui_ColorDialog));
+	if (PropertyValue == 0xFF000000) {
+		uint32 color = GetSysColor(COLOR_BTNFACE);
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->item(insertRow, COLUMN_PropertyValue)->setBackgroundColor(QColor(GetRValue(color), GetGValue(color), GetBValue(color)));
+	}
+	else {
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->item(insertRow, COLUMN_PropertyValue)->setBackgroundColor(QColor(GetRValue(PropertyValue), GetGValue(PropertyValue), GetBValue(PropertyValue)));
+	}
+}
+
+void EAppControl::添加图片控件(QString PropertyName, QByteArray& PropertyValue)
+{
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName));
+
+	if (PropertyValue.size()) {
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("有数据"), ui_ImageBox));
+	}
+	else {
+		GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral(""), ui_ImageBox));
 	}
 
 	QImage image = QImage::fromData(PropertyValue);
-	pWindow->ui.ControlTable->item(insertRow, COLUMN_PropertyValue)->setData(Qt::UserRole, image);
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->item(insertRow, COLUMN_PropertyValue)->setData(Qt::UserRole, image);
 	return;
 }
 
-void EAppControl::添加鼠标控件(ControlInfoWidget* pWindow, unsigned int ProperyValue)
+void EAppControl::添加鼠标控件(unsigned int ProperyValue)
 {
-	int insertRow = pWindow->ui.ControlTable->rowCount();
-	pWindow->ui.ControlTable->insertRow(insertRow);
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
 
-	pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("鼠标指针")));
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(QStringLiteral("鼠标指针")));
 	QComboBox* pComboBox = new QComboBox();
 	pComboBox->setEditable(false);
 
@@ -182,19 +329,19 @@ void EAppControl::添加鼠标控件(ControlInfoWidget* pWindow, unsigned int ProperyV
 	};
 	pComboBox->addItems(Items);
 	pComboBox->setCurrentText(取鼠标指针属性(ProperyValue));
-	pWindow->ui.ControlTable->setCellWidget(insertRow, COLUMN_PropertyValue, pComboBox);
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setCellWidget(insertRow, COLUMN_PropertyValue, pComboBox);
 }
 
-void EAppControl::添加布尔控件(ControlInfoWidget* pWindow, QString PropertyName, bool ProperyValue)
+void EAppControl::添加布尔控件(QString PropertyName, bool ProperyValue)
 {
-	int insertRow = pWindow->ui.ControlTable->rowCount();
-	pWindow->ui.ControlTable->insertRow(insertRow);
+	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
 
-	pWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName));
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName, ui_LineEditor_ReadOnly));
 	QComboBox* pComboBox = new QComboBox();
 	pComboBox->setEditable(false);
 	pComboBox->addItem(QStringLiteral("真"));
 	pComboBox->addItem(QStringLiteral("假"));
 	pComboBox->setCurrentIndex(!ProperyValue);
-	pWindow->ui.ControlTable->setCellWidget(insertRow, COLUMN_PropertyValue, pComboBox);
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setCellWidget(insertRow, COLUMN_PropertyValue, pComboBox);
 }

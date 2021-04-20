@@ -1,39 +1,20 @@
 #pragma once
-#include <pro.h>
 #include "EAppControl.h"
 
-struct Label_UnitData
+class krnl_Label:public EAppControl
 {
-	unsigned int version;
-	unsigned int 效果;
-	unsigned int filed_8;
-	unsigned int filed_C;
-	unsigned int field_10;
-	unsigned int field_14;
-	unsigned int field_18;
-	unsigned int field_1C;
-	unsigned int field_20;
-	unsigned int field_24;
-	unsigned int field_28;
-	unsigned int field_2C;
-	unsigned int field_30;
-	unsigned int field_34;
-	unsigned int field_38;
-	unsigned int field_3C;
-	unsigned int field_40;
-	qvector<unsigned char> field_44;
-	qvector<unsigned char> field_48;
-	qstring field_4C;
-	qstring field_50;
-	qstring field_54;
+protected:
+	void 取控件默认附加属性(QHash<QString, QVariant>& out_data);
+	void 反序列化控件附加属性(unsigned char* pUnitDataPtr, QHash<QString, QVariant>& out_data);
+	void 显示控件属性信息(QHash<QString, QVariant>& map_ControlData);
+	qstring 取事件名称(int eventIndex);
+private:
+	static void 添加渐变颜色控件(QString ProperyName, unsigned int ProperyValue);
+private:
+	static QStringList 取边框列表();
+	static QStringList 取效果列表();
+	static QStringList 取底图方式列表();
+	static QStringList 取渐变背景方式列表();
+	static QStringList 取横向对齐方式列表();
+	static QStringList 取纵向对齐方式列表();
 };
-
-class krnl_Label
-{
-public:
-	
-};
-
-bool Unserialize_LabelData(unsigned char* lpControlData, Label_UnitData* out_Data);
-
-qstring 取标签属性_效果(unsigned int index);

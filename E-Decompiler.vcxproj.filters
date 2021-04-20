@@ -87,6 +87,9 @@
     <ClCompile Include="EAppControl.cpp">
       <Filter>头文件\EAppControl</Filter>
     </ClCompile>
+    <ClCompile Include="EAppControlFactory.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EDecompiler.h">
@@ -157,6 +160,9 @@
       <Filter>头文件\EAppControl</Filter>
     </ClInclude>
     <ClInclude Include="EAppControl.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControlFactory.h">
       <Filter>头文件\EAppControl</Filter>
     </ClInclude>
   </ItemGroup>
