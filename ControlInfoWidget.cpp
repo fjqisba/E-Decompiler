@@ -28,10 +28,11 @@ ControlInfoWidget::ControlInfoWidget()
 	ui.ControlTable->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui.ControlTable->setSelectionBehavior(QAbstractItemView::SelectItems);
 	ui.ControlTable->setItemDelegate(new PropertyDelegate(ui.ControlTable));
+	ui.ControlTable->setColumnWidth(1, 200);   //设置第二列宽度
 
 	connect(ui.treeWidget, &QTreeWidget::itemClicked, this, [&](QTreeWidgetItem* item, int column) {
 		on_controlClicked(item, column);
-	});
+		});
 }
 
 ControlInfoWidget::~ControlInfoWidget()

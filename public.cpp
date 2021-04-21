@@ -156,6 +156,20 @@ int CDR_ReadInt(unsigned char*& currentPoint)
 	return ret;
 }
 
+unsigned short CDR_ReadUShort(unsigned char*& currentPoint)
+{
+	unsigned short ret = *(uint16*)currentPoint;
+	currentPoint += 2;
+	return ret;
+}
+
+char CDR_ReadChar(unsigned char*& currentPoint)
+{
+	char ret = *(uint8*)currentPoint;
+	currentPoint += 2;
+	return ret;
+}
+
 unsigned int CDR_ReadUInt(unsigned char*& currentPoint)
 {
 	unsigned int ret = *(uint32*)currentPoint;

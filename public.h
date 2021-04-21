@@ -34,6 +34,12 @@ int CDR_ReadInt(unsigned char*& currentPoint);
 //序列化_读取Uint
 unsigned int CDR_ReadUInt(unsigned char*& currentPoint);
 
+//序列化_读取Ushort
+unsigned short CDR_ReadUShort(unsigned char*& currentPoint);
+
+//序列化_读取char
+char CDR_ReadChar(unsigned char*& currentPoint);
+
 //序列化_读取字符串
 qstring CDR_ReadCString(unsigned char*& currentPoint);
 

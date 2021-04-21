@@ -70,7 +70,7 @@ public:
 	static void 添加图片控件(QString PropertyName, QByteArray& PropertyValue);
 	static void 添加颜色控件(QString PropertyName, unsigned int PropertyValue);
 	static void 添加字体控件(QString PropertyName, QByteArray& PropertyValue);
-	static void 添加无效控件(QString PropertyName);
+	static void 添加无效控件(QString PropertyName, QString PropertyValue);
 
 	static void 添加底色控件(QString propertyName, unsigned int ProperyValue);
 public:

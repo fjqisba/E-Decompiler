@@ -184,8 +184,14 @@ void EAppControl::显示控件信息(ControlType_t type, unsigned int propertyAddr, in
 	qvector<unsigned char> tmpBuf;
 	tmpBuf.resize(propertySize);
 	get_bytes(&tmpBuf[0], propertySize, propertyAddr);
-	EAppControl::解析控件基础属性(&tmpBuf[0], map_ControlData);
 
+	if (type == krnl_menu) {
+
+	}
+	else {
+		EAppControl::解析控件基础属性(&tmpBuf[0], map_ControlData);
+	}
+	
 	EAppControl* pEAppControl = EAppControlFactory::getEAppControl(type);
 	if (!pEAppControl) {
 		return;
@@ -226,12 +232,12 @@ void EAppControl::添加列表控件(QString PropertyName, QStringList& PropertyList, 
 	return;
 }
 
-void EAppControl::添加无效控件(QString PropertyName)
+void EAppControl::添加无效控件(QString PropertyName,QString PropertyValue)
 {
 	int insertRow = GuiParser::g_ControlInfoWindow->ui.ControlTable->rowCount();
 	GuiParser::g_ControlInfoWindow->ui.ControlTable->insertRow(insertRow);
 	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyName, new QTableWidgetItem(PropertyName, ui_LineEditor_ReadOnly));
-	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(QStringLiteral("** 无效 **"), ui_LineEditor_Disabled));
+	GuiParser::g_ControlInfoWindow->ui.ControlTable->setItem(insertRow, COLUMN_PropertyValue, new QTableWidgetItem(PropertyValue, ui_LineEditor_Disabled));
 	return;
 }
 

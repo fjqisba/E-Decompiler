@@ -78,11 +78,13 @@ bool UserResourceParser::ParseUserResource(ea_t lpStringStart, uint32 StringSize
 			while (!HasDataRef(lpStringStart + index)) {
 				index++;
 			}
+			continue;
 		}
-		break;
 		case e_FloatValue:
+		{
 			index += 8;
-			break;
+			continue;
+		}
 		case e_ClassTable:
 		case e_SwitchTable:
 		{
@@ -90,8 +92,8 @@ bool UserResourceParser::ParseUserResource(ea_t lpStringStart, uint32 StringSize
 			{
 				index++;
 			} while (!HasDataRef(lpStringStart + index));
+			continue;
 		}
-		break;
 		default:
 		{
 			if (ReadUInt(&tmpResouceBuf[index]) == 0x1) {

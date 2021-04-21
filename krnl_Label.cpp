@@ -88,15 +88,15 @@ QStringList krnl_Label::取纵向对齐方式列表()
 QStringList krnl_Label::取渐变背景方式列表()
 {
 	QStringList Items = {
-	QStringLiteral("0.无渐变背景"),
-	QStringLiteral("1.从上到下"),
-	QStringLiteral("2.从左到右"),
-	QStringLiteral("3.从左上到右下"),
-	QStringLiteral("4.从右上到左下"),
-	QStringLiteral("5.从下到上"),
-	QStringLiteral("6.从右到左"),
-	QStringLiteral("7.从右下到左上"),
-	QStringLiteral("8.从左下到右上"),
+	QStringLiteral("无渐变背景"),
+	QStringLiteral("从上到下"),
+	QStringLiteral("从左到右"),
+	QStringLiteral("从左上到右下"),
+	QStringLiteral("从右上到左下"),
+	QStringLiteral("从下到上"),
+	QStringLiteral("从右到左"),
+	QStringLiteral("从右下到左上"),
+	QStringLiteral("从左下到右上"),
 	};
 	return Items;
 }
@@ -216,7 +216,7 @@ void krnl_Label::显示控件属性信息(QHash<QString, QVariant>& map_ControlData)
 	EAppControl::添加布尔控件(QStringLiteral("可视"), map_ControlData[QStringLiteral("可视")].toBool());
 	EAppControl::添加布尔控件(QStringLiteral("禁止"), map_ControlData[QStringLiteral("禁止")].toBool());
 	EAppControl::添加鼠标控件(map_ControlData[QStringLiteral("鼠标指针")].toUInt());
-	EAppControl::添加无效控件(QStringLiteral("可停留焦点"));
+	EAppControl::添加无效控件(QStringLiteral("可停留焦点"), QStringLiteral("** 无效 **"));
 	EAppControl::添加文本控件(QStringLiteral("    停留顺序"), map_ControlData[QStringLiteral("停留顺序")].toString());
 	EAppControl::添加文本控件(QStringLiteral("标题"), map_ControlData[QStringLiteral("标题")].toString());
 	EAppControl::添加列表控件(QStringLiteral("效果"), krnl_Label::取效果列表(), map_ControlData[QStringLiteral("效果")].toUInt());
