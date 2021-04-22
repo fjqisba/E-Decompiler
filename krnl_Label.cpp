@@ -106,7 +106,6 @@ void krnl_Label::取控件默认附加属性(QHash<QString, QVariant>& out_data)
 	out_data[QStringLiteral("效果")] = 0;
 	out_data[QStringLiteral("渐变边框宽度")] = 8;
 	out_data[QStringLiteral("边框")] = 0;
-
 	out_data[QStringLiteral("渐变边框颜色1")] = 0x808080;
 	out_data[QStringLiteral("渐变边框颜色2")] = 0xFFFFFF;
 	out_data[QStringLiteral("渐变边框颜色3")] = 0x808080;

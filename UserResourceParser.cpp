@@ -65,6 +65,7 @@ bool UserResourceParser::ParseUserResource(ea_t lpStringStart, uint32 StringSize
 	get_bytes(&tmpResouceBuf[0], StringSize, lpStringStart);
 
 	unsigned int index = 0;
+
 	while (index < StringSize) {
 		mid_BinSource tmpSource = {};
 		tmpSource.itype = GetBinValueType(lpStringStart + index);
@@ -106,9 +107,12 @@ bool UserResourceParser::ParseUserResource(ea_t lpStringStart, uint32 StringSize
 					tmpSource.itype = e_BinValue;
 					tmpSource.extraData = size;
 					index += 8 + size;
+					while (!HasDataRef(lpStringStart + index)) {
+						index++;
+					}
 				}
 			}
-			else {					//任意字符串处理,这是最终的手段
+			else {                    //任意字符串处理,这是最终的手段
 				unsigned int len = qstrlen(&tmpResouceBuf[index]);
 				if (!len) {
 					tmpSource.itype = e_NullStr;
