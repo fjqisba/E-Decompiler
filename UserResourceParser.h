@@ -1,5 +1,6 @@
 #pragma once
 #include <pro.h>
+#include <QVariant>
 
 //常量资源解析引擎
 class UserResourceParser
@@ -21,7 +22,7 @@ public:
 	{
 		BinType_t itype;
 		ea_t address;
-		unsigned int extraData;	//附加数据
+		QVariant data;
 	};
 public:
 	static void InitUserCodeAddr(ea_t start, ea_t end);

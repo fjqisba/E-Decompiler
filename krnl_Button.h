@@ -1,7 +1,4 @@
 #pragma once
-#include <pro.h>
-#include <QHash>
-#include <QVariant>
 #include "EAppControl.h"
 
 class krnl_Button :public EAppControl

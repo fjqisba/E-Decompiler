@@ -234,7 +234,6 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 
 	ParseLibInfomation(eHead.lpLibEntry, eHead.dwLibNum);
 
-
 	ea_t dwKrnlEntry = eHead.lpEString;
 	if (dwKrnlEntry == 0) {
 		dwKrnlEntry = eHead.lpEWindow;
@@ -254,7 +253,6 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 		}
 	}
 
-	
 	msg("%s\n", getUTF8String("检测到是易语言静态编译程序").c_str());
 	return true;
 }

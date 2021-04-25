@@ -205,6 +205,7 @@ void EAppControl::显示控件信息(ControlType_t type, unsigned int propertyAddr, in
 	else {
 		pEAppControl->反序列化控件附加属性(pUnitDataPtr, map_ControlData);
 	}
+
 	pEAppControl->显示控件属性信息(map_ControlData);
 	return;
 }

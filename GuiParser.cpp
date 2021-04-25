@@ -1,6 +1,7 @@
 #include "GuiParser.h"
 #include <bytes.hpp>
 #include <kernwin.hpp>
+#include <name.hpp>
 #include "EDecompiler.h"
 #include "ControlInfoWidget.h"
 #include "public.h"
@@ -129,6 +130,9 @@ int GuiParser::MenuHandle_ShowEventInfo()
 					eEventInfo.ControlName = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlTypeName;
 					unsigned int index = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].mVec_eventInfo[nEventIndex].m_nEventIndex;
 					eEventInfo.EventName.sprnt("_%s_%s", mVec_GuiInfo[nWindowIndex].mVec_ControlInfo[nControlIndex].m_controlName.c_str(), pEAppControl->取事件名称(index).c_str());
+					qstring utf8Name;
+					acp_utf8(&utf8Name, eEventInfo.EventName.c_str());
+					set_name(eEventInfo.EventAddr, utf8Name.c_str(), SN_NOWARN);
 					pEventWindow->vec_EventInfo.push_back(eEventInfo);
 				}
 			}

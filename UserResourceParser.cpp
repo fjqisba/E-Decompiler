@@ -105,12 +105,13 @@ bool UserResourceParser::ParseUserResource(ea_t lpStringStart, uint32 StringSize
 				}
 				else {
 					tmpSource.itype = e_BinValue;
-					tmpSource.extraData = size;
+					tmpSource.data = QByteArray((char*)&tmpResouceBuf[index + 8], size);
 					index += 8 + size;
 					while (!HasDataRef(lpStringStart + index)) {
 						index++;
 					}
 				}
+				continue;
 			}
 			else {                    //任意字符串处理,这是最终的手段
 				unsigned int len = qstrlen(&tmpResouceBuf[index]);
@@ -119,9 +120,9 @@ bool UserResourceParser::ParseUserResource(ea_t lpStringStart, uint32 StringSize
 				}
 				else {
 					tmpSource.itype = e_StringValue;
+					tmpSource.data = QByteArray((char*)&tmpResouceBuf[index], len);
 				}
-				tmpSource.extraData = len + 1;
-				index += tmpSource.extraData;
+				index += len + 1;;
 			}
 		}
 		break;
@@ -166,20 +167,13 @@ int UserResourceParser::MenuHandle_ShowUserResource()
 			{
 			case e_BinValue:
 			{
-				qvector<unsigned char> tmpBin;
-				acp_utf8(&cols[1], "字节集");
-				int minSize = qmin(vec_Bin[n].extraData, 64);
-				tmpBin.resize(minSize);
-				get_bytes(&tmpBin[0], minSize, vec_Bin[n].address + 8);
-				cols[2] = 字节集_字节集到十六进制(tmpBin);
+				//To do...
 			}
 			break;
 			case e_StringValue:
 			{
 				acp_utf8(&cols[1], "文本型");
-				qstring tmpStr;
-				tmpStr.resize(vec_Bin[n].extraData);
-				get_bytes(&tmpStr[0], vec_Bin[n].extraData, vec_Bin[n].address);
+				qstring tmpStr = vec_Bin[n].data.toByteArray();
 				tmpStr.replace("\x0D\x0A", "\r\n");
 				acp_utf8(&cols[2], tmpStr.c_str());
 			}
