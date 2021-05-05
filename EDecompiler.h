@@ -140,9 +140,6 @@ struct mid_EDataTypeInfo
 };
 
 
-
-
-
 struct mid_ELibInfo
 {
 	qstring m_Name;          //支持库名称
@@ -152,7 +149,6 @@ struct mid_ELibInfo
 
 	qvector<mid_EDataTypeInfo> mVec_DataTypeInfo;      //数据类型信息
 };
-
 
 
 struct mid_KrnlApp

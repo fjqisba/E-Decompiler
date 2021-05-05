@@ -1,7 +1,6 @@
 #include <hexrays.hpp>
 #include <auto.hpp>
 #include "SectionManager.h"
-#include "EsigLoader.h"
 #include "EDecompiler.h"
 #include <kernwin.hpp>
 #include <QTextCodec>
@@ -48,16 +47,6 @@ bool idaapi plugin_ctx_t::run(size_t)
 	if (!g_MyDecompiler.DoDecompile()) {
 		msg("Error,DoDecompile\n");
 		return false;
-	}
-
-	return true;
-	qstring sigPath = ChooseEsig();
-	if (sigPath.empty()) {
-		return true;
-	}
-
-	if (!ApplyEsig(sigPath)) {
-		return true;
 	}
 
 	return true;

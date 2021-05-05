@@ -1,10 +1,70 @@
 #include "TrieTree.h"
-#include "EsigLoader.h"
 #include <ida.hpp>
 #include <kernwin.hpp>
 #include <diskio.hpp>
+#include <fpro.h>
 #include <name.hpp>
+#include "SectionManager.h"
 #include "public.h"
+
+bool FastMatch_CmpApi(unsigned char* pSrc, qstring IATEAT)
+{
+	qstring IATCom;
+	qstring EATCom;
+
+	int EATpos = IATEAT.find("||");
+	if (EATpos != -1) {            //存在自定义EAT
+		IATCom = IATEAT.substr(0, EATpos);
+		EATCom = IATEAT.substr(EATpos + 2);
+	}
+	else
+	{
+		IATCom = IATEAT;
+		EATCom = IATEAT.substr(IATEAT.find('.') + 1);
+	}
+
+	ea_t oaddr = ReadUInt(pSrc);
+	qstring funcName = get_name(oaddr);
+	if (funcName.find("__imp_") == 0) {
+		funcName = funcName.substr(6);
+	}
+
+	if (!qstrcmp(funcName.c_str(), EATCom.c_str()) || !qstrcmp(funcName.c_str(), IATCom.c_str())) {
+		return true;
+	}
+	return false;
+}
+
+bool SlowMatch_CmpCallApi(unsigned char* pSrc,qstring IATEAT)
+{
+	if (*pSrc != 0xFF || *(pSrc + 1) != 0x15) {
+		return false;
+	}
+	qstring IATCom;
+	qstring EATCom;
+
+	int EATpos = IATEAT.find("||");
+	if (EATpos != -1) {            //存在自定义EAT
+		IATCom = IATEAT.substr(0, EATpos);
+		EATCom = IATEAT.substr(EATpos + 2);
+	}
+	else
+	{
+		IATCom = IATEAT;
+		EATCom = IATEAT.substr(IATEAT.find('.') + 1);
+	}
+	ea_t oaddr = ReadUInt(pSrc + 2);
+	qstring funcName = get_name(oaddr);
+
+	if (funcName.find("__imp_") == 0) {
+		funcName = funcName.substr(6);
+	}
+
+	if (!qstrcmp(funcName.c_str(), EATCom.c_str()) || !qstrcmp(funcName.c_str(), IATCom.c_str())) {
+		return true;
+	}
+	return false;
+}
 
 TrieTreeNode::TrieTreeNode() {
 	ChildNodes = new TrieTreeNode * [256];
@@ -166,7 +226,7 @@ bool TrieTree::Insert(qstring& FuncTxt, const qstring& FuncName) {		//参数一为函
 		msg("Find The same Function--%s", p->FuncName);
 		for (uint i = 0; i < MemAllocSave.size(); i++)
 		{
-			delete[] MemAllocSave[i];
+			delete MemAllocSave[i];
 		}
 		return false;
 	}
@@ -202,12 +262,12 @@ TrieTree::~TrieTree()
 			}
 			if (p->EsigText)
 			{
-				delete[] p->EsigText;
+				delete p->EsigText;
 				p->EsigText = NULL;
 			}
 			if (p->FuncName)
 			{
-				delete[] p->FuncName;
+				delete p->FuncName;
 				p->FuncName = NULL;
 			}
 			if (p->ChildNodes)
@@ -222,42 +282,276 @@ TrieTree::~TrieTree()
 	}
 }
 
-bool TrieTree::LoadSig(const char* lpMapPath)
+bool TrieTree::FastMatch(TrieTreeNode* p, unsigned char*& FuncSrc)
 {
-	FILE* hFile = fopenRB(lpMapPath);
-	if (!hFile){
+	if (p->SpecialType != NODE_NORMAL) {
+		int a = 0;
+	}
+
+	switch (p->SpecialType)
+	{
+	case NODE_NORMAL:
+	{
+		return true;
+	}
+	case NODE_LONGJMP:
+	{
+		ea_t oaddr = SectionManager::VirtualAddrToLinearAddr(FuncSrc - 1 + ReadInt(FuncSrc) + 5);
+		FuncSrc = SectionManager::LinearAddrToVirtualAddr(oaddr);
+		return true;
+	}
+	case NODE_CALL:
+	{
+		unsigned char* pCallSrc = FuncSrc - 1 + ReadInt(FuncSrc) + 5;	//得到虚拟地址
+		uint32 oaddr = SectionManager::VirtualAddrToLinearAddr(pCallSrc);	//转换为实际代码中的地址
+		if (m_RFunc[oaddr] == p->EsigText)	//此函数已经匹配过一次
+		{
+			FuncSrc = FuncSrc + 4;
+			return true;
+		}
+		if (!SlowMatch(SectionManager::LinearAddrToVirtualAddr(oaddr), m_subFunc[p->EsigText])) {
+			return false;
+		}
+		m_RFunc[oaddr] = p->EsigText;
+		FuncSrc = FuncSrc + 4;
+		return true;
+	}
+	case NODE_JMPAPI:
+	case NODE_CALLAPI:
+	{
+		if (!FastMatch_CmpApi(FuncSrc, p->EsigText)) {
+			return false;
+		}
+		FuncSrc = FuncSrc + 4;
+		return true;
+	}
+	case NODE_CONSTANT:
+	{
+		ea_t oaddr = ReadUInt(FuncSrc);
+		if (m_RFunc[oaddr] == p->EsigText) {
+			FuncSrc = FuncSrc + 4;
+			return true;
+		}
+		if (!SlowMatch(SectionManager::LinearAddrToVirtualAddr(oaddr), m_subFunc[p->EsigText])) {
+			return false;
+		}
+		m_RFunc[oaddr] = p->EsigText;
+		FuncSrc = FuncSrc + 4;
+		return true;
+	}
+	case NODE_LEFTPASS:
+	{
+		int a = 0;
+		//To do...
+	}
+	case NODE_RIGHTPASS:
+	{
+		int a = 0;
+		//To do...
+	}
+	case NODE_ALLPASS:
+	{
+		FuncSrc = FuncSrc + 1;
+		return true;
+	}
+	default:
+		break;
+	}
+
+	return false;
+}
+
+
+bool TrieTree::SlowMatch(unsigned char* FuncSrc, qstring& FuncTxt)
+{
+	unsigned char* pSrc = FuncSrc;  //初始化函数代码指针
+	if (FuncTxt == "")
+	{
 		return false;
 	}
-	uint32 dwSize = qfsize(hFile);
-	char* pMap = (char*)malloc(dwSize);
-	eread(hFile, pMap, dwSize);
 
-	qstring Sig = pMap;
-	qstring Config = GetMidString(Sig, "******Config******\r\n", "******Config_End******", 0);
-	if (Config.find("IsAligned=true") != -1) {
-		m_IsAligned = true;
+	unsigned int MaxLength = FuncTxt.length();
+	unsigned int n = 0;
+	while (n < MaxLength) {
+		switch (FuncTxt[n]) {
+		case '-':
+			if (FuncTxt[n + 1] == '-' && FuncTxt[n + 2] == '>') {		//长跳转
+				if (*pSrc != 0xE9) {
+					return false;
+				}
+				ea_t oaddr = SectionManager::VirtualAddrToLinearAddr(pSrc + ReadInt(pSrc + 1) + 5);
+				pSrc = SectionManager::LinearAddrToVirtualAddr(oaddr);
+				n = n + 3;
+				continue;
+			}
+			break;
+		case '<':
+			if (FuncTxt[n + 1] == '[') {						//CALLAPI
+				int post = FuncTxt.find("]>", n);
+				if (post == -1) {
+					return false;
+				}
+				if (!SlowMatch_CmpCallApi(pSrc, FuncTxt.substr(n + 2, post))) {
+					return false;
+				}
+				pSrc = pSrc + 6;
+				n = post + 2;
+				continue;
+			}
+			else {
+				if (*pSrc != 0xE8) {
+					return false;
+				}
+			}
+			break;
+		case '[':
+			n = 0;
+			break;
+		case '!':
+			n = 0;
+			break;
+		case '?':
+			if (FuncTxt[n + 1] == '?') {	//全通配符
+				n = n + 2;
+				pSrc++;
+				continue;
+			}
+			else {							//左通配符
+				//To Do
+			}
+			break;
+		default:
+			if (FuncTxt[n + 1] == '?') {	//右通配符
+				//To Do
+			}
+			else {							//普通的代码
+				unsigned char ByteCode;
+				HexToBin(FuncTxt.substr(n, n + 2), &ByteCode);
+				if (*pSrc != ByteCode) {
+					return false;
+				}
+				n = n + 2;
+				pSrc++;
+				continue;
+			}
+		}
 	}
-	else
-	{
-		m_IsAligned = false;
-	}
-
-	if (Config.find("IsAllMem=true") != -1) {
-		m_IsAllMem = true;
-	}
-	else
-	{
-		m_IsAllMem = false;
-	}
-	
-	if (Config.find("IsSetName=false") != -1) {
-		m_IsSetName = false;
-	}
-	else
-	{
-		m_IsSetName = true;
-	}
-
-
 	return true;
+}
+
+char* TrieTree::MatchFunc(unsigned char* FuncSrc)
+{
+	TrieTreeNode* p = root;		                //当前指针指向root
+
+	qstack<TrieTreeNode*> StackNode;	        //节点
+	qstack<unsigned char*> StackFuncSrc;        //节点地址
+
+	StackNode.push(p);
+	StackFuncSrc.push(FuncSrc);
+	//进入循环初始条件
+
+	while (!StackNode.empty()) {
+		p = StackNode.top();
+		StackNode.pop();
+		FuncSrc = StackFuncSrc.top();
+		StackFuncSrc.pop();
+		//取回堆栈顶端节点
+		if (!FastMatch(p, FuncSrc)) {		//检查当前节点合法性优先级高于判断终节点
+			continue;
+		}
+		if (p->FuncName) {
+			return p->FuncName;
+		}
+		for (UINT i = 0; i < p->SpecialNodes.size(); i++) {
+			StackNode.push(p->SpecialNodes[i]);
+			StackFuncSrc.push(FuncSrc);
+		}
+		if (p->ChildNodes[*FuncSrc]) {
+			StackNode.push(p->ChildNodes[*FuncSrc]);
+			StackFuncSrc.push(FuncSrc + 1);
+		}
+	}
+
+	return NULL;
+}
+
+bool TrieTree::LoadSig(const char* lpMapPath)
+{
+	qstring str_MapPath;
+	acp_utf8(&str_MapPath, lpMapPath);
+	
+	FILE* hFile = fopenRB(str_MapPath.c_str());
+	if (!hFile)
+	{
+		return false;
+	}
+
+	uint64 dwSize = qfsize(hFile);
+	char* pMapBuffer = (char*)qalloc(dwSize);
+	qfread(hFile, pMapBuffer, dwSize);
+
+	qstring str_Map = pMapBuffer;
+
+	qstring SubFunc = GetMidString(str_Map, "*****SubFunc*****\r\n", "*****SubFunc_End*****", 0);
+
+	int pos = SubFunc.find("\r\n");     //子函数
+	while (pos != -1) {
+		qstring temp = SubFunc.substr(0, pos);  //单个子函数
+		if (temp == "")
+		{
+			SubFunc = SubFunc.substr(SubFunc.find("\r\n") + 2);
+			pos = SubFunc.find("\r\n");
+			continue;
+		}
+		int tempos = temp.find(':');
+		if (tempos == -1) {
+			break;
+		}
+		while (SubFunc[tempos + 1] == ':')
+		{
+			tempos = temp.find(':', tempos + 2);
+		}
+		m_subFunc[temp.substr(0, tempos)] = temp.substr(tempos + 1);
+		SubFunc = SubFunc.substr(pos + 2);
+		pos = SubFunc.find("\r\n");
+	}
+
+	qstring Func = GetMidString(str_Map, "***Func***\r\n", "***Func_End***", 0);
+
+	pos = Func.find("\r\n");//分割文本
+	while (pos != -1) {
+		qstring temp = Func.substr(0, pos);    //取出单个函数文本
+		if (temp == "")		//得到空行
+		{
+			Func = Func.substr(Func.find("\r\n") + 2);
+			pos = Func.find("\r\n");
+			continue;
+		}
+		int tempos = temp.find(':');
+		if (tempos == -1) {
+			break;
+		}
+		while (Func[tempos + 1] == ':')
+		{
+			tempos = temp.find(':', tempos + 2);
+		}
+		if (!Insert(temp.substr(tempos + 1), temp.substr(0, tempos))) {
+			msg("插入函数失败\r\n");
+		}
+		Func = Func.substr(pos + 2);
+		pos = Func.find("\r\n");
+	}
+
+	qfree(pMapBuffer);
+	qfclose(hFile);
+	return true;
+}
+
+void TrieTree::Log_PrintSubFunc()
+{
+	std::map<qstring, qstring>::iterator it;
+	for (it = m_subFunc.begin(); it != m_subFunc.end(); it++)
+	{
+		msg("%s----%s\r\n", it->first.c_str(), it->second.c_str());
+	}
 }

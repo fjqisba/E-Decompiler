@@ -2,15 +2,7 @@
 #include <segment.hpp>
 #include <bytes.hpp>
 
-SectionManager::SectionManager()
-{
-
-}
-
-SectionManager::~SectionManager()
-{
-	
-}
+qvector<SegmentInfomation> SectionManager::mVec_segInfo;
 
 bool SectionManager::InitSectionManager()
 {
@@ -42,12 +34,26 @@ uint8* SectionManager::LinearAddrToVirtualAddr(ea_t LinerAddr)
 	if (!pSegment) {
 		return NULL;
 	}
-	uint32 offset = LinerAddr - pSegment->start_ea;
+	
 	for (unsigned int n = 0; n < mVec_segInfo.size(); ++n) {
 		ea_t endAddr = mVec_segInfo[n].m_segStart + mVec_segInfo[n].m_segSize;
 		if (LinerAddr >= mVec_segInfo[n].m_segStart && LinerAddr < endAddr) {
+			uint32 offset = LinerAddr - pSegment->start_ea;
 			return &mVec_segInfo[n].m_segData[offset];
 		}
 	}
 	return NULL;
+}
+
+
+ea_t SectionManager::VirtualAddrToLinearAddr(uint8* pVirtualAddr)
+{
+	for (unsigned int n = 0; n < mVec_segInfo.size(); ++n) {
+		uint8* pEndAddr = &mVec_segInfo[n].m_segData[0] + mVec_segInfo[n].m_segSize;
+		if (pVirtualAddr >= &mVec_segInfo[n].m_segData[0] && pVirtualAddr < pEndAddr) {
+			uint32 offset = pVirtualAddr - &mVec_segInfo[n].m_segData[0];
+			return mVec_segInfo[n].m_segStart + offset;
+		}
+	}
+	return BADADDR;
 }

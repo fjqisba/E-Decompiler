@@ -2,17 +2,17 @@
 #include <bytes.hpp>
 #include <segment.hpp>
 #include <kernwin.hpp>
-#include "IDAMenu.h"
-#include "public.h"
 #include <ua.hpp>
 #include <allins.hpp>
 #include <name.hpp>
 #include <xref.hpp>
+#include "IDAMenu.h"
+#include "public.h"
 #include "ControlInfoWidget.h"
 #include <QString>
-#include <QLocale>
 #include "UserResourceParser.h"
 #include "GuiParser.h"
+#include "EsigScanner.h"
 
 EDecompilerEngine g_MyDecompiler;
 
@@ -215,6 +215,8 @@ bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
 	return true;
 }
 
+
+
 bool EDecompilerEngine::DoDecompiler_EStatic()
 {
 	EHead eHead;
@@ -233,7 +235,8 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 	}
 
 	ParseLibInfomation(eHead.lpLibEntry, eHead.dwLibNum);
-
+	ESigScanner::ScanLibFunction(eHead.lpLibEntry, eHead.dwLibNum);
+	
 	ea_t dwKrnlEntry = eHead.lpEString;
 	if (dwKrnlEntry == 0) {
 		dwKrnlEntry = eHead.lpEWindow;

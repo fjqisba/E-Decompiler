@@ -4,8 +4,8 @@
 
 enum PropertyType_t
 {
-	ui_default = 0,                    //默认数据
-	ui_LineEditor = 1000,              //普通的编辑框
+	ui_default = 0,             //默认数据
+	ui_LineEditor = 1000,       //普通的编辑框
 	ui_LineEditor_Disabled,     //禁止的编辑框
 	ui_LineEditor_ReadOnly,     //只读的编辑框
 	ui_ColorDialog,             //颜色选择框

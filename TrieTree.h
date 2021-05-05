@@ -3,18 +3,7 @@
 #include <windows.h>
 #include <funcs.hpp>
 
-enum NodeType_t
-{
-	NODE_NORMAL = 0,
-	NODE_LONGJMP = 1,	       //      -->
-	NODE_CALL = 2,	           //      <>
-	NODE_JMPAPI = 3,	       //      []
-	NODE_CALLAPI = 4,	       //      <[]>
-	NODE_CONSTANT = 6,	       //      !!
-	NODE_LEFTPASS = 11,        //      ?
-	NODE_RIGHTPASS = 12,       //       ?
-	NODE_ALLPASS = 13          //      ??
-};
+
 
 
 class TrieTreeNode
@@ -37,16 +26,22 @@ public:
 	TrieTree();
 	~TrieTree();
 
+	//日志,打印子函数结果
 	void Log_PrintSubFunc();
+	//加载特征码
 	bool LoadSig(const char* lpMapPath);
-
-	//char* MatchSig(UCHAR*);					//单点匹配
-	//
+	//执行函数匹配
+	char* MatchFunc(unsigned char* CodeSrc);
+private:
 	//增加普通节点
 	TrieTreeNode* AddNode(TrieTreeNode* p, qstring Txt);
 	//增加特殊节点
 	TrieTreeNode* AddSpecialNode(TrieTreeNode* p, uint type, qstring Txt);
 
+	//快速匹配特征码
+	bool FastMatch(TrieTreeNode* p, unsigned char*& FuncSrc);
+	//慢速匹配特征码
+	bool SlowMatch(unsigned char* FuncSrc, qstring& FuncTxt);
 public:
 	qvector<char*>  MemAllocSave;
 
@@ -57,14 +52,23 @@ public:
 	bool m_MatchSubName;
 protected:
 	bool Insert(qstring& FuncTxt, const qstring& FuncName);
-	bool CmpCode(uchar* FuncSrc, qstring& FuncTxt);
+
 private:
+	enum NodeType_t
+	{
+		NODE_NORMAL = 0,
+		NODE_LONGJMP = 1,	       //      -->
+		NODE_CALL = 2,	           //      <>
+		NODE_JMPAPI = 3,	       //      []
+		NODE_CALLAPI = 4,	       //      <[]>
+		NODE_CONSTANT = 6,	       //      !!
+		NODE_LEFTPASS = 11,        //      ?
+		NODE_RIGHTPASS = 12,       //       ?
+		NODE_ALLPASS = 13          //      ??
+	};
 	//根节点
 	TrieTreeNode* root;
 	//func_t* func;
-
-	//char* Match(TrieTreeNode* p, UCHAR* FuncSrc);			 //参数一为匹配节点,参数二为匹配地址,返回匹配成功的函数文本
-	//BOOL CheckNode(TrieTreeNode* p, UCHAR*& FuncSrc);		//当前特殊节点是否匹配
 
 	//子函数,函数名称和函数文本一一映射
 	std::map<qstring, qstring> m_subFunc;	

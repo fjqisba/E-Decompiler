@@ -21,9 +21,6 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="EsigLoader.cpp">
-      <Filter>头文件</Filter>
-    </ClCompile>
     <ClCompile Include="IDAMenu.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
@@ -90,12 +87,12 @@
     <ClCompile Include="EAppControlFactory.cpp">
       <Filter>头文件\EAppControl</Filter>
     </ClCompile>
+    <ClCompile Include="ESigScanner.cpp">
+      <Filter>头文件\EDecompiler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EDecompiler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="EsigLoader.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="IDAMenu.h">
@@ -164,6 +161,9 @@
     </ClInclude>
     <ClInclude Include="EAppControlFactory.h">
       <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EsigScanner.h">
+      <Filter>头文件\EDecompiler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
