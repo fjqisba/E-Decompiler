@@ -76,9 +76,11 @@ bool UserResourceParser::ParseUserResource(ea_t lpStringStart, uint32 StringSize
 		case e_ArrayHead:
 		{
 			index += 8;    //数组头或空字节集大小应至少为8?
-			while (!HasDataRef(lpStringStart + index)) {
-				index++;
-			}
+
+			//这句代码是否要加入还在测试观察阶段
+			//while (!HasDataRef(lpStringStart + index)) {
+			//	index++;
+			//}
 			continue;
 		}
 		case e_FloatValue:

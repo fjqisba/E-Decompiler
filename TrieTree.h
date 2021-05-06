@@ -42,6 +42,9 @@ private:
 	bool FastMatch(TrieTreeNode* p, unsigned char*& FuncSrc);
 	//ÂıËÙÆ¥ÅäÌØÕ÷Âë
 	bool SlowMatch(unsigned char* FuncSrc, qstring& FuncTxt);
+
+	bool SlowMatch_CmpCallApi(unsigned char* pSrc, qstring IATEAT);
+	bool SlowMatch_CmpCall(unsigned char* pSrc, qstring FuncName);
 public:
 	qvector<char*>  MemAllocSave;
 

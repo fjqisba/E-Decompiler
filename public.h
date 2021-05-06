@@ -2,6 +2,9 @@
 #include <pro.h>
 
 //十六到十
+unsigned char HexToBin(unsigned char HexCode);
+
+//十六到十
 void HexToBin(qstring& HexCode, uchar* BinCode);
 
 //参数一为原文本,参数二为左边文本,参数三为右边文本,参数四为起始偏移
@@ -25,6 +28,8 @@ qstring getUTF8String(const char*);
 uint32 ReadUInt(unsigned char* pBuf);
 
 int32 ReadInt(unsigned char* pBuf);
+
+unsigned char ReadUChar(unsigned char* pBuf);
 
 qstring ReadStr(unsigned char* pBuf);
 

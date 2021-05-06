@@ -190,16 +190,12 @@ public:
 public:
 	bool InitDecompilerEngine();
 	bool DoDecompile();
-	//是否为菜单项
-	static bool krnln_IsMenuItemID(unsigned int ID);
 
 	//根据菜单的类型ID来得到名称
 	static qstring GetControlTypeName(uint32 typeId);
 private:
 	bool DoDecompiler_EStatic();
 
-	//解析界面控件信息
-	bool ParseGUIResource(ea_t, uint32);
 	//解析支持库信息
 	bool ParseLibInfomation(ea_t, uint32);
 	//解析系统接口函数

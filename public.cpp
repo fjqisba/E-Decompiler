@@ -43,6 +43,11 @@ uchar BinMap[256] = {
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
+unsigned char HexToBin(unsigned char HexCode)
+{
+	return BinMap[HexCode];
+}
+
 void HexToBin(qstring& HexCode, uchar* BinCode)
 {
 	for (uint n = 0; n < HexCode.length() / 2; n++) {
@@ -140,6 +145,11 @@ uint32 ReadUInt(unsigned char* pBuf)
 int32 ReadInt(unsigned char* pBuf)
 {
 	return *(int32*)pBuf;
+}
+
+unsigned char ReadUChar(unsigned char* pBuf)
+{
+	return *(unsigned char*)pBuf;
 }
 
 qstring ReadStr(unsigned char* pBuf)

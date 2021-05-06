@@ -18,6 +18,8 @@ struct EsigInfo
 
 qvector<EsigInfo> g_EsigList;
 
+std::unordered_set<ea_t> ESigScanner::mHash_LibFunc;
+
 void setFuncName(ea_t addr, const char* funcName)
 {
 	qstring oldName = get_name(addr);
@@ -63,10 +65,37 @@ int EnumEsig(const char* lpMapPath, void* ud)
 	return 0;
 }
 
+bool ESigScanner::ScanBasicFunction()
+{
+	TrieTree BASICTREE;
+	qstring LibPath;
+	LibPath.sprnt("%s\\esig\\Ò×ÓïÑÔ»ù´¡ÃüÁî.esig", idadir(PLG_SUBDIR));
 
+	if (!BASICTREE.LoadSig(LibPath.c_str())) {
+		return false;
+	}
+
+	for (unsigned int idx = 0; idx < get_func_qty(); ++idx) {
+		func_t* pFunc = getn_func(idx);
+		if (!pFunc) {
+			continue;
+		}
+		if (mHash_LibFunc.count(pFunc->start_ea)) {
+			continue;
+		}
+
+		char* pFuncName = BASICTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(pFunc->start_ea));
+		if (pFuncName) {
+			setFuncName(pFunc->start_ea, pFuncName);
+		}
+	}
+	return true;
+}
 
 bool ESigScanner::ScanLibFunction(ea_t lpLibStartAddr, uint32 dwLibCount)
 {
+	mHash_LibFunc.clear();
+
 	for (unsigned int nLibIndex = 0; nLibIndex < dwLibCount; ++nLibIndex) {
 		LIB_INFO tmpLibInfo;
 		get_bytes(&tmpLibInfo, sizeof(LIB_INFO), get_dword(lpLibStartAddr));
@@ -89,19 +118,22 @@ bool ESigScanner::ScanLibFunction(ea_t lpLibStartAddr, uint32 dwLibCount)
 		if (!ESIGTREE.LoadSig(LibPath.c_str())) {
 			continue;
 		}
-		
+
 		uint32* pFuncBuf = (uint32*)qalloc(tmpLibInfo.m_nCmdCount * 4);
 		get_bytes(pFuncBuf, tmpLibInfo.m_nCmdCount * 4, tmpLibInfo.m_lpCmdsFunc);
 		for (unsigned int nFuncIndex = 0; nFuncIndex < tmpLibInfo.m_nCmdCount; ++nFuncIndex) {
-			add_func(pFuncBuf[nFuncIndex]);
-			char* pFuncName = ESIGTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(pFuncBuf[nFuncIndex]));
+			ea_t funcAddr = pFuncBuf[nFuncIndex];
+
+			mHash_LibFunc.insert(funcAddr);
+			add_func(funcAddr);
+			char* pFuncName = ESIGTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(funcAddr));
 			if (!pFuncName) {
 				qstring errorFuncName;
-				errorFuncName.sprnt("Î´ÖªÃüÁî_%a", pFuncBuf[nFuncIndex]);
-				setFuncName(pFuncBuf[nFuncIndex], errorFuncName.c_str());
+				errorFuncName.sprnt("Î´ÖªÃüÁî_%a", funcAddr);
+				setFuncName(funcAddr, errorFuncName.c_str());
 				continue;
 			}
-			setFuncName(pFuncBuf[nFuncIndex], pFuncName);
+			setFuncName(funcAddr, pFuncName);
 		}
 		qfree(pFuncBuf);
 	}

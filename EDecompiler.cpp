@@ -236,6 +236,7 @@ bool EDecompilerEngine::DoDecompiler_EStatic()
 
 	ParseLibInfomation(eHead.lpLibEntry, eHead.dwLibNum);
 	ESigScanner::ScanLibFunction(eHead.lpLibEntry, eHead.dwLibNum);
+	ESigScanner::ScanBasicFunction();
 	
 	ea_t dwKrnlEntry = eHead.lpEString;
 	if (dwKrnlEntry == 0) {

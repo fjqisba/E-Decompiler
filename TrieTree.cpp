@@ -35,7 +35,24 @@ bool FastMatch_CmpApi(unsigned char* pSrc, qstring IATEAT)
 	return false;
 }
 
-bool SlowMatch_CmpCallApi(unsigned char* pSrc,qstring IATEAT)
+bool TrieTree::SlowMatch_CmpCall(unsigned char* pSrc, qstring FuncName)
+{
+	if (*pSrc != 0xE8) {
+		return false;
+	}
+	ea_t oaddr = SectionManager::VirtualAddrToLinearAddr(pSrc + ReadInt(pSrc + 1) + 5);
+	if (m_RFunc[oaddr] == FuncName) {
+		return true;
+	}
+	m_RFunc[oaddr] = FuncName;
+	if (SlowMatch(SectionManager::LinearAddrToVirtualAddr(oaddr), m_subFunc[FuncName])) {
+		return true;
+	}
+	m_RFunc[oaddr] = "";
+	return false;
+}
+
+bool TrieTree::SlowMatch_CmpCallApi(unsigned char* pSrc,qstring IATEAT)
 {
 	if (*pSrc != 0xFF || *(pSrc + 1) != 0x15) {
 		return false;
@@ -302,8 +319,8 @@ bool TrieTree::FastMatch(TrieTreeNode* p, unsigned char*& FuncSrc)
 	}
 	case NODE_CALL:
 	{
-		unsigned char* pCallSrc = FuncSrc - 1 + ReadInt(FuncSrc) + 5;	//得到虚拟地址
-		uint32 oaddr = SectionManager::VirtualAddrToLinearAddr(pCallSrc);	//转换为实际代码中的地址
+		unsigned char* pCallSrc = FuncSrc - 1 + ReadInt(FuncSrc) + 5;
+		uint32 oaddr = SectionManager::VirtualAddrToLinearAddr(pCallSrc);
 		if (m_RFunc[oaddr] == p->EsigText)	//此函数已经匹配过一次
 		{
 			FuncSrc = FuncSrc + 4;
@@ -341,13 +358,19 @@ bool TrieTree::FastMatch(TrieTreeNode* p, unsigned char*& FuncSrc)
 	}
 	case NODE_LEFTPASS:
 	{
-		int a = 0;
-		//To do...
+		if ((ReadUChar(FuncSrc) & 0xF) == HexToBin(p->EsigText[1])) {
+			FuncSrc = FuncSrc + 1;
+			return true;
+		}
+		return false;
 	}
 	case NODE_RIGHTPASS:
 	{
-		int a = 0;
-		//To do...
+		if ((ReadUChar(FuncSrc) >> 4) == HexToBin(p->EsigText[0])) {
+			FuncSrc = FuncSrc + 1;
+			return true;
+		}
+		return false;
 	}
 	case NODE_ALLPASS:
 	{
@@ -375,6 +398,7 @@ bool TrieTree::SlowMatch(unsigned char* FuncSrc, qstring& FuncTxt)
 	while (n < MaxLength) {
 		switch (FuncTxt[n]) {
 		case '-':
+		{
 			if (FuncTxt[n + 1] == '-' && FuncTxt[n + 2] == '>') {		//长跳转
 				if (*pSrc != 0xE9) {
 					return false;
@@ -384,8 +408,10 @@ bool TrieTree::SlowMatch(unsigned char* FuncSrc, qstring& FuncTxt)
 				n = n + 3;
 				continue;
 			}
-			break;
+			return false;
+		}
 		case '<':
+		{
 			if (FuncTxt[n + 1] == '[') {						//CALLAPI
 				int post = FuncTxt.find("]>", n);
 				if (post == -1) {
@@ -399,41 +425,80 @@ bool TrieTree::SlowMatch(unsigned char* FuncSrc, qstring& FuncTxt)
 				continue;
 			}
 			else {
-				if (*pSrc != 0xE8) {
+				int post = FuncTxt.find('>', n);
+				if (post == -1) {
 					return false;
 				}
+				if (SlowMatch_CmpCall(pSrc, FuncTxt.substr(n + 1, post))) {
+					pSrc = pSrc + 5;
+					n = post + 1;
+					continue;
+				}
+				return false;
 			}
-			break;
+		}
 		case '[':
-			n = 0;
-			break;
+		{
+			int post = FuncTxt.find(']', n);
+			if (post == -1) {
+				return false;
+			}
+			if (!SlowMatch_CmpCallApi(pSrc, FuncTxt.substr(n + 1, post))) {
+				return false;
+			}
+			pSrc = pSrc + 6;
+			n = post + 1;
+			continue;
+		}
 		case '!':
-			n = 0;
-			break;
-		case '?':
-			if (FuncTxt[n + 1] == '?') {	//全通配符
-				n = n + 2;
-				pSrc++;
+		{
+			int post = FuncTxt.find('!', n + 1);
+			if (post == -1) {
+				return false;
+			}
+			qstring constantName = FuncTxt.substr(n + 1, post);
+			ea_t oaddr = ReadUInt(pSrc);
+			if (m_RFunc[oaddr] == constantName || SlowMatch(SectionManager::LinearAddrToVirtualAddr(oaddr), m_subFunc[constantName])) {
+				pSrc = pSrc + 4;
+				n = post + 1;
 				continue;
 			}
-			else {							//左通配符
-				//To Do
+			return false;
+		}
+		case '?':
+		{
+			if (FuncTxt[n + 1] == '?') {	                                  //全通配符
+				pSrc = pSrc + 1;
+				n = n + 2;
+				continue;
 			}
-			break;
+			else if ((ReadUChar(pSrc) & 0xF) == HexToBin(FuncTxt[n + 1])) {   //左通配符
+				pSrc = pSrc + 1;
+				n = n + 2;
+				continue;
+			}
+			return false;
+		}
 		default:
-			if (FuncTxt[n + 1] == '?') {	//右通配符
-				//To Do
+		{
+			if (FuncTxt[n + 1] == '?') {                                      //右通配符
+				if ((ReadUChar(pSrc) >> 4) == HexToBin(FuncTxt[n])) {
+					pSrc = pSrc + 1;
+					n = n + 2;
+					continue;
+				}
 			}
-			else {							//普通的代码
+			else{    
 				unsigned char ByteCode;
 				HexToBin(FuncTxt.substr(n, n + 2), &ByteCode);
 				if (*pSrc != ByteCode) {
 					return false;
 				}
+				pSrc = pSrc + 1;
 				n = n + 2;
-				pSrc++;
 				continue;
 			}
+		}
 		}
 	}
 	return true;
