@@ -216,6 +216,11 @@ void krnl_EditBox::显示控件属性信息(QHash<QString, QVariant>& map_ControlData)
 	return;
 }
 
+QString krnl_EditBox::取图标资源路径()
+{
+	return QStringLiteral(":/ICO/ICO/编辑框.ico");
+}
+
 qstring krnl_EditBox::取事件名称(int eventIndex)
 {
 	qstring ret;

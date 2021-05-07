@@ -83,7 +83,6 @@ bool ESigScanner::ScanBasicFunction()
 		if (mHash_LibFunc.count(pFunc->start_ea)) {
 			continue;
 		}
-
 		char* pFuncName = BASICTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(pFunc->start_ea));
 		if (pFuncName) {
 			setFuncName(pFunc->start_ea, pFuncName);

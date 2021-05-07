@@ -159,6 +159,10 @@ int GuiParser::MenuHandle_ShowGuiInfo()
 			qvector<mid_ControlInfo>& vec_ControlInfo = mVec_GuiInfo[nWindowIndex].mVec_ControlInfo;
 			for (unsigned int nControlIndex = 0; nControlIndex < vec_ControlInfo.size(); ++nControlIndex) {
 				QTreeWidgetItem* pControlItem = new QTreeWidgetItem(pWindowItem);
+				EAppControl* pControl= EAppControlFactory::getEAppControl(GuiParser::GetControlType(vec_ControlInfo[nControlIndex].m_controlTypeId));
+				if (pControl) {
+					pControlItem->setIcon(0, QIcon(pControl->取图标资源路径()));
+				}
 				pControlItem->setData(0, Qt::UserRole, vec_ControlInfo[nControlIndex].m_controlId);
 				pControlItem->setText(0, QString::asprintf("0x%08X", vec_ControlInfo[nControlIndex].m_controlId));
 			}

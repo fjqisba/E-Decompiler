@@ -78,4 +78,5 @@ public:
 	virtual void 反序列化控件附加属性(unsigned char* pUnitDataPtr, QHash<QString, QVariant>& out_data) = 0;
 	virtual void 显示控件属性信息(QHash<QString, QVariant>& out_data) = 0;
 	virtual qstring 取事件名称(int eventIndex) = 0;
+	virtual QString 取图标资源路径();
 };

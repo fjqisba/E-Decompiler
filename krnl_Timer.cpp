@@ -7,6 +7,11 @@ struct Timer_UnitData
 	unsigned int 时钟周期;
 };
 
+QString krnl_Timer::取图标资源路径()
+{
+	return QStringLiteral(":/ICO/ICO/时钟.ico");
+}
+
 void krnl_Timer::取控件默认附加属性(QHash<QString, QVariant>& out_data)
 {
 	out_data[QStringLiteral("时钟周期")] = 0;

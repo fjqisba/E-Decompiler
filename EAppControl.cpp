@@ -177,6 +177,10 @@ void EAppControl::解析控件基础属性(unsigned char* lpControlInfo, QHash<QString, 
 	return;
 }
 
+QString EAppControl::取图标资源路径()
+{
+	return QStringLiteral(":/ICO/ICO/Unknow.ico");
+}
 
 void EAppControl::显示控件信息(ControlType_t type, unsigned int propertyAddr, int propertySize)
 {
@@ -196,6 +200,8 @@ void EAppControl::显示控件信息(ControlType_t type, unsigned int propertyAddr, in
 	if (!pEAppControl) {
 		return;
 	}
+
+
 
 	unsigned char* pUnitDataPtr = EAppControl::GetUnitDataPtr(&tmpBuf[0]);
 	int UnitDataSize = (&tmpBuf[0] - pUnitDataPtr) + propertySize;

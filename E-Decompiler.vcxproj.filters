@@ -174,4 +174,7 @@
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="ImageResource.qrc" />
+  </ItemGroup>
 </Project>

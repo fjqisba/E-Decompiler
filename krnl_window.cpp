@@ -134,7 +134,10 @@ void krnl_window::添加背景音乐控件(QByteArray& ProperyValue)
 }
 
 
-
+QString krnl_window::取图标资源路径()
+{
+	return QStringLiteral(":/ICO/ICO/Window.ico");
+}
 
 void krnl_window::取控件默认附加属性(QHash<QString, QVariant>& out_data)
 {

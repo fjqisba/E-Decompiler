@@ -43,6 +43,11 @@ QStringList krnl_Button::取纵向对齐方式列表()
 	return Items;
 }
 
+QString krnl_Button::取图标资源路径()
+{
+	return QStringLiteral(":/ICO/ICO/按钮.ico");
+}
+
 void krnl_Button::反序列化控件附加属性(unsigned char* pUnitDataPtr, QHash<QString, QVariant>& out_data)
 {
 	Button_UnitData tmpData;

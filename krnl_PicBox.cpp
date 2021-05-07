@@ -97,6 +97,11 @@ void krnl_PicBox::显示控件属性信息(QHash<QString, QVariant>& map_ControlData)
 	return;
 }	
 
+QString krnl_PicBox::取图标资源路径()
+{
+	return QStringLiteral(":/ICO/ICO/图片框.ico");
+}
+
 qstring krnl_PicBox::取事件名称(int eventIndex)
 {
 	qstring ret;

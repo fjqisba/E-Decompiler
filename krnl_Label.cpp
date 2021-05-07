@@ -101,6 +101,11 @@ QStringList krnl_Label::取渐变背景方式列表()
 	return Items;
 }
 
+QString krnl_Label::取图标资源路径()
+{
+	return QStringLiteral(":/ICO/ICO/标签.ico");
+}
+
 void krnl_Label::取控件默认附加属性(QHash<QString, QVariant>& out_data)
 {
 	out_data[QStringLiteral("效果")] = 0;
