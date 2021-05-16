@@ -1,7 +1,6 @@
 #include "krnl_Button.h"
 #include "EAppControl.h"
-#include <bytes.hpp>
-#include "public.h"
+#include "../public.h"
 
 struct Button_UnitData
 {

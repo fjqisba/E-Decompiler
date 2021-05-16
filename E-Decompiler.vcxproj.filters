@@ -13,8 +13,11 @@
     <Filter Include="头文件\EAppControl">
       <UniqueIdentifier>{249a2c28-d9c2-4338-a77b-1c86969c78f6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\EDecompiler">
+    <Filter Include="头文件\EParserModule">
       <UniqueIdentifier>{7e8b0502-070c-46e6-8e45-10eb25138482}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\oxFF">
+      <UniqueIdentifier>{c91c4165-000d-4665-822b-af64b1ce4133}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -40,61 +43,67 @@
       <Filter>头文件</Filter>
     </ClCompile>
     <ClCompile Include="UserResourceParser.cpp">
-      <Filter>头文件\EDecompiler</Filter>
+      <Filter>头文件\EParserModule</Filter>
     </ClCompile>
     <ClCompile Include="GuiParser.cpp">
-      <Filter>头文件\EDecompiler</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_window.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_Label.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_Button.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_Timer.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_ListBox.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_RadioBox.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_PicBtn.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_EditBox.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_PicBox.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_ShapeBox.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_CheckBox.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="krnl_DropTarget.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="EAppControl.cpp">
-      <Filter>头文件\EAppControl</Filter>
-    </ClCompile>
-    <ClCompile Include="EAppControlFactory.cpp">
-      <Filter>头文件\EAppControl</Filter>
+      <Filter>头文件\EParserModule</Filter>
     </ClCompile>
     <ClCompile Include="ESigScanner.cpp">
-      <Filter>头文件\EDecompiler</Filter>
+      <Filter>头文件\EParserModule</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_Button.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_CheckBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_DropTarget.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_EditBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_Label.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_ListBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_PicBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_PicBtn.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_RadioBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_ShapeBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_Timer.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_window.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\EAppControl.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\EAppControlFactory.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="oxFF\oxFF.cpp">
+      <Filter>头文件\oxFF</Filter>
+    </ClCompile>
+    <ClCompile Include="oxFF\BasicBlock.cpp">
+      <Filter>头文件\oxFF</Filter>
+    </ClCompile>
+    <ClCompile Include="oxFF\ControlFlowGraph.cpp">
+      <Filter>头文件\oxFF</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EDecompiler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="IDAMenu.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -115,55 +124,67 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="UserResourceParser.h">
-      <Filter>头文件\EDecompiler</Filter>
+      <Filter>头文件\EParserModule</Filter>
     </ClInclude>
     <ClInclude Include="GuiParser.h">
-      <Filter>头文件\EDecompiler</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_window.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_Label.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_Button.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_Timer.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_ListBox.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_RadioBox.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_PicBtn.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_EditBox.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_PicBox.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_ShapeBox.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_CheckBox.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="krnl_DropTarget.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="EAppControl.h">
-      <Filter>头文件\EAppControl</Filter>
-    </ClInclude>
-    <ClInclude Include="EAppControlFactory.h">
-      <Filter>头文件\EAppControl</Filter>
+      <Filter>头文件\EParserModule</Filter>
     </ClInclude>
     <ClInclude Include="EsigScanner.h">
-      <Filter>头文件\EDecompiler</Filter>
+      <Filter>头文件\EParserModule</Filter>
+    </ClInclude>
+    <ClInclude Include="EDecompiler.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_Button.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_CheckBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_DropTarget.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_EditBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_Label.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_ListBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_PicBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_PicBtn.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_RadioBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_ShapeBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_Timer.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_window.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\EAppControl.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\EAppControlFactory.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="oxFF\oxFF.h">
+      <Filter>头文件\oxFF</Filter>
+    </ClInclude>
+    <ClInclude Include="oxFF\BasicBlock.h">
+      <Filter>头文件\oxFF</Filter>
+    </ClInclude>
+    <ClInclude Include="oxFF\ControlFlowGraph.h">
+      <Filter>头文件\oxFF</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

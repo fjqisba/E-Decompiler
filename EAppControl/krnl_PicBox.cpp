@@ -1,5 +1,5 @@
 #include "krnl_PicBox.h"
-#include "public.h"
+#include "../public.h"
 
 struct PicBox_UnitData
 {
@@ -95,7 +95,7 @@ void krnl_PicBox::显示控件属性信息(QHash<QString, QVariant>& map_ControlData)
 	EAppControl::添加文本控件(QStringLiteral("数据源"), map_ControlData[QStringLiteral("数据源")].toString());
 	EAppControl::添加文本控件(QStringLiteral("数据列"), map_ControlData[QStringLiteral("数据列")].toString());
 	return;
-}	
+}
 
 QString krnl_PicBox::取图标资源路径()
 {

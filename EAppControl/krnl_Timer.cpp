@@ -1,5 +1,5 @@
 #include "krnl_Timer.h"
-#include "public.h"
+#include "../public.h"
 
 struct Timer_UnitData
 {

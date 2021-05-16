@@ -37,7 +37,7 @@ UserResourceParser::BinType_t UserResourceParser::GetBinValueType(ea_t DataAddr)
 		if (FirstIns.ops[0].reg == 0x3) {      //mov [ebx],xxx
 			return UserResourceParser::e_ClassTable;
 		}
-		if (FirstIns.ops[0].reg == 0x6) {      //mov esi,xxx
+		if (FirstIns.ops[0].reg == 0x6 && get_dword(CodeAddr + 5) == 0xABADABAD) {      //mov esi,xxx
 			return UserResourceParser::e_ArrayHead;
 		}
 	}

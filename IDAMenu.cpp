@@ -28,7 +28,7 @@ IDAMenu::IDAMenu(const char* menuPath, int (*callback)(), const char* shortcut, 
 	}
 
 	create_menu(m_menuName.c_str(), str_FirstMenu.c_str());
-
+	
 	const action_desc_t desc = {
 		sizeof(action_desc_t),
 		m_actionName.c_str(),

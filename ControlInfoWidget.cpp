@@ -2,8 +2,6 @@
 #include "GuiParser.h"
 #include <bytes.hpp>
 #include "public.h"
-#include "krnl_window.h"
-#include "krnl_Label.h"
 #include "PropertyDelegate.h"
 
 

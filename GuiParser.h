@@ -1,6 +1,6 @@
 #pragma once
 #include <pro.h>
-#include "EAppControl.h"
+#include "EAppControl/EAppControl.h"
 
 class ControlInfoWidget;
 

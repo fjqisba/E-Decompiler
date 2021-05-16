@@ -28,6 +28,7 @@ static plugmod_t* idaapi init()
 	if (!init_hexrays_plugin())
 		return nullptr; // no decompiler
 	const char* hxver = get_hexrays_version();
+
 	return new plugin_ctx_t;
 }
 
@@ -41,11 +42,6 @@ bool idaapi plugin_ctx_t::run(size_t)
 
 	if (!g_MyDecompiler.InitDecompilerEngine()) {
 		msg("Error,InitDecompilerEngine Failed\n");
-		return false;
-	}
-
-	if (!g_MyDecompiler.DoDecompile()) {
-		msg("Error,DoDecompile\n");
 		return false;
 	}
 

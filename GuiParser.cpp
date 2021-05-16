@@ -6,7 +6,7 @@
 #include "ControlInfoWidget.h"
 #include "public.h"
 #include <QMap>
-#include "EAppControlFactory.h"
+#include "EAppControl/EAppControlFactory.h"
 
 qvector<GuiParser::mid_GuiInfo> mVec_GuiInfo;               //¿Ø¼þÐÅÏ¢
 ea_t m_UserCodeStartAddr = 0;

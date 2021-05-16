@@ -1,5 +1,6 @@
 #include "krnl_PicBtn.h"
 
+
 qstring krnl_PicBtn::取事件名称(int eventIndex)
 {
 	qstring ret;

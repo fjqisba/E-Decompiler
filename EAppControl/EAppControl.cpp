@@ -1,10 +1,10 @@
 #include "EAppControl.h"
-#include "ControlInfoWidget.h"
+#include "../ControlInfoWidget.h"
 #include <QMap>
-#include "GuiParser.h"
-#include "PropertyDelegate.h"
+#include "../GuiParser.h"
+#include "../PropertyDelegate.h"
 #include <bytes.hpp>
-#include "public.h"
+#include "../public.h"
 #include "krnl_window.h"
 #include "krnl_Button.h"
 #include "krnl_Timer.h"

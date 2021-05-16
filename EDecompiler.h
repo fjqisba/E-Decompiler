@@ -3,7 +3,7 @@
 #include <QMap>
 #include <QVariant>
 #include "SectionManager.h"
-
+#include "oxFF/oxFF.h"
 
 enum EProgramsType_t
 {
@@ -181,12 +181,11 @@ struct mid_EAppInfo
 };
 
 class IDAMenu;
-class EDecompilerEngine:public SectionManager
+class EDecompilerEngine
 {
 public:
 	EDecompilerEngine();
 	~EDecompilerEngine();
-
 public:
 	bool InitDecompilerEngine();
 	bool DoDecompile();
@@ -194,8 +193,10 @@ public:
 	//根据菜单的类型ID来得到名称
 	static qstring GetControlTypeName(uint32 typeId);
 private:
-	bool DoDecompiler_EStatic();
-
+	//解析静态类型的易语言程序
+	bool Parse_EStatic();
+	//探测易语言程序类型
+	EProgramsType_t DetectProgramType();
 	//解析支持库信息
 	bool ParseLibInfomation(ea_t, uint32);
 	//解析系统接口函数

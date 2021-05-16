@@ -1,9 +1,9 @@
 #include "krnl_window.h"
 #include <bytes.hpp>
-#include "GuiParser.h"
-#include "ControlInfoWidget.h"
-#include "PropertyDelegate.h"
-#include "public.h"
+#include "../GuiParser.h"
+#include "../ControlInfoWidget.h"
+#include "../PropertyDelegate.h"
+#include "../public.h"
 #include <QtWidgets/QComboBox>
 
 struct WinFrom_UnitData

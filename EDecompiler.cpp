@@ -1,20 +1,32 @@
 ﻿#include "EDecompiler.h"
 #include <bytes.hpp>
 #include <segment.hpp>
-#include <kernwin.hpp>
-#include <ua.hpp>
-#include <allins.hpp>
-#include <name.hpp>
-#include <xref.hpp>
+#include <loader.hpp>
+#include <funcs.hpp>
 #include "IDAMenu.h"
 #include "public.h"
 #include "ControlInfoWidget.h"
-#include <QString>
 #include "UserResourceParser.h"
 #include "GuiParser.h"
 #include "EsigScanner.h"
+#include "oxFF/oxFF.h"
+
 
 EDecompilerEngine g_MyDecompiler;
+
+struct DecompileHandler :public action_handler_t
+{
+	int idaapi activate(action_activation_ctx_t* ctx)
+	{
+		return g_MyDecompiler.DoDecompile();
+	}
+	action_state_t idaapi update(action_update_ctx_t* ctx)
+	{
+		return AST_ENABLE_ALWAYS;
+	}
+};
+
+DecompileHandler gHandler_Decompile;
 
 unsigned int GetDataTypeType(unsigned int typeID)
 {
@@ -30,6 +42,7 @@ unsigned int GetDataTypeType(unsigned int typeID)
 	}
 	return result;
 }
+
 
 
 qstring EDecompilerEngine::GetControlTypeName(uint32 typeId)
@@ -165,15 +178,62 @@ EDecompilerEngine::~EDecompilerEngine()
 		gMenu_ShowEventInfo->DestroyMenu();
 		gMenu_ShowEventInfo = nullptr;
 	}
+	
 }
 
 bool EDecompilerEngine::InitDecompilerEngine()
 {
-	if (!InitSectionManager()) {
+	if (!SectionManager::InitSectionManager()) {
 		return false;
 	}
 
-	m_ProgramType = E_UNKNOWN;
+	m_ProgramType = DetectProgramType();
+	if (m_ProgramType == E_UNKNOWN) {
+		return false;
+	}
+	else if (m_ProgramType == E_STATIC) {
+		Parse_EStatic();
+	}
+
+	//注册快捷键
+	const action_desc_t desc = {
+	sizeof(action_desc_t),
+	"eDecompile",
+	"e Decompile",
+	&gHandler_Decompile,
+	&PLUGIN,
+	"F6",
+	nullptr,
+	0,
+	ADF_OT_PLUGIN
+	};
+	register_action(desc);
+	return true;
+}
+
+bool EDecompilerEngine::DoDecompile()
+{
+	ea_t funcAddr = get_screen_ea();
+
+	func_t* pFunc = get_func(funcAddr);
+	if (!pFunc) {
+		return false;
+	}
+
+	oxFF::FFDecompile(pFunc);
+	return true;
+}
+
+bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
+{
+	lpKrnlEntry -= sizeof(mid_KrnlApp);
+	get_bytes(&m_eAppInfo.m_KrnlApp, sizeof(mid_KrnlApp), lpKrnlEntry);
+	return true;
+}
+
+EProgramsType_t EDecompilerEngine::DetectProgramType()
+{
+	EProgramsType_t ret = E_UNKNOWN;
 
 	//探测易语言程序类型
 	compiled_binpat_vec_t binPat;
@@ -189,35 +249,15 @@ bool EDecompilerEngine::InitDecompilerEngine()
 	}
 
 	if (searchAddr != BADADDR) {
-		m_ProgramType = E_STATIC;
+		ret = E_STATIC;
 		m_EHeadAddr = get_dword(searchAddr + 0x26);
 	}
-	
+
 	//To do...即便是静态编译特征被VM了,应该还有一些解决的思路,暂时先不管。
-
-	return true;
+	return ret;
 }
 
-bool EDecompilerEngine::DoDecompile()
-{
-	//静态编译程序
-	if (m_ProgramType == E_STATIC) {
-		return DoDecompiler_EStatic();
-	}
-
-	return true;
-}
-
-bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
-{
-	lpKrnlEntry -= sizeof(mid_KrnlApp);
-	get_bytes(&m_eAppInfo.m_KrnlApp, sizeof(mid_KrnlApp), lpKrnlEntry);
-	return true;
-}
-
-
-
-bool EDecompilerEngine::DoDecompiler_EStatic()
+bool EDecompilerEngine::Parse_EStatic()
 {
 	EHead eHead;
 	get_bytes(&eHead, sizeof(EHead), m_EHeadAddr);

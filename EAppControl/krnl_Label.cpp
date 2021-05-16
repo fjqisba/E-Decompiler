@@ -1,8 +1,8 @@
 #include "krnl_Label.h"
-#include "GuiParser.h"
-#include "ControlInfoWidget.h"
-#include "PropertyDelegate.h"
-#include "public.h"
+#include "../GuiParser.h"
+#include "../ControlInfoWidget.h"
+#include "../PropertyDelegate.h"
+#include "../public.h"
 
 struct Label_UnitData
 {
