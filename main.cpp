@@ -18,9 +18,11 @@ struct plugin_ctx_t : public plugmod_t
 		if (inited) {
 			term_hexrays_plugin();
 		}
+		unhook_from_notification_point(HT_UI, g_MyDecompiler.ui_callback);
 	}
 	virtual bool idaapi run(size_t) override;
 };
+
 
 //--------------------------------------------------------------------------
 static plugmod_t* idaapi init()
@@ -28,7 +30,7 @@ static plugmod_t* idaapi init()
 	if (!init_hexrays_plugin())
 		return nullptr; // no decompiler
 	const char* hxver = get_hexrays_version();
-
+	hook_to_notification_point(HT_UI, g_MyDecompiler.ui_callback);
 	return new plugin_ctx_t;
 }
 

@@ -11,8 +11,21 @@
 #include "EsigScanner.h"
 #include "oxFF/oxFF.h"
 
-
 EDecompilerEngine g_MyDecompiler;
+
+#define ACTION_GenECSig "eDecompiler::GenerateECSig"
+
+struct GenECSigHandler :public action_handler_t
+{
+	int idaapi activate(action_activation_ctx_t* ctx)
+	{
+		return g_MyDecompiler.GenECSig();
+	}
+	action_state_t idaapi update(action_update_ctx_t* ctx)
+	{
+		return AST_ENABLE_ALWAYS;
+	}
+};
 
 struct DecompileHandler :public action_handler_t
 {
@@ -27,6 +40,8 @@ struct DecompileHandler :public action_handler_t
 };
 
 DecompileHandler gHandler_Decompile;
+GenECSigHandler gHandler_GenEcSig;
+
 
 unsigned int GetDataTypeType(unsigned int typeID)
 {
@@ -181,6 +196,19 @@ EDecompilerEngine::~EDecompilerEngine()
 	
 }
 
+ssize_t EDecompilerEngine::ui_callback(void* ud, int notification_code, va_list va)
+{
+	if (notification_code == ui_populating_widget_popup) {
+		TWidget* view = va_arg(va, TWidget*);
+		if (get_widget_type(view) == BWN_DISASM) {
+			TPopupMenu* p = va_arg(va, TPopupMenu*);
+			attach_action_to_popup(view, p, "eDecompiler::GenerateECSig", nullptr, SETMENU_FIRST);
+		}
+	}
+
+	return 0;
+}
+
 bool EDecompilerEngine::InitDecompilerEngine()
 {
 	if (!SectionManager::InitSectionManager()) {
@@ -195,6 +223,21 @@ bool EDecompilerEngine::InitDecompilerEngine()
 		Parse_EStatic();
 	}
 
+	//注册窗口菜单
+	qstring menuName = getUTF8String("生成易语言函数特征");
+	const action_desc_t GenEsigDesc = {
+	sizeof(action_desc_t),
+	ACTION_GenECSig,
+	menuName.c_str(),
+	&gHandler_GenEcSig,
+	&PLUGIN,
+	nullptr,
+	nullptr,
+	0,
+	ADF_OT_PLUGIN
+	};
+	register_action(GenEsigDesc);
+
 	//注册快捷键
 	const action_desc_t desc = {
 	sizeof(action_desc_t),
@@ -208,6 +251,20 @@ bool EDecompilerEngine::InitDecompilerEngine()
 	ADF_OT_PLUGIN
 	};
 	register_action(desc);
+	return true;
+}
+
+int EDecompilerEngine::GenECSig()
+{
+	ea_t funcAddr = get_screen_ea();
+	func_t* pFunc = get_func(funcAddr);
+	if (!pFunc) {
+		return false;
+	}
+
+
+
+
 	return true;
 }
 

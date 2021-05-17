@@ -102,6 +102,9 @@
     <ClCompile Include="oxFF\ControlFlowGraph.cpp">
       <Filter>头文件\oxFF</Filter>
     </ClCompile>
+    <ClCompile Include="ImportsParser.cpp">
+      <Filter>头文件\EParserModule</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDAMenu.h">
@@ -185,6 +188,9 @@
     </ClInclude>
     <ClInclude Include="oxFF\ControlFlowGraph.h">
       <Filter>头文件\oxFF</Filter>
+    </ClInclude>
+    <ClInclude Include="ImportsParser.h">
+      <Filter>头文件\EParserModule</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

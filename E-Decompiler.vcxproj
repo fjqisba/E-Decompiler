@@ -129,6 +129,7 @@
     <ClCompile Include="ESigScanner.cpp" />
     <ClCompile Include="GuiParser.cpp" />
     <ClCompile Include="IDAMenu.cpp" />
+    <ClCompile Include="ImportsParser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="oxFF\BasicBlock.cpp" />
     <ClCompile Include="oxFF\ControlFlowGraph.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="EAppControl\krnl_window.h" />
     <ClInclude Include="EsigScanner.h" />
     <ClInclude Include="GuiParser.h" />
+    <ClInclude Include="ImportsParser.h" />
     <ClInclude Include="oxFF\BasicBlock.h" />
     <ClInclude Include="oxFF\ControlFlowGraph.h" />
     <ClInclude Include="oxFF\oxFF.h" />
