@@ -68,6 +68,7 @@ bool UserResourceParser::ParseUserResource(ea_t lpStringStart, uint32 StringSize
 
 	while (index < StringSize) {
 		mid_BinSource tmpSource = {};
+
 		tmpSource.itype = GetBinValueType(lpStringStart + index);
 		tmpSource.address = lpStringStart + index;
 

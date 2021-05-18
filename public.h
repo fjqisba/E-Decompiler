@@ -30,6 +30,7 @@ uint32 ReadUInt(unsigned char* pBuf);
 int32 ReadInt(unsigned char* pBuf);
 
 unsigned char ReadUChar(unsigned char* pBuf);
+unsigned char ReadUChar(char* pBuf);
 
 qstring ReadStr(unsigned char* pBuf);
 

@@ -147,6 +147,11 @@ int32 ReadInt(unsigned char* pBuf)
 	return *(int32*)pBuf;
 }
 
+unsigned char ReadUChar(char* pBuf)
+{
+	return *(char*)pBuf;
+}
+
 unsigned char ReadUChar(unsigned char* pBuf)
 {
 	return *(unsigned char*)pBuf;

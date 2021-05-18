@@ -18,6 +18,8 @@ public:
 	static uint8* LinearAddrToVirtualAddr(ea_t LinerAddr);
 	//虚拟地址转换为线性地址
 	static ea_t VirtualAddrToLinearAddr(uint8* pVirtualAddr);
+	//寻找地址,参数为十六进制特征
+	static ea_t SeachBin(qstring HexStr);
 private:
 	static qvector<SegmentInfomation> mVec_segInfo;
 };

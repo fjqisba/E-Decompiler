@@ -150,6 +150,22 @@ struct mid_ELibInfo
 	qvector<mid_EDataTypeInfo> mVec_DataTypeInfo;      //数据类型信息
 };
 
+struct mid_KrnlJmp
+{
+	ea_t Jmp_MReportError;               //错误回调
+	ea_t Jmp_MCallDllCmd;                //DLL命令
+	ea_t Jmp_MCallLibCmd;                //三方支持库命令
+	ea_t Jmp_MCallKrnlLibCmd;            //核心支持库命令
+	ea_t Jmp_MReadProperty;              //读取组件属性
+	ea_t Jmp_MWriteProperty;             //设置组件属性
+	ea_t Jmp_MMalloc;                    //分配内存
+	ea_t Jmp_MRealloc;                   //重新分配内存
+	ea_t Jmp_MFree;                      //释放内存
+	ea_t Jmp_MExitProcess;               //结束
+	ea_t Jmp_MMessageLoop;               //窗口消息循环
+	ea_t Jmp_MLoadBeginWin;              //载入启动窗口
+	ea_t Jmp_MOtherHelp;                 //辅助功能
+};
 
 struct mid_KrnlApp
 {
@@ -175,6 +191,8 @@ struct mid_EAppInfo
 	
 	qvector<mid_ELibInfo>  mVec_LibInfo;               //支持库信息
 	mid_KrnlApp m_KrnlApp;
+	mid_KrnlJmp m_KrnlJmp;
+
 	bool b_IsWindowProgram;                            //是否是窗体程序
 
 	unsigned int m_EventSum;                           //所有的控件事件个数
@@ -213,6 +231,7 @@ private:
 	IDAMenu* gMenu_ShowResource = nullptr;
 	IDAMenu* gMenu_ShowGUIInfo = nullptr;
 	IDAMenu* gMenu_ShowEventInfo = nullptr;
+	IDAMenu* gMenu_ShowImportsInfo = nullptr;
 };
 
 extern EDecompilerEngine g_MyDecompiler;

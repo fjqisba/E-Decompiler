@@ -3,12 +3,15 @@
 #include <segment.hpp>
 #include <loader.hpp>
 #include <funcs.hpp>
+#include <ua.hpp>
+#include <allins.hpp>
 #include "IDAMenu.h"
 #include "public.h"
 #include "ControlInfoWidget.h"
 #include "UserResourceParser.h"
 #include "GuiParser.h"
 #include "EsigScanner.h"
+#include "ImportsParser.h"
 #include "oxFF/oxFF.h"
 
 EDecompilerEngine g_MyDecompiler;
@@ -193,7 +196,10 @@ EDecompilerEngine::~EDecompilerEngine()
 		gMenu_ShowEventInfo->DestroyMenu();
 		gMenu_ShowEventInfo = nullptr;
 	}
-	
+	if (gMenu_ShowImportsInfo) {
+		gMenu_ShowImportsInfo->DestroyMenu();
+		gMenu_ShowImportsInfo = nullptr;
+	}
 }
 
 ssize_t EDecompilerEngine::ui_callback(void* ud, int notification_code, va_list va)
@@ -283,8 +289,32 @@ bool EDecompilerEngine::DoDecompile()
 
 bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
 {
+	qstring jmpOtherHelpHex;
+	jmpOtherHelpHex.sprnt("FF 25 %08X", lpKrnlEntry - 4);
+
 	lpKrnlEntry -= sizeof(mid_KrnlApp);
 	get_bytes(&m_eAppInfo.m_KrnlApp, sizeof(mid_KrnlApp), lpKrnlEntry);
+
+	m_eAppInfo.m_KrnlJmp.Jmp_MOtherHelp = SectionManager::SeachBin(jmpOtherHelpHex);
+	if (m_eAppInfo.m_KrnlJmp.Jmp_MOtherHelp == BADADDR) {
+		return false;
+	}
+
+	ea_t aboveAddr = m_eAppInfo.m_KrnlJmp.Jmp_MOtherHelp;
+	do
+	{
+		insn_t tmpIns;
+		ea_t aboveAddr = decode_prev_insn(&tmpIns, aboveAddr);
+		if (aboveAddr == BADADDR) {
+			return false;
+		}
+		if (tmpIns.itype != NN_jmpni || tmpIns.ops[0].type != o_mem) {
+			break;
+		}
+		ea_t jmpAddr = tmpIns.ops[0].addr;
+		//To do...
+	} while (true);
+	
 	return true;
 }
 
@@ -292,22 +322,14 @@ EProgramsType_t EDecompilerEngine::DetectProgramType()
 {
 	EProgramsType_t ret = E_UNKNOWN;
 
-	//探测易语言程序类型
-	compiled_binpat_vec_t binPat;
-	parse_binpat_str(&binPat, 0x0, "50 64 89 25 00 00 00 00 81 EC AC 01 00 00 53 56 57", 16);
-	unsigned int segCount = get_segm_qty();
-	ea_t searchAddr = BADADDR;
-	for (unsigned int n = 0; n < segCount; ++n) {
-		segment_t* pSegment = getnseg(n);
-		searchAddr = bin_search2(pSegment->start_ea, pSegment->end_ea, binPat, 0x0);
-		if (searchAddr != BADADDR) {
-			break;
-		}
-	}
 
-	if (searchAddr != BADADDR) {
+	//探测易语言程序类型
+
+	ea_t staticMagicHead = SectionManager::SeachBin("50 64 89 25 00 00 00 00 81 EC AC 01 00 00 53 56 57");
+
+	if (staticMagicHead != BADADDR) {
 		ret = E_STATIC;
-		m_EHeadAddr = get_dword(searchAddr + 0x26);
+		m_EHeadAddr = get_dword(staticMagicHead + 0x26);
 	}
 
 	//To do...即便是静态编译特征被VM了,应该还有一些解决的思路,暂时先不管。
@@ -352,6 +374,11 @@ bool EDecompilerEngine::Parse_EStatic()
 		if (GuiParser::GetEventCount()) {
 			gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("易语言/控件事件信息").c_str(), GuiParser::MenuHandle_ShowEventInfo);
 		}
+	}
+
+	if (eHead.dwApiCount) {
+		ImportsParser::ParseUserImports(eHead.dwApiCount, eHead.lpModuleName, eHead.lpApiName);
+		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/用户导入表").c_str(), ImportsParser::MenuHandle_ShowImportsInfo);
 	}
 
 	msg("%s\n", getUTF8String("检测到是易语言静态编译程序").c_str());

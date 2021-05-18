@@ -28,6 +28,28 @@ bool SectionManager::InitSectionManager()
 	return true;
 }
 
+ea_t SectionManager::SeachBin(qstring HexStr)
+{
+	ea_t ret = BADADDR;
+	
+	compiled_binpat_vec_t binPat;
+	parse_binpat_str(&binPat, 0x0, HexStr.c_str(), 16);
+
+	unsigned int segCount = get_segm_qty();
+	for (unsigned int n = 0; n < segCount; ++n) {
+		segment_t* pSegment = getnseg(n);
+		if (!pSegment) {
+			continue;
+		}
+		ret = bin_search2(pSegment->start_ea, pSegment->end_ea, binPat, 0x0);
+		if (ret != BADADDR) {
+			break;
+		}
+	}
+
+	return ret;
+}
+
 uint8* SectionManager::LinearAddrToVirtualAddr(ea_t LinerAddr)
 {
 	segment_t* pSegment = getseg(LinerAddr);
