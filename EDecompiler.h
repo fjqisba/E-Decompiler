@@ -207,8 +207,7 @@ public:
 public:
 	bool InitDecompilerEngine();
 	bool DoDecompile();
-	//生成易语言模块函数特征码
-	int GenECSig();
+	
 	//根据菜单的类型ID来得到名称
 	static qstring GetControlTypeName(uint32 typeId);
 
@@ -222,6 +221,8 @@ private:
 	bool ParseLibInfomation(ea_t, uint32);
 	//解析系统接口函数
 	bool ParseKrnlInterface(ea_t);
+
+	void SetKrnlJmpAddr(ea_t callAddr, ea_t setAddr);
 
 public:
 	EProgramsType_t m_ProgramType;

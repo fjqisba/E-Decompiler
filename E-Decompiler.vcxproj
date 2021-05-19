@@ -125,6 +125,7 @@
     <ClCompile Include="EAppControl\krnl_ShapeBox.cpp" />
     <ClCompile Include="EAppControl\krnl_Timer.cpp" />
     <ClCompile Include="EAppControl\krnl_window.cpp" />
+    <ClCompile Include="ECSigParser.cpp" />
     <ClCompile Include="EDecompiler.cpp" />
     <ClCompile Include="ESigScanner.cpp" />
     <ClCompile Include="GuiParser.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="EAppControl\krnl_ShapeBox.h" />
     <ClInclude Include="EAppControl\krnl_Timer.h" />
     <ClInclude Include="EAppControl\krnl_window.h" />
+    <ClInclude Include="ECSigParser.h" />
     <ClInclude Include="EsigScanner.h" />
     <ClInclude Include="GuiParser.h" />
     <ClInclude Include="ImportsParser.h" />

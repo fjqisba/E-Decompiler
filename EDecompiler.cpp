@@ -11,6 +11,7 @@
 #include "UserResourceParser.h"
 #include "GuiParser.h"
 #include "EsigScanner.h"
+#include "ECSigParser.h"
 #include "ImportsParser.h"
 #include "oxFF/oxFF.h"
 
@@ -22,7 +23,7 @@ struct GenECSigHandler :public action_handler_t
 {
 	int idaapi activate(action_activation_ctx_t* ctx)
 	{
-		return g_MyDecompiler.GenECSig();
+		return ECSigParser::GenerateECSig(get_screen_ea());
 	}
 	action_state_t idaapi update(action_update_ctx_t* ctx)
 	{
@@ -260,20 +261,6 @@ bool EDecompilerEngine::InitDecompilerEngine()
 	return true;
 }
 
-int EDecompilerEngine::GenECSig()
-{
-	ea_t funcAddr = get_screen_ea();
-	func_t* pFunc = get_func(funcAddr);
-	if (!pFunc) {
-		return false;
-	}
-
-
-
-
-	return true;
-}
-
 bool EDecompilerEngine::DoDecompile()
 {
 	ea_t funcAddr = get_screen_ea();
@@ -285,6 +272,49 @@ bool EDecompilerEngine::DoDecompile()
 
 	oxFF::FFDecompile(pFunc);
 	return true;
+}
+
+void EDecompilerEngine::SetKrnlJmpAddr(ea_t callAddr, ea_t setAddr)
+{
+	if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MReportError) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MReportError = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MCallDllCmd) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MCallDllCmd = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MCallLibCmd) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MCallLibCmd = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MCallKrnlLibCmd) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MCallKrnlLibCmd = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MReadProperty) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MReadProperty = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MWriteProperty) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MWriteProperty = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MMalloc) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MMalloc = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MRealloc) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MRealloc = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MFree) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MFree = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MExitProcess) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MExitProcess = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MMessageLoop) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MMessageLoop = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MLoadBeginWin) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MLoadBeginWin = setAddr;
+	}
+	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MOtherHelp) {
+		m_eAppInfo.m_KrnlJmp.Jmp_MOtherHelp = setAddr;
+	}
 }
 
 bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
@@ -304,17 +334,33 @@ bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
 	do
 	{
 		insn_t tmpIns;
-		ea_t aboveAddr = decode_prev_insn(&tmpIns, aboveAddr);
+		aboveAddr = decode_prev_insn(&tmpIns, aboveAddr);
 		if (aboveAddr == BADADDR) {
 			return false;
 		}
 		if (tmpIns.itype != NN_jmpni || tmpIns.ops[0].type != o_mem) {
 			break;
 		}
-		ea_t jmpAddr = tmpIns.ops[0].addr;
-		//To do...
+		ea_t CallAddr = ReadUInt(SectionManager::LinearAddrToVirtualAddr(tmpIns.ops[0].addr));
+		SetKrnlJmpAddr(CallAddr, aboveAddr);
 	} while (true);
-	
+
+	ea_t belowAddr = m_eAppInfo.m_KrnlJmp.Jmp_MOtherHelp;
+	do
+	{
+		insn_t tmpIns;
+		int len = decode_insn(&tmpIns, belowAddr);
+		if (!len) {
+			return false;
+		}
+		if (tmpIns.itype != NN_jmpni || tmpIns.ops[0].type != o_mem) {
+			break;
+		}
+		ea_t CallAddr = ReadUInt(SectionManager::LinearAddrToVirtualAddr(tmpIns.ops[0].addr));
+		SetKrnlJmpAddr(CallAddr, belowAddr);
+		belowAddr += tmpIns.size;
+	} while (true);
+
 	return true;
 }
 
@@ -361,7 +407,10 @@ bool EDecompilerEngine::Parse_EStatic()
 	if (dwKrnlEntry == 0) {
 		dwKrnlEntry = eHead.lpEWindow;
 	}
-	ParseKrnlInterface(dwKrnlEntry);
+
+	if (!ParseKrnlInterface(dwKrnlEntry)) {
+		return false;
+	}
 
 	if (eHead.lpEString != 0 && eHead.dwEStringSize != 0) {
 		UserResourceParser::ParseUserResource(eHead.lpEString, eHead.dwEStringSize);
