@@ -1,7 +1,7 @@
 #include "ControlInfoWidget.h"
 #include "GuiParser.h"
 #include <bytes.hpp>
-#include "public.h"
+#include "common/public.h"
 #include "PropertyDelegate.h"
 
 

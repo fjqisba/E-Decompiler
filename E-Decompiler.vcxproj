@@ -110,6 +110,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="common\IDAMenu.cpp" />
+    <ClCompile Include="common\md5.cpp" />
+    <ClCompile Include="common\public.cpp" />
     <ClCompile Include="ControlInfoWidget.cpp" />
     <ClCompile Include="EAppControl\EAppControl.cpp" />
     <ClCompile Include="EAppControl\EAppControlFactory.cpp" />
@@ -129,18 +132,19 @@
     <ClCompile Include="EDecompiler.cpp" />
     <ClCompile Include="ESigScanner.cpp" />
     <ClCompile Include="GuiParser.cpp" />
-    <ClCompile Include="IDAMenu.cpp" />
     <ClCompile Include="ImportsParser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="oxFF\BasicBlock.cpp" />
     <ClCompile Include="oxFF\ControlFlowGraph.cpp" />
     <ClCompile Include="oxFF\oxFF.cpp" />
-    <ClCompile Include="public.cpp" />
     <ClCompile Include="SectionManager.cpp" />
     <ClCompile Include="TrieTree.cpp" />
     <ClCompile Include="UserResourceParser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common\IDAMenu.h" />
+    <ClInclude Include="common\md5.h" />
+    <ClInclude Include="common\public.h" />
     <ClInclude Include="EAppControl\EAppControl.h" />
     <ClInclude Include="EAppControl\EAppControlFactory.h" />
     <ClInclude Include="EAppControl\krnl_Button.h" />
@@ -166,8 +170,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ControlInfoWidget.h" />
     <ClInclude Include="EDecompiler.h" />
-    <ClInclude Include="IDAMenu.h" />
-    <ClInclude Include="public.h" />
     <ClInclude Include="SectionManager.h" />
     <ClInclude Include="TrieTree.h" />
     <ClInclude Include="UserResourceParser.h" />

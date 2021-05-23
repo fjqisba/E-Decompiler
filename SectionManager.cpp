@@ -52,16 +52,25 @@ ea_t SectionManager::SeachBin(qstring HexStr)
 
 uint8* SectionManager::LinearAddrToVirtualAddr(ea_t LinerAddr)
 {
+	//存储上一次命中的索引,用于加速访问
+	static unsigned int saveIndex = 0;
+
 	segment_t* pSegment = getseg(LinerAddr);
 	if (!pSegment) {
 		return NULL;
 	}
 	
+	unsigned int index = saveIndex;
 	for (unsigned int n = 0; n < mVec_segInfo.size(); ++n) {
-		ea_t endAddr = mVec_segInfo[n].m_segStart + mVec_segInfo[n].m_segSize;
-		if (LinerAddr >= mVec_segInfo[n].m_segStart && LinerAddr < endAddr) {
+		ea_t endAddr = mVec_segInfo[index].m_segStart + mVec_segInfo[index].m_segSize;
+		if (LinerAddr >= mVec_segInfo[index].m_segStart && LinerAddr < endAddr) {
 			uint32 offset = LinerAddr - pSegment->start_ea;
-			return &mVec_segInfo[n].m_segData[offset];
+			saveIndex = index;
+			return &mVec_segInfo[index].m_segData[offset];
+		}
+		++index;
+		if (index == mVec_segInfo.size()) {
+			index = 0;
 		}
 	}
 	return NULL;

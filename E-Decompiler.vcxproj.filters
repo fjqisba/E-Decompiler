@@ -19,16 +19,13 @@
     <Filter Include="头文件\oxFF">
       <UniqueIdentifier>{c91c4165-000d-4665-822b-af64b1ce4133}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\common">
+      <UniqueIdentifier>{2b62291f-f5ea-4689-82d2-deed85d98d58}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="IDAMenu.cpp">
-      <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="public.cpp">
-      <Filter>头文件</Filter>
     </ClCompile>
     <ClCompile Include="SectionManager.cpp">
       <Filter>头文件</Filter>
@@ -108,14 +105,17 @@
     <ClCompile Include="ECSigParser.cpp">
       <Filter>头文件\EParserModule</Filter>
     </ClCompile>
+    <ClCompile Include="common\public.cpp">
+      <Filter>头文件\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\IDAMenu.cpp">
+      <Filter>头文件\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\md5.cpp">
+      <Filter>头文件\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IDAMenu.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="public.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="SectionManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -197,6 +197,15 @@
     </ClInclude>
     <ClInclude Include="ECSigParser.h">
       <Filter>头文件\EParserModule</Filter>
+    </ClInclude>
+    <ClInclude Include="common\IDAMenu.h">
+      <Filter>头文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\public.h">
+      <Filter>头文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\md5.h">
+      <Filter>头文件\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

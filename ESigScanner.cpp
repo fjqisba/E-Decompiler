@@ -6,7 +6,7 @@
 #include <name.hpp>
 #include <diskio.hpp>
 #include "TrieTree.h"
-#include "public.h"
+#include "common/public.h"
 
 struct EsigInfo
 {

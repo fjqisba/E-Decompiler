@@ -3,7 +3,7 @@
 #include "../GuiParser.h"
 #include "../ControlInfoWidget.h"
 #include "../PropertyDelegate.h"
-#include "../public.h"
+#include "../common/public.h"
 #include <QtWidgets/QComboBox>
 
 struct WinFrom_UnitData

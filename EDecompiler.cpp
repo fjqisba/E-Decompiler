@@ -5,8 +5,8 @@
 #include <funcs.hpp>
 #include <ua.hpp>
 #include <allins.hpp>
-#include "IDAMenu.h"
-#include "public.h"
+#include "common/IDAMenu.h"
+#include "common/public.h"
 #include "ControlInfoWidget.h"
 #include "UserResourceParser.h"
 #include "GuiParser.h"
@@ -203,8 +203,15 @@ EDecompilerEngine::~EDecompilerEngine()
 	}
 }
 
+
+FILE* pFile = fopen("D:\\msg.txt", "wb");
 ssize_t EDecompilerEngine::ui_callback(void* ud, int notification_code, va_list va)
 {
+	
+	qstring str;
+	str.sprnt("%d\n", notification_code);
+	fwrite(str.c_str(), str.size(),1,pFile);
+	fflush(pFile);
 	if (notification_code == ui_populating_widget_popup) {
 		TWidget* view = va_arg(va, TWidget*);
 		if (get_widget_type(view) == BWN_DISASM) {

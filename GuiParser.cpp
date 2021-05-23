@@ -4,7 +4,7 @@
 #include <name.hpp>
 #include "EDecompiler.h"
 #include "ControlInfoWidget.h"
-#include "public.h"
+#include "common/public.h"
 #include <QMap>
 #include "EAppControl/EAppControlFactory.h"
 

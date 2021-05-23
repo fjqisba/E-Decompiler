@@ -1,5 +1,5 @@
 #include "krnl_PicBox.h"
-#include "../public.h"
+#include "../common/public.h"
 
 struct PicBox_UnitData
 {

@@ -3,7 +3,7 @@
 #include <xref.hpp>
 #include <ua.hpp>
 #include <allins.hpp>
-#include "public.h"
+#include "common/public.h"
 
 qvector<UserResourceParser::mid_BinSource> mVec_UserResource;          //用户资源
 ea_t UserResourceParser::m_UserCodeStartAddr = 0;

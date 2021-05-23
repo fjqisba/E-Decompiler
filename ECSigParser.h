@@ -1,6 +1,7 @@
 #pragma once
 #include <pro.h>
 
+class insn_t;
 class ECSigParser
 {
 public:
@@ -8,6 +9,8 @@ public:
 	static int GenerateECSig(ea_t startAddr);
 
 private:
+	static qstring GetSig_Mov(insn_t& ins);
+	static qstring GetSig_Push(insn_t& ins);
 	//检查是否为易语言标准函数，参数为函数起始地址
 	static bool IsEStandardFunction(ea_t startAddr);
 	//寻找易语言标准函数尾部,参数为函数起始地址,返回最后一条指令的地址

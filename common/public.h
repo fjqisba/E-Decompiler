@@ -1,6 +1,12 @@
 #pragma once
 #include <pro.h>
 
+//计算MD5文本
+qstring CalculateMD5(qstring& md5);
+
+//到十六进制
+const char* UCharToStr(unsigned char c);
+
 //十六到十
 unsigned char HexToBin(unsigned char HexCode);
 

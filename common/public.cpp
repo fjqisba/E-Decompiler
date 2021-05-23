@@ -1,6 +1,7 @@
 #include "public.h"
 #include <xref.hpp>
 #include <bytes.hpp>
+#include "md5.h"
 
 const char* UCharToStr(unsigned char c)
 {
@@ -215,4 +216,9 @@ qvector<unsigned char> CDR_ReadCFreqMem(unsigned char*& currentPoint)
 		currentPoint += len;
 	}
 	return ret;
+}
+
+qstring CalculateMD5(qstring& md5)
+{
+	return md5sum(md5.c_str(), md5.length());
 }

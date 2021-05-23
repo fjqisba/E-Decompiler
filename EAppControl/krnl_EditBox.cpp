@@ -1,5 +1,5 @@
 #include "krnl_EditBox.h"
-#include "../public.h"
+#include "../common/public.h"
 
 struct EditBox_UnitData
 {

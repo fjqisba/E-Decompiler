@@ -27,6 +27,7 @@ struct plugin_ctx_t : public plugmod_t
 //--------------------------------------------------------------------------
 static plugmod_t* idaapi init()
 {
+
 	if (!init_hexrays_plugin())
 		return nullptr; // no decompiler
 	const char* hxver = get_hexrays_version();

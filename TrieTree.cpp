@@ -5,7 +5,7 @@
 #include <fpro.h>
 #include <name.hpp>
 #include "SectionManager.h"
-#include "public.h"
+#include "common/public.h"
 
 bool FastMatch_CmpApi(unsigned char* pSrc, qstring IATEAT)
 {

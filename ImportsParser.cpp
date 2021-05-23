@@ -1,7 +1,7 @@
 #include "ImportsParser.h"
 #include "SectionManager.h"
 #include <kernwin.hpp>
-#include "public.h"
+#include "common/public.h"
 
 qvector<ImportsParser::ImportsApi> ImportsParser::mVec_ImportsApi;
 
