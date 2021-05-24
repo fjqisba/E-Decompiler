@@ -2,11 +2,31 @@
 #include <funcs.hpp>
 #include <bytes.hpp>
 #include <segment.hpp>
+#include <name.hpp>
 #include <ua.hpp>
 #include <allins.hpp>
 #include <auto.hpp>
 #include "SectionManager.h"
+#include "EDecompiler.h"
 #include "common/public.h"
+
+mid_KrnlJmp ECSigParser::m_KrnlJmp;
+
+const char* GetDataType(uint8 n)
+{
+	switch (n)
+	{
+	case 0:
+		return "BYTE";
+	case 1:
+		return "WORD";
+	case 2:
+		return "DWORD";
+	default:
+		break;
+	}
+	return NULL;
+}
 
 const char* GetRegName(uint16 reg)
 {
@@ -34,6 +54,21 @@ const char* GetRegName(uint16 reg)
 	return NULL;
 }
 
+qstring GetInsPatternHex_Bak(insn_t& ins, char offset)
+{
+	qstring ret;
+	unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+	for (char n = 0; n < ins.size; ++n) {
+		if (n < offset) {
+			ret.append(UCharToStr(pData[n]));
+		}
+		else {
+			ret.append("??");
+		}
+	}
+	return ret;
+}
+
 qstring GetInstructionHexStr(insn_t& ins)
 {
 	qstring ret;
@@ -43,6 +78,7 @@ qstring GetInstructionHexStr(insn_t& ins)
 	}
 	return ret;
 }
+
 
 ea_t ECSigParser::SeachEFuncEnd(ea_t startAddr)
 {
@@ -82,6 +118,47 @@ bool ECSigParser::IsEStandardFunction(ea_t startAddr)
 	return false;
 }
 
+qstring ECSigParser::GetSig_Call(insn_t& ins)
+{
+	qstring ret;
+	
+	if (ins.ops[0].type == o_near) {
+		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MCallKrnlLibCmd) {
+			insn_t LastIns;
+			decode_prev_insn(&LastIns, ins.ip);
+			if (LastIns.itype == NN_mov && LastIns.ops[0].reg == 3 && LastIns.ops[1].type == o_imm) {
+				qstring KrnlLibName = get_name(LastIns.ops[1].value);
+				if (KrnlLibName.substr(0, 4) == "sub_") {
+					msg("[GetSig_Call]Function not Scanned,%a", LastIns.ops[1].value);
+					ret = "<Î´ÖªÃüÁî>";
+					return ret;
+				}
+				ret.sprnt("<%s>", KrnlLibName.c_str());
+				return ret;
+			}
+		}
+	}
+	int a = 0;
+
+	msg("[GetSig_Call]To do...\n");
+	return ret;
+}
+
+qstring ECSigParser::GetSig_Sub(insn_t& ins)
+{
+	qstring ret;
+
+	if (ins.ops[0].type == o_reg) {
+		if (ins.ops[1].type == o_imm) {
+			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
+			return ret;
+		}
+	}
+
+	msg("[GetSig_Sub]To do...\n");
+	return ret;
+}
+
 qstring ECSigParser::GetSig_Mov(insn_t& ins)
 {
 	qstring ret;
@@ -99,14 +176,30 @@ qstring ECSigParser::GetSig_Mov(insn_t& ins)
 			ret = GetInstructionHexStr(ins);
 			return ret;
 		}
+
+		//mov eax,0x401000
 		if (ins.ops[1].type == o_imm) {
-			ret.sprnt("MOV_%s_IMM", GetRegName(ins.ops[0].reg));
+			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
 			return ret;
 		}
 	}
-	else {
-		msg("[GetSig_Mov]To do...\n");
+
+	if (ins.ops[0].type == o_phrase)
+	{
+		if (ins.ops[1].type == o_reg) {
+			ret = GetInstructionHexStr(ins);
+			return ret;
+		}
 	}
+
+	if (ins.ops[0].type == o_displ) {
+		if (ins.ops[1].type == o_imm) {
+			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
+			return ret;
+		}
+	}
+	
+	msg("[GetSig_Mov]To do...\n");
 	return ret;
 }
 
@@ -117,12 +210,20 @@ qstring ECSigParser::GetSig_Push(insn_t& ins)
 	//push reg
 	if (ins.ops[0].type == o_reg) {
 		ret = GetInstructionHexStr(ins);
+		return ret;
 	}
-	else {
-		msg("[GetSig_Push]To do...\n");
+	
+	if (ins.ops[0].type == o_imm) {
+		ret = GetInsPatternHex_Bak(ins, ins.ops[0].offb);
+		return ret;
 	}
-
+	msg("[GetSig_Push]To do...\n");
 	return ret;
+}
+
+void ECSigParser::InitECSigParser(mid_KrnlJmp& inFunc)
+{
+	m_KrnlJmp = inFunc;
 }
 
 int ECSigParser::GenerateECSig(ea_t addr)
@@ -162,11 +263,17 @@ int ECSigParser::GenerateECSig(ea_t addr)
 
 		switch (CurrentIns.itype)
 		{
+		case NN_sub:
+			SingleSig = GetSig_Sub(CurrentIns);
+			break;
 		case NN_push:
 			SingleSig = GetSig_Push(CurrentIns);
 			break;
 		case NN_mov:
 			SingleSig = GetSig_Mov(CurrentIns);
+			break;
+		case NN_call:
+			SingleSig = GetSig_Call(CurrentIns);
 			break;
 		default:
 			SingleSig = GetInstructionHexStr(CurrentIns);

@@ -1,6 +1,9 @@
 #pragma once
 #include <pro.h>
 
+//UTF-8转ascii
+bool acp_ascii(qstring* out, const char* in);
+
 //计算MD5文本
 qstring CalculateMD5(qstring& md5);
 

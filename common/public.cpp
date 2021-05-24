@@ -222,3 +222,8 @@ qstring CalculateMD5(qstring& md5)
 {
 	return md5sum(md5.c_str(), md5.length());
 }
+
+bool acp_ascii(qstring* out, const char* in)
+{
+	return change_codepage(out, in, CP_UTF8, CP_ACP);
+}
