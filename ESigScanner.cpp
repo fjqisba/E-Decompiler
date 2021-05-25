@@ -6,6 +6,7 @@
 #include <name.hpp>
 #include <diskio.hpp>
 #include "TrieTree.h"
+#include "ECSigParser.h"
 #include "common/public.h"
 
 struct EsigInfo
@@ -71,6 +72,7 @@ bool ESigScanner::ScanBasicFunction()
 	qstring LibPath;
 	LibPath.sprnt("%s\\esig\\Ò×ÓïÑÔ»ù´¡ÃüÁî.esig", idadir(PLG_SUBDIR));
 
+	std::set<ea_t> m_Hash;
 	if (!BASICTREE.LoadSig(LibPath.c_str())) {
 		return false;
 	}
@@ -85,9 +87,11 @@ bool ESigScanner::ScanBasicFunction()
 		}
 		char* pFuncName = BASICTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(pFunc->start_ea));
 		if (pFuncName) {
+			m_Hash.insert(pFunc->start_ea);
 			setFuncName(pFunc->start_ea, pFuncName);
 		}
 	}
+	ECSigParser::InitECSigBasciFunc(m_Hash);
 	return true;
 }
 

@@ -222,6 +222,8 @@ private:
 	//解析系统接口函数
 	bool ParseKrnlInterface(ea_t);
 
+	//扫描易语言基础库函数
+	void ScanEBasicLibFunc();
 	void SetKrnlJmpAddr(ea_t callAddr, ea_t setAddr);
 
 public:
@@ -233,6 +235,7 @@ private:
 	IDAMenu* gMenu_ShowGUIInfo = nullptr;
 	IDAMenu* gMenu_ShowEventInfo = nullptr;
 	IDAMenu* gMenu_ShowImportsInfo = nullptr;
+	
 };
 
 extern EDecompilerEngine g_MyDecompiler;

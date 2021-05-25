@@ -11,7 +11,7 @@
 #include "common/public.h"
 
 mid_KrnlJmp ECSigParser::m_KrnlJmp;
-
+std::set<ea_t> ECSigParser::mHash_BasicFunc;
 const char* GetDataType(uint8 n)
 {
 	switch (n)
@@ -130,17 +130,77 @@ qstring ECSigParser::GetSig_Call(insn_t& ins)
 				qstring KrnlLibName = get_name(LastIns.ops[1].value);
 				if (KrnlLibName.substr(0, 4) == "sub_") {
 					msg("[GetSig_Call]Function not Scanned,%a", LastIns.ops[1].value);
-					ret = "<未知命令>";
+					ret = getUTF8String("<未知命令>");
 					return ret;
 				}
 				ret.sprnt("<%s>", KrnlLibName.c_str());
 				return ret;
 			}
 		}
+		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MFree) {
+			ret = getUTF8String("<释放内存>");
+			return ret;
+		}
+		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MReportError) {
+			ret = getUTF8String("<错误回调>");
+			return ret;
+		}
+		if (mHash_BasicFunc.count(ins.ops[0].addr)) {
+			ret = get_name(ins.ops[0].addr);
+			return ret;
+		}
 	}
 	int a = 0;
 
 	msg("[GetSig_Call]To do...\n");
+	return ret;
+}
+
+qstring ECSigParser::GetSig_Cmp(insn_t& ins)
+{
+	qstring ret;
+
+	if (ins.ops[0].type == o_reg) {
+		if (ins.ops[1].type == o_reg) {
+			ret = GetInstructionHexStr(ins);
+			return ret;
+		}
+	}
+
+	if (ins.ops[0].type == o_phrase) {
+		if (ins.ops[1].type == o_imm) {
+			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
+			return ret;
+		}
+	}
+
+	if (ins.ops[0].type == o_displ) {
+		if (ins.ops[1].type == o_reg) {
+			ret = GetInstructionHexStr(ins);
+			return ret;
+		}
+	}
+	
+	msg("[GetSig_Cmp]To do...\n");
+	return ret;
+}
+
+qstring ECSigParser::GetSig_Add(insn_t& ins)
+{
+	qstring ret;
+
+	if (ins.ops[0].type == o_reg) {
+		if (ins.ops[1].type == o_reg) {
+			ret = GetInstructionHexStr(ins);
+			return ret;
+		}
+		if (ins.ops[1].type == o_imm) {
+			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
+			return ret;
+		}
+	}
+
+	msg("[GetSig_Add]To do...\n");
 	return ret;
 }
 
@@ -172,7 +232,6 @@ qstring ECSigParser::GetSig_Mov(insn_t& ins)
 			return ret;
 		}
 		if (ins.ops[1].type == o_displ) {
-			//To do...
 			ret = GetInstructionHexStr(ins);
 			return ret;
 		}
@@ -193,8 +252,12 @@ qstring ECSigParser::GetSig_Mov(insn_t& ins)
 	}
 
 	if (ins.ops[0].type == o_displ) {
+		if (ins.ops[1].type == o_reg) {
+			ret = GetInsPatternHex_Bak(ins, ins.ops[0].offb);
+			return ret;
+		}
 		if (ins.ops[1].type == o_imm) {
-			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
+			ret = GetInsPatternHex_Bak(ins, ins.ops[0].offb);
 			return ret;
 		}
 	}
@@ -221,7 +284,13 @@ qstring ECSigParser::GetSig_Push(insn_t& ins)
 	return ret;
 }
 
-void ECSigParser::InitECSigParser(mid_KrnlJmp& inFunc)
+void ECSigParser::InitECSigBasciFunc(std::set<ea_t>& mhash)
+{
+	mHash_BasicFunc.clear();
+	mHash_BasicFunc = mhash;
+}
+
+void ECSigParser::InitECSigKrnl(mid_KrnlJmp& inFunc)
 {
 	m_KrnlJmp = inFunc;
 }
@@ -250,6 +319,7 @@ int ECSigParser::GenerateECSig(ea_t addr)
 		return false;
 	}
 
+	//To do...重新检查一遍所有的case分支
 	qstring STRING_SIG;
 	do
 	{
@@ -263,6 +333,12 @@ int ECSigParser::GenerateECSig(ea_t addr)
 
 		switch (CurrentIns.itype)
 		{
+		case NN_add:
+			SingleSig = GetSig_Add(CurrentIns);
+			break;
+		case NN_cmp:
+			SingleSig = GetSig_Cmp(CurrentIns);
+			break;
 		case NN_sub:
 			SingleSig = GetSig_Sub(CurrentIns);
 			break;
@@ -280,9 +356,11 @@ int ECSigParser::GenerateECSig(ea_t addr)
 			break;
 		}
 
-		if (SingleSig.empty()) {
+
+		msg("%a:%s\n", CurrentIns.ip, SingleSig.c_str());
+		/*if (SingleSig.empty()) {
 			msg("%s--%a\n", getUTF8String("获取特征失败").c_str(), startAddr);
-		}
+		}*/
 
 		startAddr = startAddr + CurrentIns.size;
 		STRING_SIG.append(SingleSig);

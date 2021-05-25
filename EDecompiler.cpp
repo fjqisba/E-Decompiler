@@ -362,7 +362,7 @@ bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
 	} while (true);
 
 
-	ECSigParser::InitECSigParser(m_eAppInfo.m_KrnlJmp);
+	ECSigParser::InitECSigKrnl(m_eAppInfo.m_KrnlJmp);
 	return true;
 }
 
@@ -384,6 +384,11 @@ EProgramsType_t EDecompilerEngine::DetectProgramType()
 	return ret;
 }
 
+void EDecompilerEngine::ScanEBasicLibFunc()
+{
+	ESigScanner::ScanBasicFunction();
+}
+
 bool EDecompilerEngine::Parse_EStatic()
 {
 	EHead eHead;
@@ -403,7 +408,7 @@ bool EDecompilerEngine::Parse_EStatic()
 
 	ParseLibInfomation(eHead.lpLibEntry, eHead.dwLibNum);
 	ESigScanner::ScanLibFunction(eHead.lpLibEntry, eHead.dwLibNum);
-	ESigScanner::ScanBasicFunction();
+	ScanEBasicLibFunc();
 	
 	ea_t dwKrnlEntry = eHead.lpEString;
 	if (dwKrnlEntry == 0) {

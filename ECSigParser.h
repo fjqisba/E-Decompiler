@@ -1,5 +1,6 @@
 #pragma once
 #include <pro.h>
+#include <set>
 
 class insn_t;
 class mid_KrnlJmp;
@@ -9,11 +10,14 @@ class ECSigParser
 public:
 	//生成易语言模块函数特征码
 	static int GenerateECSig(ea_t startAddr);
-	static void InitECSigParser(mid_KrnlJmp& inFunc);
+	static void InitECSigKrnl(mid_KrnlJmp& inFunc);
+	static void InitECSigBasciFunc(std::set<ea_t>& mhash);
 private:
 	static qstring GetSig_Mov(insn_t& ins);
 	static qstring GetSig_Push(insn_t& ins);
 	static qstring GetSig_Sub(insn_t& ins);
+	static qstring GetSig_Add(insn_t& ins);
+	static qstring GetSig_Cmp(insn_t& ins);
 	static qstring GetSig_Call(insn_t& ins);
 	//检查是否为易语言标准函数，参数为函数起始地址
 	static bool IsEStandardFunction(ea_t startAddr);
@@ -22,4 +26,5 @@ private:
 
 private:
 	static mid_KrnlJmp m_KrnlJmp;
+	static std::set<ea_t> mHash_BasicFunc;
 };
