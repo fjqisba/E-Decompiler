@@ -70,6 +70,12 @@ bool TrieTree::SlowMatch_CmpCallApi(unsigned char* pSrc,qstring IATEAT)
 		IATCom = IATEAT;
 		EATCom = IATEAT.substr(IATEAT.find('.') + 1);
 	}
+
+	size_t nDllPos = IATCom.find('.');
+	if (nDllPos != qstring::npos) {
+		IATCom = IATCom.substr(nDllPos + 1);
+	}
+
 	ea_t oaddr = ReadUInt(pSrc + 2);
 	qstring funcName = get_name(oaddr);
 

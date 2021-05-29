@@ -421,6 +421,7 @@ bool EDecompilerEngine::Parse_EStatic()
 
 	if (eHead.lpEString != 0 && eHead.dwEStringSize != 0) {
 		UserResourceParser::ParseUserResource(eHead.lpEString, eHead.dwEStringSize);
+		ECSigParser::InitECSigResource(eHead.lpEString, eHead.lpEString + eHead.dwEStringSize);
 		gMenu_ShowResource = IDAMenu::CreateMenu(getUTF8String("易语言/用户常量资源").c_str(), UserResourceParser::MenuHandle_ShowUserResource);
 	}
 

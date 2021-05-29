@@ -7,11 +7,17 @@
 #include <allins.hpp>
 #include <auto.hpp>
 #include "SectionManager.h"
+#include "ImportsParser.h"
 #include "EDecompiler.h"
 #include "common/public.h"
 
 mid_KrnlJmp ECSigParser::m_KrnlJmp;
 std::set<ea_t> ECSigParser::mHash_BasicFunc;
+uint32 ECSigParser::m_UserResourceStartAddr = 0x00000000;
+uint32 ECSigParser::m_UserResourceEndAddr = 0xFFFFFFFF;
+std::map<ea_t, qstring> ECSigParser::mSave_SubFunc;
+bool ECSigParser::bFuzzySig = false;
+
 const char* GetDataType(uint8 n)
 {
 	switch (n)
@@ -54,10 +60,44 @@ const char* GetRegName(uint16 reg)
 	return NULL;
 }
 
-qstring GetInsPatternHex_Bak(insn_t& ins, char offset)
+
+qstring ECSigParser::GetInsPattern_Three(insn_t& ins)
 {
 	qstring ret;
 	unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+	for (char n = 0; n < ins.ops[0].offb; ++n) {
+		ret.append(UCharToStr(pData[n]));
+	}
+	if (IsUserResourceOffset(ins.ops[0].addr)) {
+		for (char n = ins.ops[0].offb; n < ins.ops[1].offb; ++n) {
+			ret.append("??");
+		}
+	}
+	else {
+		for (char n = ins.ops[0].offb; n < ins.ops[1].offb; ++n) {
+			ret.append(UCharToStr(pData[n]));
+		}
+	}
+
+	if (IsUserResourceImm(ins.ops[1].value)) {
+		for (char n = ins.ops[1].offb; n < ins.size; ++n) {
+			ret.append("??");
+		}
+	}
+	else {
+		for (char n = ins.ops[1].offb; n < ins.size; ++n) {
+			ret.append(UCharToStr(pData[n]));
+		}
+	}
+
+	return ret;
+}
+
+qstring ECSigParser::GetInsPattern_Two(insn_t& ins, char offset)
+{
+	qstring ret;
+	unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+
 	for (char n = 0; n < ins.size; ++n) {
 		if (n < offset) {
 			ret.append(UCharToStr(pData[n]));
@@ -69,7 +109,7 @@ qstring GetInsPatternHex_Bak(insn_t& ins, char offset)
 	return ret;
 }
 
-qstring GetInstructionHexStr(insn_t& ins)
+qstring GetInsHex(insn_t& ins)
 {
 	qstring ret;
 	unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
@@ -79,6 +119,23 @@ qstring GetInstructionHexStr(insn_t& ins)
 	return ret;
 }
 
+bool ECSigParser::IsUserResourceOffset(uint32 offset)
+{
+	int32 distance = (uint32)offset;
+	if (distance < 0) {
+		offset = -offset;
+	}
+
+	return IsUserResourceImm(offset);
+}
+
+bool ECSigParser::IsUserResourceImm(uint32 imm)
+{
+	if (imm >= m_UserResourceStartAddr && imm < m_UserResourceEndAddr) {
+		return true;
+	}
+	return false;
+}
 
 ea_t ECSigParser::SeachEFuncEnd(ea_t startAddr)
 {
@@ -118,15 +175,34 @@ bool ECSigParser::IsEStandardFunction(ea_t startAddr)
 	return false;
 }
 
-qstring ECSigParser::GetSig_Call(insn_t& ins)
+qstring ECSigParser::GetSig_Nop(insn_t& ins)
 {
 	qstring ret;
+
+	if (ins.ops[0].type == o_void) {
+		ret = GetInsHex(ins);
+		return ret;
+	}
 	
+
+	msg("[GetSig_Nop]To do...\n");
+	return ret;
+}
+
+qstring ECSigParser::GetSig_Call(insn_t& ins, qvector<qstring>& vec_saveSig)
+{
+	qstring ret;
 	if (ins.ops[0].type == o_near) {
+		//系统核心支持库
 		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MCallKrnlLibCmd) {
 			insn_t LastIns;
 			decode_prev_insn(&LastIns, ins.ip);
+			//判断上一条指令是不是mov ebx,命令地址
 			if (LastIns.itype == NN_mov && LastIns.ops[0].reg == 3 && LastIns.ops[1].type == o_imm) {
+				vec_saveSig[vec_saveSig.size() - 1] = "BB????????";
+				if (bFuzzySig) {
+					return getUTF8String("<未知命令>");
+				}
 				qstring KrnlLibName = get_name(LastIns.ops[1].value);
 				if (KrnlLibName.substr(0, 4) == "sub_") {
 					msg("[GetSig_Call]Function not Scanned,%a", LastIns.ops[1].value);
@@ -137,151 +213,360 @@ qstring ECSigParser::GetSig_Call(insn_t& ins)
 				return ret;
 			}
 		}
+		//分配内存
+		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MMalloc) {
+			ret = getUTF8String("<分配内存>");
+			return ret;
+		}
+		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MRealloc) {
+			ret = getUTF8String("<重新分配内存>");
+			return ret;
+		}
+		//释放内存
 		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MFree) {
 			ret = getUTF8String("<释放内存>");
 			return ret;
 		}
+		//调用DLL命令
+		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MCallDllCmd) {
+			insn_t LastIns;
+			decode_prev_insn(&LastIns, ins.ip);
+			//判断上一条指令是不是mov eax,DLL序号
+			if (LastIns.itype == NN_mov && LastIns.ops[0].reg == 0 && LastIns.ops[1].type == o_imm) {
+				vec_saveSig[vec_saveSig.size() - 1] = "B8????????";
+				qstring DLLFuncName = ImportsParser::mVec_ImportsApi[LastIns.ops[1].value].ApiName;
+				ret.sprnt("[%s]", DLLFuncName.c_str());
+				return ret;
+			}
+		}
+		//错误回调函数
 		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MReportError) {
+			ea_t lastInsAddr = ins.ip;
+			for (unsigned int n = 0; n < 3; ++n) {
+				insn_t LastIns;
+				lastInsAddr = decode_prev_insn(&LastIns, lastInsAddr);
+				if (LastIns.itype == NN_push && LastIns.ops[0].type == o_imm) {
+					vec_saveSig[vec_saveSig.size() - 1 - n] = "68????????";
+				}
+			}
 			ret = getUTF8String("<错误回调>");
 			return ret;
 		}
-		if (mHash_BasicFunc.count(ins.ops[0].addr)) {
-			ret = get_name(ins.ops[0].addr);
+		//辅助函数
+		if (ins.ops[0].addr == m_KrnlJmp.Jmp_MOtherHelp) {
+			ret = getUTF8String("<辅助函数>");
 			return ret;
 		}
-	}
-	int a = 0;
+		if (mHash_BasicFunc.count(ins.ops[0].addr)) {
+			ret.sprnt("<%s>",get_name(ins.ops[0].addr).c_str());
+			return ret;
+		}
 
+		//用户自定义函数
+		qstring subFuncMD5 = mSave_SubFunc[ins.ops[0].addr];
+		if (subFuncMD5.empty()) {
+			//防止递归循环
+			mSave_SubFunc[ins.ops[0].addr] = "RecurFunc";
+			subFuncMD5 = GetFunctionMD5(ins.ops[0].addr);
+			if (subFuncMD5.empty()) {
+				msg("[GetSig_Call]Error,%a\n", ins.ops[0].addr);
+				return ret;
+			}
+			mSave_SubFunc[ins.ops[0].addr] = subFuncMD5;
+		}
+		ret.sprnt("<%s>", subFuncMD5.c_str());
+		return ret;
+	}
+	
 	msg("[GetSig_Call]To do...\n");
 	return ret;
 }
 
-qstring ECSigParser::GetSig_Cmp(insn_t& ins)
+qstring ECSigParser::GetSig_FloatInst(insn_t& ins)
 {
 	qstring ret;
-
-	if (ins.ops[0].type == o_reg) {
-		if (ins.ops[1].type == o_reg) {
-			ret = GetInstructionHexStr(ins);
-			return ret;
+	if (ins.ops[1].type == o_mem) {
+		unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+		for (char n = 0; n < ins.size; ++n) {
+			if (n >= ins.ops[1].offb) {
+				ret.append("??");
+			}
+			else {
+				ret.append(UCharToStr(pData[n]));
+			}
 		}
+		return ret;
 	}
 
-	if (ins.ops[0].type == o_phrase) {
-		if (ins.ops[1].type == o_imm) {
-			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
-			return ret;
+	//fadd [ebp-0xC]
+	if (ins.ops[1].type == o_displ) {
+		if (IsUserResourceOffset(ins.ops[1].addr)) {
+			unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+			for (char n = 0; n < ins.size; ++n) {
+				if (n >= ins.ops[1].offb) {
+					ret.append("??");
+				}
+				else {
+					ret.append(UCharToStr(pData[n]));
+				}
+			}
 		}
-	}
-
-	if (ins.ops[0].type == o_displ) {
-		if (ins.ops[1].type == o_reg) {
-			ret = GetInstructionHexStr(ins);
-			return ret;
+		else {
+			ret = GetInsHex(ins);
 		}
+		return ret;
 	}
-	
-	msg("[GetSig_Cmp]To do...\n");
+	msg("[GetSig_FloatInst]To do...\n");
 	return ret;
 }
 
-qstring ECSigParser::GetSig_Add(insn_t& ins)
+
+qstring ECSigParser::GetSig_FlexDoubleInst(insn_t& ins)
 {
 	qstring ret;
+	ret.reserve(ins.size * 2 + 1);
 
 	if (ins.ops[0].type == o_reg) {
-		if (ins.ops[1].type == o_reg) {
-			ret = GetInstructionHexStr(ins);
+		//mov eax,ebx
+		//mov eax,[eax+ebx]
+		if (ins.ops[1].type == o_reg || ins.ops[1].type == o_phrase) {
+			ret = GetInsHex(ins);
 			return ret;
 		}
-		if (ins.ops[1].type == o_imm) {
-			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
-			return ret;
-		}
-	}
 
-	msg("[GetSig_Add]To do...\n");
-	return ret;
-}
-
-qstring ECSigParser::GetSig_Sub(insn_t& ins)
-{
-	qstring ret;
-
-	if (ins.ops[0].type == o_reg) {
-		if (ins.ops[1].type == o_imm) {
-			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
-			return ret;
-		}
-	}
-
-	msg("[GetSig_Sub]To do...\n");
-	return ret;
-}
-
-qstring ECSigParser::GetSig_Mov(insn_t& ins)
-{
-	qstring ret;
-	if (ins.ops[0].type == o_reg) {
-		if (ins.ops[1].type == o_reg) {
-			ret = GetInstructionHexStr(ins);
-			return ret;
-		}
-		if (ins.ops[1].type == o_phrase) {
-			ret = GetInstructionHexStr(ins);
-			return ret;
-		}
+		//mov eax,[eax+ebx-0x401000]
 		if (ins.ops[1].type == o_displ) {
-			ret = GetInstructionHexStr(ins);
+			if (IsUserResourceOffset(ins.ops[1].addr)) {
+				unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+				for (char n = 0; n < ins.size; ++n) {
+					if (n >= ins.ops[1].offb) {
+						ret.append("??");
+					}
+					else {
+						ret.append(UCharToStr(pData[n]));
+					}
+				}
+			}
+			else {
+				ret = GetInsHex(ins);
+			}
 			return ret;
 		}
 
 		//mov eax,0x401000
 		if (ins.ops[1].type == o_imm) {
-			ret = GetInsPatternHex_Bak(ins, ins.ops[1].offb);
-			return ret;
+			goto label_HEX_PAT;
 		}
 	}
 
-	if (ins.ops[0].type == o_phrase)
-	{
+	if (ins.ops[0].type == o_mem) {
+		//mov [0x401000],eax
 		if (ins.ops[1].type == o_reg) {
-			ret = GetInstructionHexStr(ins);
+			unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+			for (char n = 0; n < ins.size; ++n) {
+				if (n >= ins.ops[0].offb) {
+					ret.append("??");
+				}
+				else {
+					ret.append(UCharToStr(pData[n]));
+				}
+			}
 			return ret;
 		}
-	}
-
-	if (ins.ops[0].type == o_displ) {
-		if (ins.ops[1].type == o_reg) {
-			ret = GetInsPatternHex_Bak(ins, ins.ops[0].offb);
-			return ret;
-		}
+		//mov [0x401000],0x501000
 		if (ins.ops[1].type == o_imm) {
-			ret = GetInsPatternHex_Bak(ins, ins.ops[0].offb);
+			unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+			if (IsUserResourceImm(ins.ops[1].value)) {
+				for (char n = 0; n < ins.size; ++n) {
+					if (n >= ins.ops[0].offb) {
+						ret.append("??");
+					}
+					else {
+						ret.append(UCharToStr(pData[n]));
+					}
+				}
+			}
+			else {
+				for (char n = 0; n < ins.size; ++n) {
+					if (n >= ins.ops[0].offb && n < ins.ops[1].offb) {
+						ret.append("??");
+					}
+					else {
+						ret.append(UCharToStr(pData[n]));
+					}
+				}
+			}
 			return ret;
+		}
+	}
+
+	if (ins.ops[0].type == o_phrase) {
+		//mov [eax+ebx],eax
+		if (ins.ops[1].type == o_reg) {
+			return GetInsHex(ins);
+		}
+		//mov [eax+ebx],0x401000
+		if (ins.ops[1].type == o_imm) {
+			goto label_HEX_PAT;
 		}
 	}
 	
-	msg("[GetSig_Mov]To do...\n");
+	if (ins.ops[0].type == o_displ) {
+
+		//mov [ebp+ebx+0x401000],eax 
+		if (ins.ops[1].type == o_reg) {
+			if(IsUserResourceOffset(ins.ops[0].addr)) {
+				unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+				for (char n = 0; n < ins.size; ++n) {
+					if (n >= ins.ops[0].offb && n < ins.ops[1].offb) {
+						ret.append("??");
+					}
+					else {
+						ret.append(UCharToStr(pData[n]));
+					}
+				}
+			}
+			else {
+				ret = GetInsHex(ins);
+			}
+			return ret;
+		}
+
+		//mov [eax+ebx-0x401000],0x401000
+		if (ins.ops[1].type == o_imm) {
+			unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+			for (char n = 0; n < ins.ops[0].offb; ++n) {
+				ret.append(UCharToStr(pData[n]));
+			}
+			if (IsUserResourceOffset(ins.ops[0].addr)) {
+				for (char n = ins.ops[0].offb; n < ins.ops[1].offb; ++n) {
+					ret.append("??");
+				}
+			}
+			else {
+				for (char n = ins.ops[0].offb; n < ins.ops[1].offb; ++n) {
+					ret.append(UCharToStr(pData[n]));
+				}
+			}
+			if (IsUserResourceImm(ins.ops[1].value)) {
+				for (char n = ins.ops[1].offb; n < ins.size; ++n) {
+					ret.append("??");
+				}
+			}
+			else {
+				for (char n = ins.ops[1].offb; n < ins.size; ++n) {
+					ret.append(UCharToStr(pData[n]));
+				}
+			}
+			return ret;
+		}
+	}
+
+	msg("[GetSig_FlexDoubleInst]To do...\n");
+	return ret;
+
+label_HEX_PAT:
+	if (IsUserResourceImm(ins.ops[1].value)) {
+		unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+		for (char n = 0; n < ins.size; ++n) {
+			if (n < ins.ops[1].offb) {
+				ret.append(UCharToStr(pData[n]));
+			}
+			else {
+				ret.append("??");
+			}
+		}
+	}
+	else {
+		ret = GetInsHex(ins);
+	}
 	return ret;
 }
 
-qstring ECSigParser::GetSig_Push(insn_t& ins)
+qstring ECSigParser::GetSig_Test(insn_t& ins)
+{
+	qstring ret;
+
+	if (ins.ops[0].type == o_reg) {
+		if (ins.ops[1].type == o_reg) {
+			ret = GetInsHex(ins);
+			return ret;
+		}
+
+		//test eax,0x401000
+		if (ins.ops[1].type == o_imm) {
+			ret = GetInsHex(ins);
+			return ret;
+		}
+	}
+
+
+	msg("[GetSig_Test]To do...\n");
+	return ret;
+}
+
+
+qstring ECSigParser::GetSig_FlexSingleInst(insn_t& ins)
 {
 	qstring ret;
 
 	//push reg
 	if (ins.ops[0].type == o_reg) {
-		ret = GetInstructionHexStr(ins);
+		ret = GetInsHex(ins);
+		return ret;
+	}
+
+	if (ins.ops[0].type == o_mem) {
+		goto label_PAT;
+	}
+
+	//push [eax]
+	if (ins.ops[0].type == o_phrase) {
+		ret = GetInsHex(ins);
+		return ret;
+	}
+
+
+	//push [eax+ebx+0x401000]
+	if (ins.ops[0].type == o_displ) {
+		if (IsUserResourceOffset(ins.ops[0].addr)) {
+			goto label_PAT;
+		}
+		else {
+			ret = GetInsHex(ins);
+		}
 		return ret;
 	}
 	
 	if (ins.ops[0].type == o_imm) {
-		ret = GetInsPatternHex_Bak(ins, ins.ops[0].offb);
+		if (IsUserResourceImm(ins.ops[0].value)) {
+			goto label_PAT;
+		}
+		else {
+			ret = GetInsHex(ins);
+		}
 		return ret;
 	}
-	msg("[GetSig_Push]To do...\n");
+
+	msg("[GetSig_FlexSingleInst]To do...\n");
 	return ret;
+label_PAT:
+	unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+	for (char n = 0; n < ins.size; ++n) {
+		if (n >= ins.ops[0].offb) {
+			ret.append("??");
+		}
+		else {
+			ret.append(UCharToStr(pData[n]));
+		}
+	}
+	return ret;
+}
+
+void ECSigParser::InitECSigResource(uint32 startAddr, uint32 endAddr)
+{
+	m_UserResourceStartAddr = startAddr;
+	m_UserResourceEndAddr = endAddr;
 }
 
 void ECSigParser::InitECSigBasciFunc(std::set<ea_t>& mhash)
@@ -295,8 +580,164 @@ void ECSigParser::InitECSigKrnl(mid_KrnlJmp& inFunc)
 	m_KrnlJmp = inFunc;
 }
 
+qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
+{
+	qstring ret_MD5;
+
+	func_t* pFunc = get_func(FuncStartAddr);
+	if (!pFunc) {
+		return ret_MD5;
+	}
+
+	if (!IsEStandardFunction(pFunc->start_ea)) {
+		msg("%s\n", getUTF8String("暂不支持此类易语言函数").c_str());
+		return ret_MD5;
+	}
+
+	ea_t startAddr = pFunc->start_ea;
+	ea_t endAddr = SeachEFuncEnd(startAddr);
+	if (endAddr == BADADDR) {
+		msg("%s\n", getUTF8String("寻找函数尾部失败").c_str());
+		return ret_MD5;
+	}
+
+	qvector<qstring> vec_SaveSig;
+	do
+	{
+		qstring tmpSig;
+		insn_t CurrentIns;
+		int insLen = decode_insn(&CurrentIns, startAddr);
+		if (!insLen) {
+			msg("%s\n", getUTF8String("反汇编指令失败").c_str());
+			return ret_MD5;
+		}
+
+		if (CurrentIns.ip == 0x0040125C) {
+			int a = 0;
+		}
+
+		switch (CurrentIns.itype)
+		{
+		case NN_ja:
+		case NN_jae:
+		case NN_jb:
+		case NN_jbe:
+		case NN_jc:
+		case NN_jcxz:
+		case NN_jecxz:
+		case NN_jrcxz:
+		case NN_je:
+		case NN_jg:
+		case NN_jge:
+		case NN_jl:
+		case NN_jle:
+		case NN_jna:
+		case NN_jnae:
+		case NN_jnb:
+		case NN_jnbe:
+		case NN_jnc:
+		case NN_jne:
+		case NN_jng:
+		case NN_jnge:
+		case NN_jnl:
+		case NN_jnle:
+		case NN_jno:
+		case NN_jnp:
+		case NN_jns:
+		case NN_jnz:
+		case NN_jo:
+		case NN_jp:
+		case NN_jpe:
+		case NN_jpo:
+		case NN_js:
+		case NN_jz:
+		case NN_jmp:
+		case NN_jmpfi:
+		case NN_jmpni:
+		case NN_jmpshort:
+			tmpSig = GetInsHex(CurrentIns);
+			break;
+		case NN_add:
+		case NN_cmp:
+		case NN_mov:
+		case NN_sub:
+			tmpSig = GetSig_FlexDoubleInst(CurrentIns);
+			break;
+		case NN_fld:
+		case NN_fstp:
+		case NN_fild:
+		case NN_fadd:
+		case NN_fsub:
+		case NN_fmul:
+		case NN_fdiv:
+			tmpSig = GetSig_FloatInst(CurrentIns);
+			break;
+		case NN_inc:
+		case NN_dec:
+		case NN_push:
+			tmpSig = GetSig_FlexSingleInst(CurrentIns);
+			break;
+		case NN_test:
+			tmpSig = GetSig_Test(CurrentIns);
+			break;
+		case NN_call:
+			tmpSig = GetSig_Call(CurrentIns, vec_SaveSig);
+			break;
+		case NN_nop:
+			tmpSig = GetSig_Nop(CurrentIns);
+			break;
+
+			//从来没见过易语言这类指令有什么其它特别的用法
+		case NN_movs:
+		case NN_xor:
+		case NN_pop:
+		case NN_retn:
+		case NN_retf:
+			tmpSig = GetInsHex(CurrentIns);
+			break;
+		default:
+			tmpSig = GetInsHex(CurrentIns);
+			break;
+		}
+
+		vec_SaveSig.push_back(tmpSig);
+		if (tmpSig.empty()) {
+			msg("%s--%a\n", getUTF8String("获取特征失败").c_str(), startAddr);
+		}
+		startAddr = startAddr + CurrentIns.size;
+
+	} while (startAddr <= endAddr);
+
+#ifdef _DEBUG
+	startAddr = pFunc->start_ea;
+	int n = 0;
+	do
+	{
+		qstring tmpSig;
+		insn_t CurrentIns;
+		decode_insn(&CurrentIns, startAddr);
+
+		//msg("%a:%s\n", CurrentIns.ip, mVec_Sig[n++].c_str());
+		startAddr = startAddr + CurrentIns.size;
+	} while (startAddr <= endAddr);
+#endif // _DEBUG
+
+	qstring STRING_RESULT;
+	for (unsigned int n = 0; n < vec_SaveSig.size(); ++n) {
+		STRING_RESULT.append(vec_SaveSig[n]);
+	}
+
+	ret_MD5 = CalculateMD5(STRING_RESULT);
+	msg("[SIGSTRING]:%s\n", STRING_RESULT.c_str());
+
+
+	return ret_MD5;
+}
+
 int ECSigParser::GenerateECSig(ea_t addr)
 {
+	mSave_SubFunc.clear();
+
 	if (!auto_is_ok()) {
 		info(getUTF8String("请等待IDA分析完毕...").c_str());
 		return false;
@@ -307,68 +748,16 @@ int ECSigParser::GenerateECSig(ea_t addr)
 		return false;
 	}
 
-	if (!IsEStandardFunction(pFunc->start_ea)) {
-		msg("%s\n", getUTF8String("暂不支持此类易语言函数").c_str());
-		return false;
-	}
+	//设置取详细
+	bFuzzySig = false;
+	qstring GoodMd5 = GetFunctionMD5(pFunc->start_ea);
+	
+	mSave_SubFunc.clear();
+	bFuzzySig = true;
+	qstring BadMd5 = GetFunctionMD5(pFunc->start_ea);
 
-	ea_t startAddr = pFunc->start_ea;
-	ea_t endAddr = SeachEFuncEnd(startAddr);
-	if (endAddr == BADADDR) {
-		msg("%s\n", getUTF8String("寻找函数尾部失败").c_str());
-		return false;
-	}
+	msg("%s:%s\n", getUTF8String("[精确特征]").c_str(), GoodMd5.c_str());
+	msg("%s:%s\n", getUTF8String("[模糊特征]").c_str(), BadMd5.c_str());
 
-	//To do...重新检查一遍所有的case分支
-	qstring STRING_SIG;
-	do
-	{
-		qstring SingleSig;
-		insn_t CurrentIns;
-		int insLen = decode_insn(&CurrentIns, startAddr);
-		if (!insLen) {
-			msg("%s\n", getUTF8String("反汇编指令失败").c_str());
-			return false;
-		}
-
-		switch (CurrentIns.itype)
-		{
-		case NN_add:
-			SingleSig = GetSig_Add(CurrentIns);
-			break;
-		case NN_cmp:
-			SingleSig = GetSig_Cmp(CurrentIns);
-			break;
-		case NN_sub:
-			SingleSig = GetSig_Sub(CurrentIns);
-			break;
-		case NN_push:
-			SingleSig = GetSig_Push(CurrentIns);
-			break;
-		case NN_mov:
-			SingleSig = GetSig_Mov(CurrentIns);
-			break;
-		case NN_call:
-			SingleSig = GetSig_Call(CurrentIns);
-			break;
-		default:
-			SingleSig = GetInstructionHexStr(CurrentIns);
-			break;
-		}
-
-
-		msg("%a:%s\n", CurrentIns.ip, SingleSig.c_str());
-		/*if (SingleSig.empty()) {
-			msg("%s--%a\n", getUTF8String("获取特征失败").c_str(), startAddr);
-		}*/
-
-		startAddr = startAddr + CurrentIns.size;
-		STRING_SIG.append(SingleSig);
-	} while (startAddr <= endAddr);
-
-	qstring finalMD5 = CalculateMD5(STRING_SIG);
-	msg("[SIGSTRING]:%s\n", STRING_SIG.c_str());
-	msg("[SIGMD5]:%s\n", finalMD5.c_str());
-	int a = 0;
 	return true;
 }
