@@ -6,6 +6,9 @@
 #include <ua.hpp>
 #include <allins.hpp>
 #include <auto.hpp>
+#include <fpro.h>
+#include <diskio.hpp>
+
 #include "SectionManager.h"
 #include "ImportsParser.h"
 #include "EDecompiler.h"
@@ -137,16 +140,18 @@ bool ECSigParser::IsUserResourceImm(uint32 imm)
 	return false;
 }
 
-ea_t ECSigParser::SeachEFuncEnd(ea_t startAddr)
+ea_t ECSigParser::SeachEFuncEnd(func_t* pFunc)
 {
 	ea_t ret = BADADDR;
 
 	compiled_binpat_vec_t binPat;
 	parse_binpat_str(&binPat, 0x0, "8B E5 5D", 16);
-	segment_t* pSegment = getseg(startAddr);
+	segment_t* pSegment = getseg(pFunc->start_ea);
 	if (!pSegment) {
 		return BADADDR;
 	}
+
+	ea_t startAddr = pFunc->start_ea;
 
 	while (true) {
 		ret = bin_search2(startAddr, pSegment->end_ea, binPat, 0x0);
@@ -158,7 +163,7 @@ ea_t ECSigParser::SeachEFuncEnd(ea_t startAddr)
 		if (!decode_insn(&tmpIns, ret)) {
 			return BADADDR;
 		}
-		if (tmpIns.itype == NN_retn) {
+		if (ret + tmpIns.size >= pFunc->end_ea && tmpIns.itype == NN_retn) {
 			break;
 		}
 		startAddr = ret;
@@ -269,8 +274,7 @@ qstring ECSigParser::GetSig_Call(insn_t& ins, qvector<qstring>& vec_saveSig)
 			mSave_SubFunc[ins.ops[0].addr] = "RecurFunc";
 			subFuncMD5 = GetFunctionMD5(ins.ops[0].addr);
 			if (subFuncMD5.empty()) {
-				msg("[GetSig_Call]Error,%a\n", ins.ops[0].addr);
-				return ret;
+				return GetInsHex(ins);
 			}
 			mSave_SubFunc[ins.ops[0].addr] = subFuncMD5;
 		}
@@ -331,6 +335,20 @@ qstring ECSigParser::GetSig_FlexDoubleInst(insn_t& ins)
 		//mov eax,[eax+ebx]
 		if (ins.ops[1].type == o_reg || ins.ops[1].type == o_phrase) {
 			ret = GetInsHex(ins);
+			return ret;
+		}
+
+		// mov eax,[0x401000]
+		if (ins.ops[1].type == o_mem) {
+			unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+			for (char n = 0; n < ins.size; ++n) {
+				if (n >= ins.ops[1].offb) {
+					ret.append("??");
+				}
+				else {
+					ret.append(UCharToStr(pData[n]));
+				}
+			}
 			return ret;
 		}
 
@@ -483,7 +501,24 @@ label_HEX_PAT:
 	return ret;
 }
 
-qstring ECSigParser::GetSig_Test(insn_t& ins)
+qstring ECSigParser::GetSig_Imul(insn_t& ins)
+{
+	qstring ret;
+
+	if (ins.ops[0].type == o_reg) {
+		if (ins.ops[1].type == o_phrase) {
+			//imul eax,[eax+ebx]
+			if (ins.ops[2].type == o_void) {
+				return GetInsHex(ins);
+			}
+		}
+	}
+
+	msg("[GetSig_Imul]To do...\n");
+	return ret;
+}
+
+qstring ECSigParser::GetSig_LogicInst(insn_t& ins)
 {
 	qstring ret;
 
@@ -501,7 +536,7 @@ qstring ECSigParser::GetSig_Test(insn_t& ins)
 	}
 
 
-	msg("[GetSig_Test]To do...\n");
+	msg("[GetSig_LogicInst]To do...\n");
 	return ret;
 }
 
@@ -580,6 +615,63 @@ void ECSigParser::InitECSigKrnl(mid_KrnlJmp& inFunc)
 	m_KrnlJmp = inFunc;
 }
 
+void ECSigParser::ScanMSig(const char* lpsigPath)
+{
+	qstring str_filePath;
+	acp_utf8(&str_filePath, lpsigPath);
+
+	FILE* hFile = fopenRB(str_filePath.c_str());
+	if (!hFile)
+	{
+		return;
+	}
+
+	std::multimap<qstring, qstring> map_MSig;
+
+	qstring str_Line;
+	while (-1 != qgetline(&str_Line, hFile)) {
+		size_t spitIndex = str_Line.find(":");
+		if (spitIndex == qstring::npos) {
+			continue;
+		}
+		qstring funcName = str_Line.substr(0, spitIndex);
+		qstring funcSig = str_Line.substr(spitIndex + 1);
+		if (funcSig.last() == '\r') {
+			funcSig.remove_last();
+		}
+		if (funcSig.length() != 32) {
+			continue;
+		}
+		map_MSig.insert(std::make_pair(funcSig, funcName));
+	}
+
+	size_t funcCount = get_func_qty();
+	for (unsigned int idx = 0; idx < funcCount; ++idx)
+	{
+		func_t* pFunc = getn_func(idx);
+
+		if (pFunc->start_ea == 0x40163F) {
+			int a = 0;
+		}
+		qstring md5 = GetFunctionMD5(pFunc->start_ea);
+
+		auto funcCount = map_MSig.count(md5);
+		if (!funcCount) {
+			continue;
+		}
+		if (funcCount == 1) {
+			auto it = map_MSig.find(md5);
+			setFuncName(pFunc->start_ea, it->second.c_str());
+		}
+		else {
+			//To do...
+		}
+	}
+
+	qfclose(hFile);
+	return;
+}
+
 qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 {
 	qstring ret_MD5;
@@ -594,13 +686,13 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		return ret_MD5;
 	}
 
-	ea_t startAddr = pFunc->start_ea;
-	ea_t endAddr = SeachEFuncEnd(startAddr);
+	ea_t endAddr = SeachEFuncEnd(pFunc);
 	if (endAddr == BADADDR) {
 		msg("%s\n", getUTF8String("寻找函数尾部失败").c_str());
 		return ret_MD5;
 	}
 
+	ea_t startAddr = pFunc->start_ea;
 	qvector<qstring> vec_SaveSig;
 	do
 	{
@@ -608,8 +700,10 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		insn_t CurrentIns;
 		int insLen = decode_insn(&CurrentIns, startAddr);
 		if (!insLen) {
-			msg("%s\n", getUTF8String("反汇编指令失败").c_str());
-			return ret_MD5;
+			tmpSig = UCharToStr(get_byte(startAddr));
+			vec_SaveSig.push_back(tmpSig);
+			startAddr = startAddr + 1;
+			continue;
 		}
 
 		if (CurrentIns.ip == 0x0040125C) {
@@ -661,6 +755,7 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_cmp:
 		case NN_mov:
 		case NN_sub:
+		case NN_lea:
 			tmpSig = GetSig_FlexDoubleInst(CurrentIns);
 			break;
 		case NN_fld:
@@ -670,6 +765,7 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_fsub:
 		case NN_fmul:
 		case NN_fdiv:
+		case NN_fcomp:
 			tmpSig = GetSig_FloatInst(CurrentIns);
 			break;
 		case NN_inc:
@@ -677,50 +773,74 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_push:
 			tmpSig = GetSig_FlexSingleInst(CurrentIns);
 			break;
-		case NN_test:
-			tmpSig = GetSig_Test(CurrentIns);
-			break;
 		case NN_call:
 			tmpSig = GetSig_Call(CurrentIns, vec_SaveSig);
 			break;
-		case NN_nop:
-			tmpSig = GetSig_Nop(CurrentIns);
-			break;
 
-			//从来没见过易语言这类指令有什么其它特别的用法
-		case NN_movs:
+		//nop指令的处理是个例外,这个是预留给易语言的花指令的
+		case NN_nop:
+			tmpSig = "";
+			break;
+		//高概率不会出现在易语言编译器中
+		case NN_cmova:
+		case NN_cmovnz:
+		case NN_cpuid:
+		case NN_leave:
+		case NN_xgetbv:
+		case NN_vxorpd:
+		case NN_vpcmpeqb:
+		case NN_vpmovmskb:
+		case NN_movdqa:
+		case NN_bsf:
+		case NN_pxor:
+		case NN_movq:
+		case NN_pcmpeqb:
+		case NN_pmovmskb:
+		case NN_movzx:
+		case NN_vmovdqu:
+			tmpSig = GetInsHex(CurrentIns);
+			break;
+		//易语言这类指令只是普通的二进制(有待确认)
+		case NN_setz:
+		case NN_imul:
+		case NN_and:
+		case NN_or:
+		case NN_shl:
+		case NN_shr:
 		case NN_xor:
+		case NN_test:
+		case NN_loop:
+		case NN_loopd:
+		case NN_fninit:
+		case NN_cld:
+		case NN_sbb:
+		case NN_not:
+		case NN_mul:
+		case NN_ftst:
+		case NN_fnstsw:
+		case NN_fchs:
+		case NN_cwde:
+		case NN_movs:
 		case NN_pop:
 		case NN_retn:
 		case NN_retf:
+		case NN_lods:
+		case NN_stos:
 			tmpSig = GetInsHex(CurrentIns);
 			break;
 		default:
+			//msg("UnHandled Instruction--%a\n", CurrentIns.ip);
 			tmpSig = GetInsHex(CurrentIns);
 			break;
 		}
 
 		vec_SaveSig.push_back(tmpSig);
-		if (tmpSig.empty()) {
+		if (tmpSig.empty() && CurrentIns.itype != NN_nop) {
 			msg("%s--%a\n", getUTF8String("获取特征失败").c_str(), startAddr);
 		}
 		startAddr = startAddr + CurrentIns.size;
 
 	} while (startAddr <= endAddr);
-
-#ifdef _DEBUG
-	startAddr = pFunc->start_ea;
-	int n = 0;
-	do
-	{
-		qstring tmpSig;
-		insn_t CurrentIns;
-		decode_insn(&CurrentIns, startAddr);
-
-		//msg("%a:%s\n", CurrentIns.ip, mVec_Sig[n++].c_str());
-		startAddr = startAddr + CurrentIns.size;
-	} while (startAddr <= endAddr);
-#endif // _DEBUG
 
 	qstring STRING_RESULT;
 	for (unsigned int n = 0; n < vec_SaveSig.size(); ++n) {
@@ -728,8 +848,10 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 	}
 
 	ret_MD5 = CalculateMD5(STRING_RESULT);
-	msg("[SIGSTRING]:%s\n", STRING_RESULT.c_str());
 
+	if (!bFuzzySig) {
+		msg("[%a]:%s\n", FuncStartAddr, STRING_RESULT.c_str());
+	}
 
 	return ret_MD5;
 }
@@ -756,8 +878,8 @@ int ECSigParser::GenerateECSig(ea_t addr)
 	bFuzzySig = true;
 	qstring BadMd5 = GetFunctionMD5(pFunc->start_ea);
 
-	msg("%s:%s\n", getUTF8String("[精确特征]").c_str(), GoodMd5.c_str());
-	msg("%s:%s\n", getUTF8String("[模糊特征]").c_str(), BadMd5.c_str());
+	msg("[%s%a]:%s\n", getUTF8String("精确特征").c_str(), pFunc->start_ea, GoodMd5.c_str());
+	msg("[%s%a]:%s\n", getUTF8String("模糊特征").c_str(), pFunc->start_ea, BadMd5.c_str());
 
 	return true;
 }

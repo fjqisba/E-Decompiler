@@ -1,6 +1,7 @@
 #include "public.h"
 #include <xref.hpp>
 #include <bytes.hpp>
+#include <name.hpp>
 #include "md5.h"
 
 const char* UCharToStr(unsigned char c)
@@ -226,4 +227,14 @@ qstring CalculateMD5(qstring& md5)
 bool acp_ascii(qstring* out, const char* in)
 {
 	return change_codepage(out, in, CP_UTF8, CP_ACP);
+}
+
+void setFuncName(ea_t addr, const char* funcName)
+{
+	qstring oldName = get_name(addr);
+	if (oldName.find("sub_") != qstring::npos) {
+		qstring newName;
+		acp_utf8(&newName, funcName);
+		set_name(addr, newName.c_str(), SN_NOWARN);
+	}
 }

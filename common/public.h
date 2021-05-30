@@ -1,6 +1,8 @@
 #pragma once
 #include <pro.h>
 
+void setFuncName(ea_t addr, const char* funcName);
+
 //UTF-8תascii
 bool acp_ascii(qstring* out, const char* in);
 

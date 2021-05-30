@@ -5,7 +5,7 @@
 
 class insn_t;
 class mid_KrnlJmp;
-
+class func_t;
 class ECSigParser
 {
 public:
@@ -14,6 +14,7 @@ public:
 	static void InitECSigKrnl(mid_KrnlJmp& inFunc);
 	static void InitECSigBasciFunc(std::set<ea_t>& mhash);
 	static void InitECSigResource(uint32 startAddr, uint32 endAddr);
+	static void ScanMSig(const char* sigPath);
 private:
 	//计算一个用户函数的MD5
 	static qstring GetFunctionMD5(ea_t FuncStartAddr);
@@ -24,14 +25,16 @@ private:
 	static qstring GetSig_FlexDoubleInst(insn_t& ins);
 	//浮点指令
 	static qstring GetSig_FloatInst(insn_t& ins);
-	static qstring GetSig_Test(insn_t& ins);
+	//逻辑运算指令
+	static qstring GetSig_LogicInst(insn_t& ins);
+	static qstring GetSig_Imul(insn_t& ins);
 	static qstring GetSig_Pop(insn_t& ins);
 	static qstring GetSig_Call(insn_t& ins, qvector<qstring>& vec_saveSig);
 	static qstring GetSig_Nop(insn_t& ins);
 	//检查是否为易语言标准函数，参数为函数起始地址
 	static bool IsEStandardFunction(ea_t startAddr);
 	//寻找易语言标准函数尾部,参数为函数起始地址,返回最后一条指令的地址
-	static ea_t SeachEFuncEnd(ea_t startAddr);
+	static ea_t SeachEFuncEnd(func_t* startAddr);
 	//判断一个常量是否在用户资源地址范围之内
 	static bool IsUserResourceImm(uint32 imm);
 	//判断一个偏移地址是否在用户资源地址范围之内

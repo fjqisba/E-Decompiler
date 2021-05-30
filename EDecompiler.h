@@ -205,6 +205,8 @@ public:
 	EDecompilerEngine();
 	~EDecompilerEngine();
 public:
+	//É¨ÃèÒ×ÓïÑÔº¯Êı
+	void makeFunction(ea_t startAddr, ea_t endAddr);
 	bool InitDecompilerEngine();
 	bool DoDecompile();
 	

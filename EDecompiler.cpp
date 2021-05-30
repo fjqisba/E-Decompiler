@@ -4,7 +4,9 @@
 #include <loader.hpp>
 #include <funcs.hpp>
 #include <ua.hpp>
+#include <auto.hpp>
 #include <allins.hpp>
+#include <diskio.hpp>
 #include "common/IDAMenu.h"
 #include "common/public.h"
 #include "ControlInfoWidget.h"
@@ -63,6 +65,22 @@ unsigned int GetDataTypeType(unsigned int typeID)
 }
 
 
+void EDecompilerEngine::makeFunction(ea_t startAddr, ea_t endAddr)
+{
+	compiled_binpat_vec_t FuncHeadBin;
+	parse_binpat_str(&FuncHeadBin, 0, "55 8B EC", 16);
+
+	while (true)
+	{
+		startAddr = bin_search2(startAddr, endAddr, FuncHeadBin, 0x0);
+		if (startAddr == BADADDR)
+		{
+			break;
+		}
+		add_func(startAddr);
+		startAddr = startAddr + 3;
+	}
+}
 
 qstring EDecompilerEngine::GetControlTypeName(uint32 typeId)
 {
@@ -399,17 +417,27 @@ bool EDecompilerEngine::Parse_EStatic()
 
 	m_eAppInfo.m_UserCodeStartAddr = eHead.lpStartCode;
 	m_eAppInfo.m_UserCodeEndAddr = m_EHeadAddr;
+
+	show_wait_box(getUTF8String("扫描易语言函数").c_str());
+	makeFunction(m_eAppInfo.m_UserCodeStartAddr, m_eAppInfo.m_UserCodeEndAddr);
+	auto_wait();
 	GuiParser::InitUserCodeStartAddr(m_eAppInfo.m_UserCodeStartAddr);
 	UserResourceParser::InitUserCodeAddr(m_eAppInfo.m_UserCodeStartAddr, m_eAppInfo.m_UserCodeEndAddr);
+	hide_wait_box();
 
 	if (!eHead.dwLibNum || !eHead.lpLibEntry) {
 		return false;
 	}
 
+	show_wait_box(getUTF8String("解析易语言支持库信息").c_str());
 	ParseLibInfomation(eHead.lpLibEntry, eHead.dwLibNum);
+	hide_wait_box();
+
+	show_wait_box(getUTF8String("匹配易语言函数特征").c_str());
 	ESigScanner::ScanLibFunction(eHead.lpLibEntry, eHead.dwLibNum);
 	ScanEBasicLibFunc();
-	
+	hide_wait_box();
+
 	ea_t dwKrnlEntry = eHead.lpEString;
 	if (dwKrnlEntry == 0) {
 		dwKrnlEntry = eHead.lpEWindow;
@@ -420,13 +448,17 @@ bool EDecompilerEngine::Parse_EStatic()
 	}
 
 	if (eHead.lpEString != 0 && eHead.dwEStringSize != 0) {
+		show_wait_box(getUTF8String("解析易语言常量资源").c_str());
 		UserResourceParser::ParseUserResource(eHead.lpEString, eHead.dwEStringSize);
+		hide_wait_box();
 		ECSigParser::InitECSigResource(eHead.lpEString, eHead.lpEString + eHead.dwEStringSize);
 		gMenu_ShowResource = IDAMenu::CreateMenu(getUTF8String("易语言/用户常量资源").c_str(), UserResourceParser::MenuHandle_ShowUserResource);
 	}
 
 	if (eHead.lpEWindow != 0 && eHead.dwEWindowSize > 4) {
+		show_wait_box(getUTF8String("解析易语言控件资源").c_str());
 		GuiParser::ParseGUIResource(eHead.lpEWindow, eHead.dwEWindowSize);
+		hide_wait_box();
 		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/窗口控件信息").c_str(), GuiParser::MenuHandle_ShowGuiInfo);
 		if (GuiParser::GetEventCount()) {
 			gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("易语言/控件事件信息").c_str(), GuiParser::MenuHandle_ShowEventInfo);
@@ -434,10 +466,19 @@ bool EDecompilerEngine::Parse_EStatic()
 	}
 
 	if (eHead.dwApiCount) {
+		show_wait_box(getUTF8String("解析易语言导入表").c_str());
 		ImportsParser::ParseUserImports(eHead.dwApiCount, eHead.lpModuleName, eHead.lpApiName);
+		hide_wait_box();
 		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/用户导入表").c_str(), ImportsParser::MenuHandle_ShowImportsInfo);
 	}
 
+
+	//识别易语言模块函数
+	show_wait_box(getUTF8String("识别精易模块函数").c_str());
+	qstring mainECpath;
+	mainECpath.sprnt("%s\\esig\\精易模块.msig", idadir(PLG_SUBDIR));
+	ECSigParser::ScanMSig(mainECpath.c_str());
+	hide_wait_box();
 	msg("%s\n", getUTF8String("检测到是易语言静态编译程序").c_str());
 	return true;
 }

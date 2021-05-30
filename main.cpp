@@ -3,6 +3,7 @@
 #include "SectionManager.h"
 #include "EDecompiler.h"
 #include <kernwin.hpp>
+#include "common/public.h"
 #include <QTextCodec>
 
 // Hex-Rays API pointer
@@ -37,10 +38,9 @@ static plugmod_t* idaapi init()
 //--------------------------------------------------------------------------
 bool idaapi plugin_ctx_t::run(size_t)
 {
-	if (!auto_is_ok() && ask_yn(0, "The autoanalysis has not finished yet.\nDo you want to continue?") < 1)
-	{
-		return true;
-	}
+	show_wait_box(getUTF8String("等待IDA初始化分析完毕").c_str());
+	auto_wait();
+	hide_wait_box();
 
 	if (!g_MyDecompiler.InitDecompilerEngine()) {
 		msg("Error,InitDecompilerEngine Failed\n");

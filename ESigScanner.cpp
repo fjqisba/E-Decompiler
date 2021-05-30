@@ -7,6 +7,7 @@
 #include <diskio.hpp>
 #include "TrieTree.h"
 #include "ECSigParser.h"
+#include <kernwin.hpp>
 #include "common/public.h"
 
 struct EsigInfo
@@ -21,15 +22,7 @@ qvector<EsigInfo> g_EsigList;
 
 std::unordered_set<ea_t> ESigScanner::mHash_LibFunc;
 
-void setFuncName(ea_t addr, const char* funcName)
-{
-	qstring oldName = get_name(addr);
-	if (oldName.find("sub_") != qstring::npos) {
-		qstring newName;
-		acp_utf8(&newName, funcName);
-		set_name(addr, newName.c_str(), SN_NOWARN);
-	}
-}
+
 
 int EnumEsig(const char* lpMapPath, void* ud)
 {
@@ -132,6 +125,7 @@ bool ESigScanner::ScanLibFunction(ea_t lpLibStartAddr, uint32 dwLibCount)
 			char* pFuncName = ESIGTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(funcAddr));
 			if (!pFuncName) {
 				qstring errorFuncName;
+				msg("[ScanLibFunction]Match Function Error,%a\n", funcAddr);
 				errorFuncName.sprnt("Î´ÖªÃüÁî_%a", funcAddr);
 				setFuncName(funcAddr, errorFuncName.c_str());
 				continue;
