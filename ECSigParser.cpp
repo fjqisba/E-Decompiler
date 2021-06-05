@@ -286,7 +286,53 @@ qstring ECSigParser::GetSig_Call(insn_t& ins, qvector<qstring>& vec_saveSig)
 	return ret;
 }
 
-qstring ECSigParser::GetSig_FloatInst(insn_t& ins)
+qstring ECSigParser::GetSig_FloatInstA(insn_t& ins)
+{
+	qstring ret;
+	if (ins.ops[0].type == o_reg) {
+		return GetInsHex(ins);
+	}
+
+	if (ins.ops[0].type == o_mem) {
+		unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+		for (char n = 0; n < ins.size; ++n) {
+			if (n >= ins.ops[0].offb) {
+				ret.append("??");
+			}
+			else {
+				ret.append(UCharToStr(pData[n]));
+			}
+		}
+		return ret;
+	}
+
+	if (ins.ops[0].type == o_phrase) {
+		return GetInsHex(ins);
+	}
+
+	//fadd [ebp-0xC]
+	if (ins.ops[0].type == o_displ) {
+		if (IsUserResourceOffset(ins.ops[0].addr)) {
+			unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(ins.ip);
+			for (char n = 0; n < ins.size; ++n) {
+				if (n >= ins.ops[0].offb) {
+					ret.append("??");
+				}
+				else {
+					ret.append(UCharToStr(pData[n]));
+				}
+			}
+		}
+		else {
+			ret = GetInsHex(ins);
+		}
+		return ret;
+	}
+	msg("[GetSig_FloatInstA]To do...\n");
+	return ret;
+}
+
+qstring ECSigParser::GetSig_FloatInstB(insn_t& ins)
 {
 	qstring ret;
 	if (ins.ops[1].type == o_mem) {
@@ -320,8 +366,7 @@ qstring ECSigParser::GetSig_FloatInst(insn_t& ins)
 		}
 		return ret;
 	}
-	msg("[GetSig_FloatInst]To do...\n");
-	return ret;
+	return GetInsHex(ins);
 }
 
 
@@ -653,18 +698,32 @@ void ECSigParser::ScanMSig(const char* lpsigPath)
 		if (pFunc->start_ea == 0x40163F) {
 			int a = 0;
 		}
-		qstring md5 = GetFunctionMD5(pFunc->start_ea);
 
-		auto funcCount = map_MSig.count(md5);
-		if (!funcCount) {
+		bFuzzySig = false;
+		qstring goodMD5 = GetFunctionMD5(pFunc->start_ea);
+		auto funcCount = map_MSig.count(goodMD5);
+
+		if (funcCount == 1) {
+			auto it = map_MSig.find(goodMD5);
+			setFuncName(pFunc->start_ea, it->second.c_str());
+			msg("识别模块函数%a--%s\n", pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
 			continue;
 		}
-		if (funcCount == 1) {
-			auto it = map_MSig.find(md5);
-			setFuncName(pFunc->start_ea, it->second.c_str());
+		else if (funcCount != 0) {
+
 		}
-		else {
-			//To do...
+		
+
+		bFuzzySig = true;
+		qstring badMD5 = GetFunctionMD5(pFunc->start_ea);
+		funcCount = map_MSig.count(badMD5);
+		if (funcCount) {
+			auto it = map_MSig.find(badMD5);
+			setFuncName(pFunc->start_ea, it->second.c_str());
+			continue;
+		}
+		if (funcCount != 0) {
+
 		}
 	}
 
@@ -682,13 +741,11 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 	}
 
 	if (!IsEStandardFunction(pFunc->start_ea)) {
-		msg("%s\n", getUTF8String("暂不支持此类易语言函数").c_str());
 		return ret_MD5;
 	}
 
 	ea_t endAddr = SeachEFuncEnd(pFunc);
 	if (endAddr == BADADDR) {
-		msg("%s\n", getUTF8String("寻找函数尾部失败").c_str());
 		return ret_MD5;
 	}
 
@@ -706,7 +763,7 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 			continue;
 		}
 
-		if (CurrentIns.ip == 0x0040125C) {
+		if (CurrentIns.ip == 0x0040138C) {
 			int a = 0;
 		}
 
@@ -758,6 +815,11 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_lea:
 			tmpSig = GetSig_FlexDoubleInst(CurrentIns);
 			break;
+		case NN_fldcw:
+		case NN_fnstcw:
+		case NN_fstsw:
+			tmpSig = GetSig_FloatInstA(CurrentIns);
+			break;
 		case NN_fld:
 		case NN_fstp:
 		case NN_fild:
@@ -766,7 +828,9 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_fmul:
 		case NN_fdiv:
 		case NN_fcomp:
-			tmpSig = GetSig_FloatInst(CurrentIns);
+		case NN_fistp:
+		case NN_fstcw:
+			tmpSig = GetSig_FloatInstB(CurrentIns);
 			break;
 		case NN_inc:
 		case NN_dec:
@@ -781,7 +845,29 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_nop:
 			tmpSig = "";
 			break;
-		//高概率不会出现在易语言编译器中
+		//永远不会出现在易语言编译器中
+		case NN_aaa:
+		case NN_aad:
+		case NN_aam:
+		case NN_aas:
+		case NN_adc:
+		case NN_arpl:
+		case NN_bound:
+		case NN_bsf:
+		case NN_bsr:
+		case NN_bt:
+		case NN_btc:
+		case NN_btr:
+		case NN_bts:
+		case NN_cbw:
+		case NN_cdqe:
+		case NN_clc:
+		case NN_cli:
+		case NN_clts:
+		case NN_cmc:
+		case NN_daa:
+		case NN_das:
+		case NN_wait:
 		case NN_cmova:
 		case NN_cmovnz:
 		case NN_cpuid:
@@ -791,7 +877,6 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_vpcmpeqb:
 		case NN_vpmovmskb:
 		case NN_movdqa:
-		case NN_bsf:
 		case NN_pxor:
 		case NN_movq:
 		case NN_pcmpeqb:
@@ -801,6 +886,7 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 			tmpSig = GetInsHex(CurrentIns);
 			break;
 		//易语言这类指令只是普通的二进制(有待确认)
+		case NN_setnz:
 		case NN_setz:
 		case NN_imul:
 		case NN_and:
@@ -849,10 +935,13 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 
 	ret_MD5 = CalculateMD5(STRING_RESULT);
 
+
+#ifdef _DEBUG
 	if (!bFuzzySig) {
 		msg("[%a]:%s\n", FuncStartAddr, STRING_RESULT.c_str());
 	}
-
+#endif // _DEBUG
+	
 	return ret_MD5;
 }
 

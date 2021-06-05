@@ -114,6 +114,12 @@
     <ClCompile Include="common\md5.cpp">
       <Filter>头文件\common</Filter>
     </ClCompile>
+    <ClCompile Include="EAppControl\krnl_DrawPanel.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_GroupBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SectionManager.h">
@@ -206,6 +212,12 @@
     </ClInclude>
     <ClInclude Include="common\md5.h">
       <Filter>头文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_DrawPanel.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_GroupBox.h">
+      <Filter>头文件\EAppControl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

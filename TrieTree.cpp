@@ -54,7 +54,10 @@ bool TrieTree::SlowMatch_CmpCall(unsigned char* pSrc, qstring FuncName)
 
 bool TrieTree::SlowMatch_CmpCallApi(unsigned char* pSrc,qstring IATEAT)
 {
-	if (*pSrc != 0xFF || *(pSrc + 1) != 0x15) {
+	if (*pSrc != 0xFF) {
+		return false;
+	}
+	if ((*(pSrc + 1) != 0x15) && (*(pSrc + 1) != 0x25)) {
 		return false;
 	}
 	qstring IATCom;

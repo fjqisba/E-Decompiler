@@ -433,7 +433,7 @@ bool EDecompilerEngine::Parse_EStatic()
 	ParseLibInfomation(eHead.lpLibEntry, eHead.dwLibNum);
 	hide_wait_box();
 
-	show_wait_box(getUTF8String("匹配易语言函数特征").c_str());
+	show_wait_box(getUTF8String("识别支持库函数").c_str());
 	ESigScanner::ScanLibFunction(eHead.lpLibEntry, eHead.dwLibNum);
 	ScanEBasicLibFunc();
 	hide_wait_box();

@@ -24,7 +24,8 @@ private:
 	//灵活的双操作数指令
 	static qstring GetSig_FlexDoubleInst(insn_t& ins);
 	//浮点指令
-	static qstring GetSig_FloatInst(insn_t& ins);
+	static qstring GetSig_FloatInstA(insn_t& ins);
+	static qstring GetSig_FloatInstB(insn_t& ins);
 	//逻辑运算指令
 	static qstring GetSig_LogicInst(insn_t& ins);
 	static qstring GetSig_Imul(insn_t& ins);
