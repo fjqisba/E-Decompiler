@@ -8,6 +8,8 @@
 #include "krnl_ShapeBox.h"
 #include "krnl_DrawPanel.h"
 #include "krnl_GroupBox.h"
+#include "krnl_CheckBox.h"
+#include "krnl_RadioBox.h"
 
 class krnl_window gkrnl_window;
 class krnl_EditBox gkrnl_EditBox;
@@ -18,6 +20,8 @@ class krnl_Timer gkrnl_Timer;
 class krnl_ShapeBox gkrnl_ShapeBox;
 class krnl_DrawPanel gkrnl_DrawPanel;
 class krnl_GroupBox gkrnl_GroupBox;
+class krnl_CheckBox gkrnl_CheckBox;
+class krnl_RadioBox gkrnl_RadioBox;
 
 QHash<ControlType_t, EAppControl*> g_classMap = {
 	{krnl_window, &gkrnl_window},
@@ -28,7 +32,9 @@ QHash<ControlType_t, EAppControl*> g_classMap = {
 	{krnl_Timer,&gkrnl_Timer},
 	{krnl_ShapeBox,&gkrnl_ShapeBox},
 	{krnl_DrawPanel,&gkrnl_DrawPanel},
-	{krnl_GroupBox,&gkrnl_GroupBox}
+	{krnl_GroupBox,&gkrnl_GroupBox},
+	{krnl_CheckBox,&gkrnl_CheckBox},
+	{krnl_RadioBox,&gkrnl_RadioBox},
 };
 
 EAppControl* EAppControlFactory::getEAppControl(ControlType_t type)
