@@ -10,6 +10,9 @@
 #include "krnl_GroupBox.h"
 #include "krnl_CheckBox.h"
 #include "krnl_RadioBox.h"
+#include "krnl_ComboBox.h"
+#include "krnl_ListBox.h"
+#include "krnl_ChkListBox.h"
 
 class krnl_window gkrnl_window;
 class krnl_EditBox gkrnl_EditBox;
@@ -22,6 +25,9 @@ class krnl_DrawPanel gkrnl_DrawPanel;
 class krnl_GroupBox gkrnl_GroupBox;
 class krnl_CheckBox gkrnl_CheckBox;
 class krnl_RadioBox gkrnl_RadioBox;
+class krnl_ComboBox gkrnl_ComboBox;
+class krnl_ListBox gkrnl_ListBox;
+class krnl_ChkListBox gkrnl_ChkListBox;
 
 QHash<ControlType_t, EAppControl*> g_classMap = {
 	{krnl_window, &gkrnl_window},
@@ -35,6 +41,9 @@ QHash<ControlType_t, EAppControl*> g_classMap = {
 	{krnl_GroupBox,&gkrnl_GroupBox},
 	{krnl_CheckBox,&gkrnl_CheckBox},
 	{krnl_RadioBox,&gkrnl_RadioBox},
+	{krnl_ComboBox,&gkrnl_ComboBox},
+	{krnl_ListBox,&gkrnl_ListBox},
+	{krnl_ChkListBox,&gkrnl_ChkListBox}
 };
 
 EAppControl* EAppControlFactory::getEAppControl(ControlType_t type)

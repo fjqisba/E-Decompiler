@@ -120,6 +120,12 @@
     <ClCompile Include="EAppControl\krnl_GroupBox.cpp">
       <Filter>头文件\EAppControl</Filter>
     </ClCompile>
+    <ClCompile Include="EAppControl\krnl_ComboBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\krnl_ChkListBox.cpp">
+      <Filter>头文件\EAppControl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SectionManager.h">
@@ -217,6 +223,12 @@
       <Filter>头文件\EAppControl</Filter>
     </ClInclude>
     <ClInclude Include="EAppControl\krnl_GroupBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_ComboBox.h">
+      <Filter>头文件\EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\krnl_ChkListBox.h">
       <Filter>头文件\EAppControl</Filter>
     </ClInclude>
   </ItemGroup>

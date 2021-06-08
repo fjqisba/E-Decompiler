@@ -1,7 +1,7 @@
 #pragma once
 #include "EAppControl.h"
 
-class krnl_ListBox:public EAppControl
+class krnl_ChkListBox:public EAppControl
 {
 protected:
 	void 取控件默认附加属性(QHash<QString, QVariant>& out_data);

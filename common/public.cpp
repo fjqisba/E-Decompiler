@@ -194,6 +194,19 @@ unsigned int CDR_ReadUInt(unsigned char*& currentPoint)
 	return ret;
 }
 
+qvector<qstring> CDR_ReadVecString(unsigned char*& currentPoint)
+{
+	qvector<qstring> ret;
+	unsigned int len = CDR_ReadUShort(currentPoint);
+	if (len == 0xFFFF) {
+		len = CDR_ReadUInt(currentPoint);
+	}
+	for (unsigned int n = 0; n < len; ++n) {
+		ret.push_back(CDR_ReadCString(currentPoint));
+	}
+	return ret;
+}
+
 qstring CDR_ReadCString(unsigned char*& currentPoint)
 {
 	qstring ret;

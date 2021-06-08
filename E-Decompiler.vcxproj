@@ -118,6 +118,8 @@
     <ClCompile Include="EAppControl\EAppControlFactory.cpp" />
     <ClCompile Include="EAppControl\krnl_Button.cpp" />
     <ClCompile Include="EAppControl\krnl_CheckBox.cpp" />
+    <ClCompile Include="EAppControl\krnl_ChkListBox.cpp" />
+    <ClCompile Include="EAppControl\krnl_ComboBox.cpp" />
     <ClCompile Include="EAppControl\krnl_DrawPanel.cpp" />
     <ClCompile Include="EAppControl\krnl_DropTarget.cpp" />
     <ClCompile Include="EAppControl\krnl_EditBox.cpp" />
@@ -151,6 +153,8 @@
     <ClInclude Include="EAppControl\EAppControlFactory.h" />
     <ClInclude Include="EAppControl\krnl_Button.h" />
     <ClInclude Include="EAppControl\krnl_CheckBox.h" />
+    <ClInclude Include="EAppControl\krnl_ChkListBox.h" />
+    <ClInclude Include="EAppControl\krnl_ComboBox.h" />
     <ClInclude Include="EAppControl\krnl_DrawPanel.h" />
     <ClInclude Include="EAppControl\krnl_DropTarget.h" />
     <ClInclude Include="EAppControl\krnl_EditBox.h" />

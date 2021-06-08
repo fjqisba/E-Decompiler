@@ -1,7 +1,7 @@
 #pragma once
 #include "EAppControl.h"
 
-class krnl_ListBox:public EAppControl
+class krnl_ComboBox :public EAppControl
 {
 protected:
 	void 取控件默认附加属性(QHash<QString, QVariant>& out_data);
@@ -10,5 +10,5 @@ protected:
 	qstring 取事件名称(int eventIndex);
 	QString 取图标资源路径();
 private:
-	QStringList 取边框列表();
+	static QStringList 取类型列表();
 };
