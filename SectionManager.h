@@ -22,9 +22,5 @@ public:
 	static ea_t SeachBin(qstring HexStr);
 private:
 	static qvector<SegmentInfomation> mVec_segInfo;
+	static qvector<unsigned char> m_AllMemBuf;
 };
-
-
-
-
-

@@ -3,28 +3,35 @@
 #include <bytes.hpp>
 
 qvector<SegmentInfomation> SectionManager::mVec_segInfo;
+qvector<unsigned char> SectionManager::m_AllMemBuf;
 
 bool SectionManager::InitSectionManager()
 {
 	mVec_segInfo.clear();
+	m_AllMemBuf.clear();
+
 	int segCount = get_segm_qty();
+	
+	unsigned int bufSize = 0;
 	for (int idx = 0; idx < segCount; ++idx)
 	{
 		SegmentInfomation tmpInfo;
 		segment_t* pSegment = getnseg(idx);
-
 		tmpInfo.m_segStart = pSegment->start_ea;
 		tmpInfo.m_segSize = pSegment->size();
 
+		bufSize += tmpInfo.m_segSize;
 		qstring SectionName;
 		get_segm_name(&SectionName, pSegment);
 		tmpInfo.m_segName = SectionName;
 
 		tmpInfo.m_segData.resize(pSegment->size());
 		get_bytes(&tmpInfo.m_segData[0], pSegment->size(), pSegment->start_ea, GMB_READALL);
-
 		mVec_segInfo.push_back(tmpInfo);
 	}
+
+	m_AllMemBuf.resize(bufSize);
+	get_bytes(&m_AllMemBuf[0], bufSize, mVec_segInfo[0].m_segStart, GMB_READALL);
 	return true;
 }
 
@@ -52,39 +59,19 @@ ea_t SectionManager::SeachBin(qstring HexStr)
 
 uint8* SectionManager::LinearAddrToVirtualAddr(ea_t LinerAddr)
 {
-	//存储上一次命中的索引,用于加速访问
-	static unsigned int saveIndex = 0;
-
-	segment_t* pSegment = getseg(LinerAddr);
-	if (!pSegment) {
+	int offset = LinerAddr - mVec_segInfo[0].m_segStart;
+	if (offset < 0) {
 		return NULL;
 	}
-	
-	unsigned int index = saveIndex;
-	for (unsigned int n = 0; n < mVec_segInfo.size(); ++n) {
-		ea_t endAddr = mVec_segInfo[index].m_segStart + mVec_segInfo[index].m_segSize;
-		if (LinerAddr >= mVec_segInfo[index].m_segStart && LinerAddr < endAddr) {
-			uint32 offset = LinerAddr - pSegment->start_ea;
-			saveIndex = index;
-			return &mVec_segInfo[index].m_segData[offset];
-		}
-		++index;
-		if (index == mVec_segInfo.size()) {
-			index = 0;
-		}
-	}
-	return NULL;
+	return &m_AllMemBuf[offset];
 }
 
 
 ea_t SectionManager::VirtualAddrToLinearAddr(uint8* pVirtualAddr)
 {
-	for (unsigned int n = 0; n < mVec_segInfo.size(); ++n) {
-		uint8* pEndAddr = &mVec_segInfo[n].m_segData[0] + mVec_segInfo[n].m_segSize;
-		if (pVirtualAddr >= &mVec_segInfo[n].m_segData[0] && pVirtualAddr < pEndAddr) {
-			uint32 offset = pVirtualAddr - &mVec_segInfo[n].m_segData[0];
-			return mVec_segInfo[n].m_segStart + offset;
-		}
+	int offset= pVirtualAddr- &m_AllMemBuf[0];
+	if (offset < 0) {
+		return BADADDR;
 	}
-	return BADADDR;
+	return mVec_segInfo[0].m_segStart + offset;
 }

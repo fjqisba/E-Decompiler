@@ -477,7 +477,7 @@ bool EDecompilerEngine::Parse_EStatic()
 	show_wait_box(getUTF8String("识别精易模块函数").c_str());
 	qstring mainECpath;
 	mainECpath.sprnt("%s\\esig\\精易模块.msig", idadir(PLG_SUBDIR));
-	ECSigParser::ScanMSig(mainECpath.c_str());
+	ECSigParser::ScanMSig(mainECpath.c_str(), m_eAppInfo.m_UserCodeStartAddr, m_eAppInfo.m_UserCodeEndAddr);
 	hide_wait_box();
 	msg("%s\n", getUTF8String("检测到是易语言静态编译程序").c_str());
 	return true;

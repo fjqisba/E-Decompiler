@@ -66,10 +66,10 @@ bool ImportsParser::ParseUserImports(uint32 dwApiCount, uint32 lpModuleName, uin
 
 		ImportsApi eImportsApi;
 
-		eImportsApi.LibName = pszLibname;
-		eImportsApi.ApiName = pszApiname;
-		mVec_ImportsApi.push_back(eImportsApi);
+		acp_utf8(&eImportsApi.LibName, pszLibname);
+		acp_utf8(&eImportsApi.ApiName, pszApiname);
 
+		mVec_ImportsApi.push_back(eImportsApi);
 		pszLibnameAddr += 4;
 		pszApinameAddr += 4;
 	}

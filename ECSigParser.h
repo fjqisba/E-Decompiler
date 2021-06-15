@@ -14,7 +14,7 @@ public:
 	static void InitECSigKrnl(mid_KrnlJmp& inFunc);
 	static void InitECSigBasciFunc(std::set<ea_t>& mhash);
 	static void InitECSigResource(uint32 startAddr, uint32 endAddr);
-	static void ScanMSig(const char* sigPath);
+	static void ScanMSig(const char* sigPath, ea_t rangeStart, ea_t rangeEnd);
 private:
 	//计算一个用户函数的MD5
 	static qstring GetFunctionMD5(ea_t FuncStartAddr);

@@ -8,7 +8,7 @@
 #include <auto.hpp>
 #include <fpro.h>
 #include <diskio.hpp>
-
+#include <search.hpp>
 #include "SectionManager.h"
 #include "ImportsParser.h"
 #include "EDecompiler.h"
@@ -17,7 +17,7 @@
 mid_KrnlJmp ECSigParser::m_KrnlJmp;
 std::set<ea_t> ECSigParser::mHash_BasicFunc;
 uint32 ECSigParser::m_UserResourceStartAddr = 0x00000000;
-uint32 ECSigParser::m_UserResourceEndAddr = 0xFFFFFFFF;
+uint32 ECSigParser::m_UserResourceEndAddr = 0x0;
 std::map<ea_t, qstring> ECSigParser::mSave_SubFunc;
 bool ECSigParser::bFuzzySig = false;
 
@@ -128,7 +128,6 @@ bool ECSigParser::IsUserResourceOffset(uint32 offset)
 	if (distance < 0) {
 		offset = -offset;
 	}
-
 	return IsUserResourceImm(offset);
 }
 
@@ -268,17 +267,22 @@ qstring ECSigParser::GetSig_Call(insn_t& ins, qvector<qstring>& vec_saveSig)
 		}
 
 		//用户自定义函数
-		qstring subFuncMD5 = mSave_SubFunc[ins.ops[0].addr];
-		if (subFuncMD5.empty()) {
+		qstring subFuncName = mSave_SubFunc[ins.ops[0].addr];
+		if (subFuncName.empty()) {
 			//防止递归循环
-			mSave_SubFunc[ins.ops[0].addr] = "RecurFunc";
-			subFuncMD5 = GetFunctionMD5(ins.ops[0].addr);
-			if (subFuncMD5.empty()) {
-				return GetInsHex(ins);
+			mSave_SubFunc[ins.ops[0].addr] = "<RecurFunc>";
+			subFuncName = GetFunctionMD5(ins.ops[0].addr);
+			if (subFuncName.empty()) {
+				//表示该函数其实是置入代码
+				ret = GetInsHex(ins);
+				mSave_SubFunc[ins.ops[0].addr] = ret;
+				return ret;
 			}
-			mSave_SubFunc[ins.ops[0].addr] = subFuncMD5;
+			ret.sprnt("<%s>", subFuncName.c_str());
+			mSave_SubFunc[ins.ops[0].addr] = ret;
+			return ret;
 		}
-		ret.sprnt("<%s>", subFuncMD5.c_str());
+		ret.sprnt("%s", subFuncName.c_str());
 		return ret;
 	}
 	
@@ -660,7 +664,7 @@ void ECSigParser::InitECSigKrnl(mid_KrnlJmp& inFunc)
 	m_KrnlJmp = inFunc;
 }
 
-void ECSigParser::ScanMSig(const char* lpsigPath)
+void ECSigParser::ScanMSig(const char* lpsigPath, ea_t rangeStart, ea_t rangeEnd)
 {
 	qstring str_filePath;
 	acp_utf8(&str_filePath, lpsigPath);
@@ -695,6 +699,10 @@ void ECSigParser::ScanMSig(const char* lpsigPath)
 	{
 		func_t* pFunc = getn_func(idx);
 
+		if (pFunc->start_ea < rangeStart || pFunc->start_ea >= rangeEnd) {
+			continue;
+		}
+
 		if (pFunc->start_ea == 0x40163F) {
 			int a = 0;
 		}
@@ -706,7 +714,7 @@ void ECSigParser::ScanMSig(const char* lpsigPath)
 		if (funcCount == 1) {
 			auto it = map_MSig.find(goodMD5);
 			setFuncName(pFunc->start_ea, it->second.c_str());
-			msg("识别模块函数%a--%s\n", pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
+			msg("%s%a--%s\n", getUTF8String("识别模块函数").c_str(), pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
 			continue;
 		}
 		else if (funcCount != 0) {
@@ -756,14 +764,22 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		qstring tmpSig;
 		insn_t CurrentIns;
 		int insLen = decode_insn(&CurrentIns, startAddr);
+		
 		if (!insLen) {
-			tmpSig = UCharToStr(get_byte(startAddr));
+			ea_t nextCodeAddr = find_code(startAddr, SEARCH_DOWN | SEARCH_NOSHOW);
+			if (nextCodeAddr >= endAddr) {
+				nextCodeAddr = endAddr;
+			}
+			unsigned char* pData = SectionManager::LinearAddrToVirtualAddr(startAddr);
+			for (unsigned int n = 0; n < nextCodeAddr - startAddr; ++n) {
+				tmpSig.append(UCharToStr(pData[n]));
+			}
 			vec_SaveSig.push_back(tmpSig);
-			startAddr = startAddr + 1;
+			startAddr = nextCodeAddr;
 			continue;
 		}
 
-		if (CurrentIns.ip == 0x0040138C) {
+		if (CurrentIns.ip == 0x0040204B) {
 			int a = 0;
 		}
 
@@ -812,7 +828,6 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_cmp:
 		case NN_mov:
 		case NN_sub:
-		case NN_lea:
 			tmpSig = GetSig_FlexDoubleInst(CurrentIns);
 			break;
 		case NN_fldcw:
@@ -840,12 +855,38 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_call:
 			tmpSig = GetSig_Call(CurrentIns, vec_SaveSig);
 			break;
-
 		//nop指令的处理是个例外,这个是预留给易语言的花指令的
 		case NN_nop:
 			tmpSig = "";
 			break;
-		//永远不会出现在易语言编译器中
+		//非易语言指令(观察中)
+		case NN_lea:
+		case NN_setnz:
+		case NN_setz:
+		case NN_imul:
+		case NN_and:
+		case NN_or:
+		case NN_shl:
+		case NN_shr:
+		case NN_xor:
+		case NN_test:
+		case NN_loop:
+		case NN_loopd:
+		case NN_fninit:
+		case NN_cld:
+		case NN_sbb:
+		case NN_not:
+		case NN_mul:
+		case NN_ftst:
+		case NN_fnstsw:
+		case NN_fchs:
+		case NN_cwde:
+		case NN_movs:
+		case NN_pop:
+		case NN_retf:
+			tmpSig = GetInsHex(CurrentIns);
+			break;
+			//非易语言指令(高度确认)
 		case NN_aaa:
 		case NN_aad:
 		case NN_aam:
@@ -885,33 +926,10 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		case NN_vmovdqu:
 			tmpSig = GetInsHex(CurrentIns);
 			break;
-		//易语言这类指令只是普通的二进制(有待确认)
-		case NN_setnz:
-		case NN_setz:
-		case NN_imul:
-		case NN_and:
-		case NN_or:
-		case NN_shl:
-		case NN_shr:
-		case NN_xor:
-		case NN_test:
-		case NN_loop:
-		case NN_loopd:
-		case NN_fninit:
-		case NN_cld:
-		case NN_sbb:
-		case NN_not:
-		case NN_mul:
-		case NN_ftst:
-		case NN_fnstsw:
-		case NN_fchs:
-		case NN_cwde:
-		case NN_movs:
-		case NN_pop:
-		case NN_retn:
-		case NN_retf:
+		//无需分析的指令
 		case NN_lods:
 		case NN_stos:
+		case NN_retn:
 			tmpSig = GetInsHex(CurrentIns);
 			break;
 		default:

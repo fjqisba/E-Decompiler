@@ -32,6 +32,7 @@ static plugmod_t* idaapi init()
 		return nullptr; // no decompiler
 	const char* hxver = get_hexrays_version();
 	hook_to_notification_point(HT_UI, g_MyDecompiler.ui_callback);
+	msg("[E-Decompiler] plugin 0.1 loaded,Author: fjqisba\n");
 	return new plugin_ctx_t;
 }
 
