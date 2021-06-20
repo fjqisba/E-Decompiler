@@ -5,6 +5,7 @@
 #include <fpro.h>
 #include <name.hpp>
 #include <diskio.hpp>
+#include <typeinf.hpp>
 #include "TrieTree.h"
 #include "ECSigParser.h"
 #include <kernwin.hpp>
@@ -78,10 +79,15 @@ bool ESigScanner::ScanBasicFunction()
 		if (mHash_LibFunc.count(pFunc->start_ea)) {
 			continue;
 		}
-		char* pFuncName = BASICTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(pFunc->start_ea));
-		if (pFuncName) {
+		qstring funcName = BASICTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(pFunc->start_ea));
+		if (!funcName.empty()) {
 			m_Hash.insert(pFunc->start_ea);
-			setFuncName(pFunc->start_ea, pFuncName);
+			setFuncName(pFunc->start_ea, funcName.c_str());
+		}
+
+		til_t* idati = (til_t*)get_idati();
+		if (funcName == "文本相加") {
+			apply_cdecl(idati, pFunc->start_ea, "char* __usercall strcat@<eax>(int argCount@<ecx>, ...);");
 		}
 	}
 	ECSigParser::InitECSigBasciFunc(m_Hash);
@@ -120,6 +126,11 @@ bool ESigScanner::ScanLibFunction(ea_t lpLibStartAddr, uint32 dwLibCount)
 		for (unsigned int nFuncIndex = 0; nFuncIndex < tmpLibInfo.m_nCmdCount; ++nFuncIndex) {
 			ea_t funcAddr = pFuncBuf[nFuncIndex];
 
+#ifdef _DEBUG
+			if (funcAddr == 0x5454D0) {
+				int a = 0;
+		}
+#endif
 			mHash_LibFunc.insert(funcAddr);
 			add_func(funcAddr);
 			char* pFuncName = ESIGTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(funcAddr));

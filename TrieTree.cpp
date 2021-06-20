@@ -310,10 +310,11 @@ TrieTree::~TrieTree()
 
 bool TrieTree::FastMatch(TrieTreeNode* p, unsigned char*& FuncSrc)
 {
+#ifdef _DEBUG
 	if (p->SpecialType != NODE_NORMAL) {
 		int a = 0;
 	}
-
+#endif
 	switch (p->SpecialType)
 	{
 	case NODE_NORMAL:

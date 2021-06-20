@@ -226,7 +226,7 @@ private:
 
 	//É¨ÃèÒ×ÓïÑÔ»ù´¡¿âº¯Êý
 	void ScanEBasicLibFunc();
-	void SetKrnlJmpAddr(ea_t callAddr, ea_t setAddr);
+	bool SetKrnlJmpAddr(ea_t callAddr, ea_t setAddr);
 
 public:
 	EProgramsType_t m_ProgramType;

@@ -3,6 +3,7 @@
 #include <segment.hpp>
 #include <loader.hpp>
 #include <funcs.hpp>
+#include <typeinf.hpp>
 #include <ua.hpp>
 #include <auto.hpp>
 #include <allins.hpp>
@@ -292,7 +293,7 @@ bool EDecompilerEngine::DoDecompile()
 	return true;
 }
 
-void EDecompilerEngine::SetKrnlJmpAddr(ea_t callAddr, ea_t setAddr)
+bool EDecompilerEngine::SetKrnlJmpAddr(ea_t callAddr, ea_t setAddr)
 {
 	if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MReportError) {
 		m_eAppInfo.m_KrnlJmp.Jmp_MReportError = setAddr;
@@ -333,6 +334,10 @@ void EDecompilerEngine::SetKrnlJmpAddr(ea_t callAddr, ea_t setAddr)
 	else if (callAddr == m_eAppInfo.m_KrnlApp.krnl_MOtherHelp) {
 		m_eAppInfo.m_KrnlJmp.Jmp_MOtherHelp = setAddr;
 	}
+	else {
+		return false;
+	}
+	return true;
 }
 
 bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
@@ -354,13 +359,15 @@ bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
 		insn_t tmpIns;
 		aboveAddr = decode_prev_insn(&tmpIns, aboveAddr);
 		if (aboveAddr == BADADDR) {
-			return false;
+			break;
 		}
 		if (tmpIns.itype != NN_jmpni || tmpIns.ops[0].type != o_mem) {
 			break;
 		}
 		ea_t CallAddr = ReadUInt(SectionManager::LinearAddrToVirtualAddr(tmpIns.ops[0].addr));
-		SetKrnlJmpAddr(CallAddr, aboveAddr);
+		if (!SetKrnlJmpAddr(CallAddr, aboveAddr)) {
+			return false;
+		}
 	} while (true);
 
 	ea_t belowAddr = m_eAppInfo.m_KrnlJmp.Jmp_MOtherHelp;
@@ -379,7 +386,27 @@ bool EDecompilerEngine::ParseKrnlInterface(ea_t lpKrnlEntry)
 		belowAddr += tmpIns.size;
 	} while (true);
 
+	til_t* idati = (til_t*)get_idati();
 
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MReportError, "错误回调");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MCallDllCmd, "DLL命令");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MCallLibCmd, "三方支持库命令");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MCallKrnlLibCmd, "核心支持库命令");
+
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MReadProperty, "读取组件属性");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MWriteProperty, "设置组件属性");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MMalloc, "分配内存");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MRealloc, "重新分配内存");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MFree, "释放内存");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MExitProcess, "结束");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MMessageLoop, "窗口消息循环");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MLoadBeginWin, "载入启动窗口");
+	setFuncName(m_eAppInfo.m_KrnlJmp.Jmp_MOtherHelp, "辅助函数");
+
+	apply_cdecl(idati, m_eAppInfo.m_KrnlJmp.Jmp_MCallDllCmd, "unsigned long long __usercall CallDllCmd@<eax:edx>(unsigned int index@<eax>,...);");
+	apply_cdecl(idati, m_eAppInfo.m_KrnlJmp.Jmp_MCallLibCmd, "unsigned long long __usercall CallLibCmd@<eax:edx>(unsigned int libFunc@<ebx>, int argCount, ...);");
+	apply_cdecl(idati, m_eAppInfo.m_KrnlJmp.Jmp_MCallKrnlLibCmd, "unsigned long long __usercall CallKrnlLibCmd@<eax:edx>(unsigned int libFunc@<ebx>, int argCount, ...);");
+	
 	ECSigParser::InitECSigKrnl(m_eAppInfo.m_KrnlJmp);
 	return true;
 }
@@ -472,9 +499,12 @@ bool EDecompilerEngine::Parse_EStatic()
 		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/用户导入表").c_str(), ImportsParser::MenuHandle_ShowImportsInfo);
 	}
 
+#ifdef _DEBUG
+	ECSigParser::Debug_outputECSig();
+#endif
 
 	//识别易语言模块函数
-	show_wait_box(getUTF8String("识别精易模块函数").c_str());
+	show_wait_box(getUTF8String("识别模块函数").c_str());
 	qstring mainECpath;
 	mainECpath.sprnt("%s\\esig\\精易模块.msig", idadir(PLG_SUBDIR));
 	ECSigParser::ScanMSig(mainECpath.c_str(), m_eAppInfo.m_UserCodeStartAddr, m_eAppInfo.m_UserCodeEndAddr);
