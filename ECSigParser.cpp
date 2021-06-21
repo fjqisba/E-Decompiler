@@ -15,7 +15,7 @@
 #include "common/public.h"
 
 mid_KrnlJmp ECSigParser::m_KrnlJmp;
-std::set<ea_t> ECSigParser::mHash_BasicFunc;
+std::map<ea_t, qstring> ECSigParser::mMap_BasicFunc;
 uint32 ECSigParser::m_UserResourceStartAddr = 0x00000000;
 uint32 ECSigParser::m_UserResourceEndAddr = 0x0;
 std::map<ea_t, qstring> ECSigParser::mSave_SubFunc;
@@ -276,8 +276,9 @@ qstring ECSigParser::GetSig_Call(insn_t& ins, qvector<qstring>& vec_saveSig)
 			return GetInsHex(ins);
 		}
 
-		if (mHash_BasicFunc.count(ins.ops[0].addr)) {
-			ret.sprnt("<%s>",get_name(ins.ops[0].addr).c_str());
+		auto it = mMap_BasicFunc.find(ins.ops[0].addr);
+		if (it != mMap_BasicFunc.end()) {
+			ret.sprnt("<%s>", getUTF8String(it->second.c_str()).c_str());
 			return ret;
 		}
 
@@ -668,10 +669,10 @@ void ECSigParser::InitECSigResource(uint32 startAddr, uint32 endAddr)
 	m_UserResourceEndAddr = endAddr;
 }
 
-void ECSigParser::InitECSigBasciFunc(std::set<ea_t>& mhash)
+void ECSigParser::InitECSigBasciFunc(std::map<ea_t, qstring>& mhash)
 {
-	mHash_BasicFunc.clear();
-	mHash_BasicFunc = mhash;
+	mMap_BasicFunc.clear();
+	mMap_BasicFunc = mhash;
 }
 
 void ECSigParser::InitECSigKrnl(mid_KrnlJmp& inFunc)
@@ -2117,7 +2118,7 @@ void ECSigParser::ScanMSig(const char* lpsigPath, ea_t rangeStart, ea_t rangeEnd
 			continue;
 		}
 
-		if (pFunc->start_ea == 0x00406170) {
+		if (pFunc->start_ea == 0x477EF4) {
 			int a = 0;
 		}
 
@@ -2126,12 +2127,15 @@ void ECSigParser::ScanMSig(const char* lpsigPath, ea_t rangeStart, ea_t rangeEnd
 
 		if (funcCount == 1) {
 			auto it = map_MSig.find(goodMD5);
-			setFuncName(pFunc->start_ea, it->second.c_str());
+			setFuncName(pFunc->start_ea, it->second.c_str(), SN_FORCE);
 			msg("%s%a--%s\n", getUTF8String("识别模块函数").c_str(), pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
 			continue;
 		}
 		else if (funcCount != 0) {
-
+			auto it = map_MSig.find(goodMD5);
+			setFuncName(pFunc->start_ea, it->second.c_str());
+			msg("%s%a--%s\n", getUTF8String("识别模块函数").c_str(), pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
+			continue;
 		}
 		
 	}

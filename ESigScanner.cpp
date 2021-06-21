@@ -66,7 +66,7 @@ bool ESigScanner::ScanBasicFunction()
 	qstring LibPath;
 	LibPath.sprnt("%s\\esig\\Ò×ÓïÑÔ»ù´¡ÃüÁî.esig", idadir(PLG_SUBDIR));
 
-	std::set<ea_t> m_Hash;
+	std::map<ea_t, qstring> mMap_BasicFunc;
 	if (!BASICTREE.LoadSig(LibPath.c_str())) {
 		return false;
 	}
@@ -81,8 +81,8 @@ bool ESigScanner::ScanBasicFunction()
 		}
 		qstring funcName = BASICTREE.MatchFunc(SectionManager::LinearAddrToVirtualAddr(pFunc->start_ea));
 		if (!funcName.empty()) {
-			m_Hash.insert(pFunc->start_ea);
-			setFuncName(pFunc->start_ea, funcName.c_str());
+			mMap_BasicFunc[pFunc->start_ea] = funcName;
+			setFuncName(pFunc->start_ea, funcName.c_str(), SN_FORCE);
 		}
 
 		til_t* idati = (til_t*)get_idati();
@@ -90,7 +90,7 @@ bool ESigScanner::ScanBasicFunction()
 			apply_cdecl(idati, pFunc->start_ea, "char* __usercall strcat@<eax>(int argCount@<ecx>, ...);");
 		}
 	}
-	ECSigParser::InitECSigBasciFunc(m_Hash);
+	ECSigParser::InitECSigBasciFunc(mMap_BasicFunc);
 	return true;
 }
 

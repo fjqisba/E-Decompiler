@@ -242,12 +242,12 @@ bool acp_ascii(qstring* out, const char* in)
 	return change_codepage(out, in, CP_UTF8, CP_ACP);
 }
 
-void setFuncName(ea_t addr, const char* funcName)
+void setFuncName(ea_t addr, const char* funcName, int flags)
 {
 	qstring oldName = get_name(addr);
 	if (oldName.find("sub_") != qstring::npos) {
 		qstring newName;
 		acp_utf8(&newName, funcName);
-		set_name(addr, newName.c_str(), SN_NOWARN);
+		set_name(addr, newName.c_str(), SN_NOWARN | flags);
 	}
 }

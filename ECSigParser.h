@@ -12,7 +12,7 @@ public:
 	//生成易语言模块函数特征码
 	static int GenerateECSig(ea_t startAddr);
 	static void InitECSigKrnl(mid_KrnlJmp& inFunc);
-	static void InitECSigBasciFunc(std::set<ea_t>& mhash);
+	static void InitECSigBasciFunc(std::map<ea_t, qstring>& mhash);
 	static void InitECSigResource(uint32 startAddr, uint32 endAddr);
 	static void ScanMSig(const char* sigPath, ea_t rangeStart, ea_t rangeEnd);
 	//调试模式下专用，批量生成特征码
@@ -48,7 +48,7 @@ private:
 	static qstring GetInsPattern_Two(insn_t& ins, char offset);
 private:
 	static mid_KrnlJmp m_KrnlJmp;
-	static std::set<ea_t> mHash_BasicFunc;
+	static std::map<ea_t, qstring> mMap_BasicFunc;
 	static uint32 m_UserResourceStartAddr;
 	static uint32 m_UserResourceEndAddr;
 	static std::map<ea_t, qstring> mSave_SubFunc;
