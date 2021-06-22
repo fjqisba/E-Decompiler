@@ -2118,7 +2118,7 @@ void ECSigParser::ScanMSig(const char* lpsigPath, ea_t rangeStart, ea_t rangeEnd
 			continue;
 		}
 
-		if (pFunc->start_ea == 0x477EF4) {
+		if (pFunc->start_ea == 0x4A50CF) {
 			int a = 0;
 		}
 
