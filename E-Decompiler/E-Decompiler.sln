@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31005.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "E-Decompiler", "E-Decompiler.vcxproj", "{69D9DE55-0316-4B15-9B72-4574CE8152CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{69D9DE55-0316-4B15-9B72-4574CE8152CE}.Debug|x64.ActiveCfg = Debug|x64
+		{69D9DE55-0316-4B15-9B72-4574CE8152CE}.Debug|x64.Build.0 = Debug|x64
+		{69D9DE55-0316-4B15-9B72-4574CE8152CE}.Release|x64.ActiveCfg = Release|x64
+		{69D9DE55-0316-4B15-9B72-4574CE8152CE}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2DE596F7-E554-4FBD-A216-1A1B4E064386}
+	EndGlobalSection
+EndGlobal
