@@ -190,7 +190,7 @@ enum eSymbolFuncType
 	//设置组件属性
 	eFunc_KrnlWriteProperty,
 	//文本相加
-	eFunc_Strcat = 0x2,
+	eFunc_Strcat,
 };
 
 struct EAppControl;

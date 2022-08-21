@@ -147,6 +147,9 @@
     <ClCompile Include="Module\ECSigMaker.cpp">
       <Filter>Module</Filter>
     </ClCompile>
+    <ClCompile Include="Module\EAppControlXref.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SectionManager.h">
@@ -274,6 +277,9 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Module\ECSigMaker.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="Module\EAppControlXref.h">
       <Filter>Module</Filter>
     </ClInclude>
   </ItemGroup>

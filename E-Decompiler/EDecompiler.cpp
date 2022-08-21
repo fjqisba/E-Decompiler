@@ -21,7 +21,7 @@ ssize_t PluginUI_Callback(void* ud, int notification_code, va_list va)
 			decompiler->ecSigMaker.AttachToPopupMenu(view, p);
 		}
 		else if (BWN_PSEUDOCODE == widgetType) {
-
+			decompiler->eControlXref.AttachToPopupMenu(view,p);
 		}
 	}
 	return 0;
@@ -43,12 +43,12 @@ void EDecompiler::makeFunction(ea_t startAddr, ea_t endAddr)
 	}
 }
 
-EDecompiler::EDecompiler() :cTreeFixer(eSymbol)
+EDecompiler::EDecompiler() :cTreeFixer(eSymbol),eControlXref(eSymbol)
 {
-	msg("[E-Decompiler] plugin 0.1 loaded,Author: fjqisba\n");
-
 	arch = E_STATIC;
 	hook_to_notification_point(HT_UI, PluginUI_Callback, this);
+
+	msg("[E-Decompiler] plugin 0.1 loaded,Author: fjqisba\n");
 }
 
 EDecompiler::~EDecompiler()
@@ -99,7 +99,7 @@ bool EDecompiler::InitDecompilerEngine()
 	}
 
 	ecSigMaker.RegisterAction(this);
-
+	eControlXref.RegisterAction(this);
 	return true;
 }
 

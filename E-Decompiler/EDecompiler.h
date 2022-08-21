@@ -4,7 +4,8 @@
 #include "SectionManager.h"
 #include "ESymbol.h"
 #include "./Module/CTreeFixer.h"
-#include "./Module./ECSigMaker.h"
+#include "./Module/ECSigMaker.h"
+#include "./Module/EAppControlXref.h"
 
 enum EArchitectureType
 {
@@ -40,10 +41,13 @@ public:
 	EArchitectureType arch;
 	ESymbol eSymbol;
 	CTreeFixer cTreeFixer;
+
 	ECSigMaker ecSigMaker;
+	EAppControlXref eControlXref;
 private:
 	IDAMenu* gMenu_ShowResource = nullptr;
 	IDAMenu* gMenu_ShowGUIInfo = nullptr;
 	IDAMenu* gMenu_ShowEventInfo = nullptr;
 	IDAMenu* gMenu_ShowImportsInfo = nullptr;
+
 };

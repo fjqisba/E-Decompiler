@@ -6,6 +6,7 @@
 #include "../Utils/Strings.h"
 #include <typeinf.hpp>
 
+//嗯，现阶段目的是让代码可读化，不是直接到源码，因此没必要在代码转换细节进行过度优化
 
 void fix_KrnlWriteProperty(cexpr_t* e, ESymbol& symbolTable)
 {
@@ -33,9 +34,28 @@ void fix_KrnlWriteProperty(cexpr_t* e, ESymbol& symbolTable)
 	e->x->cleanup();
 	e->x->replace_by(tmpHelper);
 
-	//清理参数会报错
 	//argList.erase(&argList[0], &argList[4]);
 	//argList.pop_back();
+}
+
+void fix_KrnlLibFunc(cexpr_t* e, ESymbol& symbolTable)
+{
+	//参数至少是两个
+	carglist_t& argList = *(e->a);
+	if (argList.size() < 2) {
+		return;
+	}
+
+	//unsigned int callLibAddr = argList[0].x->obj_ea;
+	//qstring funcName;
+	//get_func_name(&funcName,callLibAddr);
+	//
+	//cexpr_t* tmpHelper = create_helper(true, e->a->functype, "%s", funcName.c_str());
+	//e->x->cleanup();
+	//e->x->replace_by(tmpHelper);
+	//
+	//argList.del(argList[1]);
+	//argList.del(argList[0]);
 }
 
 void fix_KrnlReadProperty(cexpr_t* e, ESymbol& symbolTable)
@@ -65,8 +85,8 @@ void fix_KrnlReadProperty(cexpr_t* e, ESymbol& symbolTable)
 	e->x->cleanup();
 	e->x->replace_by(tmpHelper);
 
-	//貌似不能随便清理参数
-	//argList[0].op = cot_empty;
+	//clear是清理不干净指针的
+	//argList.erase(argList.begin(),argList.end());
 }
 
 struct CTreeFixer_Vistor : public ctree_visitor_t
@@ -80,14 +100,23 @@ struct CTreeFixer_Vistor : public ctree_visitor_t
 			if (!symbolT) {
 				return 0;
 			}
-			if (symbolT == eFunc_KrnlReadProerty)
+			switch (symbolT)
 			{
-				fix_KrnlReadProperty(e,symbolTable);
-				return 0;
-			}
-			if (symbolT == eFunc_KrnlWriteProperty) {
+			case eFunc_Unknown:
+				break;
+			case eFunc_KrnlLibFunc:
+				fix_KrnlLibFunc(e,symbolTable);
+				break;
+			case eFunc_KrnlReadProerty:
+				fix_KrnlReadProperty(e, symbolTable);
+				break;
+			case eFunc_KrnlWriteProperty:
 				fix_KrnlWriteProperty(e, symbolTable);
-				return 0;
+				break;
+			case eFunc_Strcat:
+				break;
+			default:
+				break;
 			}
 		}
 		return 0;

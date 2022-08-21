@@ -74,3 +74,15 @@ bool IDAWrapper::apply_cdecl(unsigned int ea, const char* decl, int flags /*= 0*
 	til_t* idati = (til_t*)get_idati();
 	return ::apply_cdecl(idati, ea, decl, flags);
 }
+
+std::vector<unsigned int> IDAWrapper::getAllCodeXrefAddr(unsigned int addr)
+{
+	std::vector<unsigned int> retXrefList;
+	auto XrefAddr = get_first_cref_to(addr);
+	while (XrefAddr != BADADDR)
+	{
+		retXrefList.push_back(XrefAddr);
+		XrefAddr = get_next_cref_to(addr, XrefAddr);
+	}
+	return retXrefList;
+}

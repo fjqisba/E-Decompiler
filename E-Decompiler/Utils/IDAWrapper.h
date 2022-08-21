@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 namespace IDAWrapper{
 	void show_wait_box(const char* msg);
@@ -16,4 +17,7 @@ namespace IDAWrapper{
 	void msg(const char* format, ...);
 
 	bool apply_cdecl(unsigned int ea, const char* decl, int flags = 0);
+
+	//获取代码交叉引用地址
+	std::vector<unsigned int> getAllCodeXrefAddr(unsigned int addr);
 }

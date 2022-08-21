@@ -1,6 +1,5 @@
 #include "ECSigMaker.h"
 #include "../Utils/Strings.h"
-#include <kernwin.hpp>
 
 #define ACTION_ECSIGMAKER "EDecompiler::GenerateECSig"
 

@@ -325,6 +325,7 @@ bool ESymbol::loadKrnlInterface(unsigned int lpKrnlEntry)
 
 	eSymbolFuncTypeMap[krnlJmp.Jmp_MReadProperty] = eFunc_KrnlReadProerty;
 	eSymbolFuncTypeMap[krnlJmp.Jmp_MWriteProperty] = eFunc_KrnlWriteProperty;
+	eSymbolFuncTypeMap[krnlJmp.Jmp_MCallKrnlLibCmd] = eFunc_KrnlLibFunc;
 
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MCallDllCmd, "krnlRet __usercall CallDllCmd@<eax:edx>(unsigned int index@<eax>,...);");
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MCallLibCmd, "krnlRet __usercall CallLibCmd@<eax:edx>(unsigned int libFunc@<ebx>, int argCount, ...);");
