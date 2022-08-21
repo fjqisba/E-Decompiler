@@ -39,9 +39,6 @@
     <ClCompile Include="ControlInfoWidget.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
-    <ClCompile Include="GuiParser.cpp">
-      <Filter>头文件\EParserModule</Filter>
-    </ClCompile>
     <ClCompile Include="ESigScanner.cpp">
       <Filter>头文件\EParserModule</Filter>
     </ClCompile>
@@ -54,14 +51,8 @@
     <ClCompile Include="common\public.cpp">
       <Filter>头文件\common</Filter>
     </ClCompile>
-    <ClCompile Include="common\IDAMenu.cpp">
-      <Filter>头文件\common</Filter>
-    </ClCompile>
     <ClCompile Include="common\md5.cpp">
       <Filter>头文件\common</Filter>
-    </ClCompile>
-    <ClCompile Include="Plugin.cpp">
-      <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ESymbol.cpp">
       <Filter>源文件</Filter>
@@ -150,6 +141,12 @@
     <ClCompile Include="EAppControl\CKrnl_CheckBox.cpp">
       <Filter>EAppControl</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\IDAMenu.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Module\ECSigMaker.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SectionManager.h">
@@ -165,9 +162,6 @@
     <ClInclude Include="PropertyDelegate.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GuiParser.h">
-      <Filter>头文件\EParserModule</Filter>
-    </ClInclude>
     <ClInclude Include="EsigScanner.h">
       <Filter>头文件\EParserModule</Filter>
     </ClInclude>
@@ -180,17 +174,11 @@
     <ClInclude Include="ECSigParser.h">
       <Filter>头文件\EParserModule</Filter>
     </ClInclude>
-    <ClInclude Include="common\IDAMenu.h">
-      <Filter>头文件\common</Filter>
-    </ClInclude>
     <ClInclude Include="common\public.h">
       <Filter>头文件\common</Filter>
     </ClInclude>
     <ClInclude Include="common\md5.h">
       <Filter>头文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="Plugin.h">
-      <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="ESymbol.h">
       <Filter>源文件</Filter>
@@ -281,6 +269,12 @@
     </ClInclude>
     <ClInclude Include="EAppControl\CKrnl_CheckBox.h">
       <Filter>EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\IDAMenu.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Module\ECSigMaker.h">
+      <Filter>Module</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

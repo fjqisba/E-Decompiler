@@ -13,9 +13,6 @@ qstring CalculateMD5(qstring& md5);
 const char* UCharToStr(unsigned char c);
 
 
-
-
-
 //参数一为原文本,参数二为左边文本,参数三为右边文本,参数四为起始偏移
 qstring GetMidString(qstring& src, const char* left, const char* right, int offset);
 
@@ -32,8 +29,6 @@ bool HasDataRef(ea_t addr);
 
 
 qstring getUTF8String(const char*);
-
-
 
 //序列化_读取Int
 int CDR_ReadInt(unsigned char*& currentPoint);

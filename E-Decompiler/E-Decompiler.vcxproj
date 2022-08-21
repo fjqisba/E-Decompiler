@@ -110,7 +110,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="common\IDAMenu.cpp" />
     <ClCompile Include="common\md5.cpp" />
     <ClCompile Include="common\public.cpp" />
     <ClCompile Include="ControlInfoWidget.cpp" />
@@ -142,18 +141,17 @@
     <ClCompile Include="EDecompiler.cpp" />
     <ClCompile Include="ESigScanner.cpp" />
     <ClCompile Include="ESymbol.cpp" />
-    <ClCompile Include="GuiParser.cpp" />
     <ClCompile Include="ImportsParser.cpp" />
     <ClCompile Include="Module\CTreeFixer.cpp" />
-    <ClCompile Include="Plugin.cpp" />
+    <ClCompile Include="Module\ECSigMaker.cpp" />
     <ClCompile Include="SectionManager.cpp" />
     <ClCompile Include="TrieTree.cpp" />
     <ClCompile Include="Utils\Common.cpp" />
+    <ClCompile Include="Utils\IDAMenu.cpp" />
     <ClCompile Include="Utils\IDAWrapper.cpp" />
     <ClCompile Include="Utils\Strings.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\IDAMenu.h" />
     <ClInclude Include="common\md5.h" />
     <ClInclude Include="common\public.h" />
     <ClInclude Include="EAppControl\EAppControl.h" />
@@ -184,10 +182,9 @@
     <ClInclude Include="ELib.h" />
     <ClInclude Include="EsigScanner.h" />
     <ClInclude Include="ESymbol.h" />
-    <ClInclude Include="GuiParser.h" />
     <ClInclude Include="ImportsParser.h" />
     <ClInclude Include="Module\CTreeFixer.h" />
-    <ClInclude Include="Plugin.h" />
+    <ClInclude Include="Module\ECSigMaker.h" />
     <ClInclude Include="PropertyDelegate.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ControlInfoWidget.h" />
@@ -195,6 +192,7 @@
     <ClInclude Include="SectionManager.h" />
     <ClInclude Include="TrieTree.h" />
     <ClInclude Include="Utils\Common.h" />
+    <ClInclude Include="Utils\IDAMenu.h" />
     <ClInclude Include="Utils\IDAWrapper.h" />
     <ClInclude Include="Utils\Strings.h" />
   </ItemGroup>

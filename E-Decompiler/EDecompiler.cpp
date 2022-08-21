@@ -1,54 +1,31 @@
 ﻿#include "EDecompiler.h"
-#include <pro.h>
-#include <bytes.hpp>
-#include <segment.hpp>
-#include <loader.hpp>
-#include <funcs.hpp>
-#include <typeinf.hpp>
-#include <ua.hpp>
-#include <auto.hpp>
-#include <allins.hpp>
-#include <diskio.hpp>
-#include <struct.hpp>
-#include "common/IDAMenu.h"
-#include "common/public.h"
-#include "ControlInfoWidget.h"
 
-#include "GuiParser.h"
+#include <auto.hpp>
+#include "Utils/IDAMenu.h"
+#include "common/public.h"
 #include "EsigScanner.h"
 #include "ECSigParser.h"
 #include "ImportsParser.h"
+#include <hexrays.hpp>
 
-#define ACTION_GenECSig "eDecompiler::GenerateECSig"
+hexdsp_t* hexdsp = NULL;
 
-
-struct GenECSigHandler :public action_handler_t
+ssize_t PluginUI_Callback(void* ud, int notification_code, va_list va)
 {
-	int idaapi activate(action_activation_ctx_t* ctx)
-	{
-		return ECSigParser::GenerateECSig(get_screen_ea());
-	}
-	action_state_t idaapi update(action_update_ctx_t* ctx)
-	{
-		return AST_ENABLE_ALWAYS;
-	}
-};
+	EDecompiler* decompiler = (EDecompiler*)(ud);
+	if (notification_code == ui_populating_widget_popup) {
+		TWidget* view = va_arg(va, TWidget*);
+		TPopupMenu* p = va_arg(va, TPopupMenu*);
+		int widgetType = get_widget_type(view);
+		if (BWN_DISASM == widgetType) {
+			decompiler->ecSigMaker.AttachToPopupMenu(view, p);
+		}
+		else if (BWN_PSEUDOCODE == widgetType) {
 
-struct DecompileHandler :public action_handler_t
-{
-	int idaapi activate(action_activation_ctx_t* ctx)
-	{
-		return EDecompiler::Instance().DoDecompile();
+		}
 	}
-	action_state_t idaapi update(action_update_ctx_t* ctx)
-	{
-		return AST_ENABLE_ALWAYS;
-	}
-};
-
-DecompileHandler gHandler_Decompile;
-GenECSigHandler gHandler_GenEcSig;
-
+	return 0;
+}
 
 void EDecompiler::makeFunction(ea_t startAddr, ea_t endAddr)
 {
@@ -68,8 +45,10 @@ void EDecompiler::makeFunction(ea_t startAddr, ea_t endAddr)
 
 EDecompiler::EDecompiler() :cTreeFixer(eSymbol)
 {
+	msg("[E-Decompiler] plugin 0.1 loaded,Author: fjqisba\n");
+
 	arch = E_STATIC;
-	hook_to_notification_point(HT_UI, ui_callback);
+	hook_to_notification_point(HT_UI, PluginUI_Callback, this);
 }
 
 EDecompiler::~EDecompiler()
@@ -90,70 +69,41 @@ EDecompiler::~EDecompiler()
 		gMenu_ShowImportsInfo->DestroyMenu();
 		gMenu_ShowImportsInfo = nullptr;
 	}
-	unhook_from_notification_point(HT_UI, ui_callback);
+	term_hexrays_plugin();
+	unhook_from_notification_point(HT_UI, PluginUI_Callback,this);
 }
 
 
-EDecompiler& EDecompiler::Instance()
+bool idaapi EDecompiler::run(size_t)
 {
-	static EDecompiler g_Decompiler;
-	return g_Decompiler;
-}
-
-ssize_t EDecompiler::ui_callback(void* ud, int notification_code, va_list va)
-{
-	if (notification_code == ui_populating_widget_popup) {
-		TWidget* view = va_arg(va, TWidget*);
-		if (get_widget_type(view) == BWN_DISASM) {
-			TPopupMenu* p = va_arg(va, TPopupMenu*);
-			attach_action_to_popup(view, p, "eDecompiler::GenerateECSig", nullptr, SETMENU_FIRST);
-		}
-	}
-	return 0;
-}
-
-bool EDecompiler::InitDecompilerEngine()
-{
-	FixEStructure();
-	if (!SectionManager::InitSectionManager()) {
+	show_wait_box(getUTF8String("等待IDA初始化分析完毕").c_str());
+	auto_wait();
+	hide_wait_box();
+	if (!this->InitDecompilerEngine()) {
+		msg("Error,InitDecompilerEngine Failed\n");
 		return false;
 	}
-	if (!InitEArchitectureType()) {
-		return false;
-	}
-
-	//注册窗口菜单
-	qstring menuName = getUTF8String("生成易语言函数特征");
-	const action_desc_t GenEsigDesc = {
-	sizeof(action_desc_t),
-	ACTION_GenECSig,
-	menuName.c_str(),
-	&gHandler_GenEcSig,
-	&PLUGIN,
-	nullptr,
-	nullptr,
-	0,
-	ADF_OT_PLUGIN
-	};
-	register_action(GenEsigDesc);
-
-	//注册快捷键
-	const action_desc_t desc = {
-	sizeof(action_desc_t),
-	"eDecompile",
-	"e Decompile",
-	&gHandler_Decompile,
-	&PLUGIN,
-	"F6",
-	nullptr,
-	0,
-	ADF_OT_PLUGIN
-	};
-	register_action(desc);
 	return true;
 }
 
-void EDecompiler::FixEStructure()
+
+
+bool EDecompiler::InitDecompilerEngine()
+{
+	ImportsEStructure();
+	if (!SectionManager::InitSectionManager()) {
+		return false;
+	}
+	if (!initEArchitectureType()) {
+		return false;
+	}
+
+	ecSigMaker.RegisterAction(this);
+
+	return true;
+}
+
+void EDecompiler::ImportsEStructure()
 {
 	auto idati = (til_t*)get_idati();
 	
@@ -175,21 +125,7 @@ void EDecompiler::FixEStructure()
 	parse_decls(idati, UNIT_PROPERTY_VALUE, NULL, 0);
 }
 
-bool EDecompiler::DoDecompile()
-{
-	ea_t funcAddr = get_screen_ea();
-
-	func_t* pFunc = get_func(funcAddr);
-	if (!pFunc) {
-		return false;
-	}
-
-
-	return true;
-}
-
-
-bool EDecompiler::InitEArchitectureType()
+bool EDecompiler::initEArchitectureType()
 {
 	this->arch = E_UNKNOWN;
 
@@ -225,11 +161,6 @@ bool EDecompiler::Parse_EStatic(unsigned int eHeadAddr)
 
 	return eSymbol.LoadEStaticSymbol(eHeadAddr,&eHead);
 
-
-
-
-
-
 #ifdef _DEBUG
 	ECSigParser::Debug_outputECSig();
 #endif
@@ -243,3 +174,31 @@ bool EDecompiler::Parse_EStatic(unsigned int eHeadAddr)
 	//msg("%s\n", getUTF8String("检测到是易语言静态编译程序").c_str());
 	return true;
 }
+
+static plugmod_t* idaapi init()
+{
+	// no decompiler
+	if (!init_hexrays_plugin()) {
+		return nullptr;
+	}
+	return new EDecompiler();
+}
+
+//--------------------------------------------------------------------------
+static char comment[] = "E-Language Programs Decompiler By fjqisba";
+
+#define PLUGINNAME "\xE6\x98\x93\xE8\xAF\xAD\xE8\xA8\x80\xE5\x8F\x8D\xE7\xBC\x96\xE8\xAF\x91\xE5\x99\xA8"
+
+plugin_t PLUGIN =
+{
+  IDP_INTERFACE_VERSION,
+  PLUGIN_MULTI ,                // The plugin can work with multiple idbs in parallel
+  init,                         // initialize
+  nullptr,
+  nullptr,
+  comment,              // long comment about the plugin
+  "fjqisba@sohu.com",   // multiline help about the plugin
+  PLUGINNAME,           // the preferred short name of the plugin
+  nullptr,              // the preferred hotkey to run the plugin
+};
+
