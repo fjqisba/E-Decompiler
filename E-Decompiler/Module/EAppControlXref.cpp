@@ -228,14 +228,13 @@ void EAppControlXref::showXrefList()
 		{
 			qstrvec_t& cols = *cols_;
 
-			if (xRefList[n].xRefAddr > currentAddr) {
-				cols[0] = "Up";
-			}
-			else if (xRefList[n].xRefAddr == currentAddr) {
-				cols[0] = "";
-			}
-			else {
-				cols[0] = "Down";
+			if (xRefList[n].xRefAddr != currentAddr) {
+				if (xRefList[n].xRefAddr > currentAddr) {
+					cols[0] = "Down";
+				}
+				else {
+					cols[0] = "Up";
+				}
 			}
 
 			if (xRefList[n].type == XrefWriteProperty) {
@@ -261,10 +260,13 @@ void EAppControlXref::showXrefList()
 			return xRefList.size();
 		}
 	};
-	
+
 	std::string xRefListTitle = "xref to " + this->currentAppControl->controlName;
 	qstring utf8Title;
 	acp_utf8(&utf8Title,xRefListTitle.c_str());
+	std::sort(allXrefData.begin(), allXrefData.end(), [](eAppControlXrefData& v1, eAppControlXrefData& v2) {
+		return v1.xRefAddr < v2.xRefAddr;
+		});
 	chooser_ControlXrefList* pXRefShowList = new chooser_ControlXrefList(utf8Title.c_str(),
 		this->currentAddr, this->allXrefData);
 	pXRefShowList->choose();

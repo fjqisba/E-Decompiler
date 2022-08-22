@@ -194,11 +194,6 @@ enum eSymbolFuncType
 };
 
 struct EAppControl;
-struct eSymbol_GuiInfo
-{
-	unsigned int windowId;                              //控件所属窗口ID
-	std::vector<EAppControl*> controlInfoList;          //窗口中的控件
-};
 
 struct eSymbol_ControlIndex
 {
@@ -234,6 +229,8 @@ public:
 	eSymbolFuncType GetFuncSymbolType(unsigned int addr);
 	//通过窗口ID和控件ID索引到控件
 	EAppControl* GetEAppControl(unsigned int windowID,unsigned int controID);
+
+
 private:
 	//加载支持库信息
 	bool loadELibInfomation(unsigned int lpLibStartAddr, unsigned int dwLibCount);
@@ -250,9 +247,10 @@ private:
 	//根据菜单的类型ID来得到名称,0x10001 -> 窗口
 	std::string getControlTypeName(unsigned int typeId);
 	
-	//注册信息
-	void registerControlType(unsigned int controlId,eSymbol_ControlType type);
 	bool registerKrnlJmpAddr(unsigned int callAddr, unsigned int setAddr);
+
+	//设置控件的事件名称
+	void setGuiEventName();
 	//清理控件
 	void clearControlData();
 public:
@@ -265,11 +263,13 @@ public:
 	unsigned int userCodeStartAddr;
 	//用户结束地址,目前暂时还没有什么好办法获取这个地址,如果有好的想法欢迎提issue
 	unsigned int userCodeEndAddr;
-	//界面控件信息
-	std::vector<eSymbol_GuiInfo> vec_GuiInfo;
+
+	//存储所有的控件信息
+	std::vector<EAppControl*> allControlList;
 private:
 	//标记函数类型
 	std::map<unsigned int,eSymbolFuncType> eSymbolFuncTypeMap;
-	//存储所有的控件信息
+
+	//存储所有的控件信息,内容和allControlList一样
 	std::map<eSymbol_ControlIndex, EAppControl*> allControlMap;
 };

@@ -14,7 +14,7 @@
     <ProjectGuid>{69D9DE55-0316-4B15-9B72-4574CE8152CE}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0</WindowsTargetPlatformVersion>
     <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -102,7 +102,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,6 +145,7 @@
     <ClCompile Include="Module\EAppControlXref.cpp" />
     <ClCompile Include="Module\CTreeFixer.cpp" />
     <ClCompile Include="Module\ECSigMaker.cpp" />
+    <ClCompile Include="Module\ShowEventList.cpp" />
     <ClCompile Include="SectionManager.cpp" />
     <ClCompile Include="TrieTree.cpp" />
     <ClCompile Include="Utils\Common.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="Module\EAppControlXref.h" />
     <ClInclude Include="Module\CTreeFixer.h" />
     <ClInclude Include="Module\ECSigMaker.h" />
+    <ClInclude Include="Module\ShowEventList.h" />
     <ClInclude Include="PropertyDelegate.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ControlInfoWidget.h" />

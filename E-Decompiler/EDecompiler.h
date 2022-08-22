@@ -49,5 +49,4 @@ private:
 	IDAMenu* gMenu_ShowGUIInfo = nullptr;
 	IDAMenu* gMenu_ShowEventInfo = nullptr;
 	IDAMenu* gMenu_ShowImportsInfo = nullptr;
-
 };

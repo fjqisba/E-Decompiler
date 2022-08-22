@@ -28,7 +28,7 @@ qvector<ea_t> GetAllDataRef(ea_t addr);
 bool HasDataRef(ea_t addr);
 
 
-qstring getUTF8String(const char*);
+qstring getUTF8String(const char* data);
 
 //–Ú¡–ªØ_∂¡»°Int
 int CDR_ReadInt(unsigned char*& currentPoint);

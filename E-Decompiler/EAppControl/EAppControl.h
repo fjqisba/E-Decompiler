@@ -14,6 +14,8 @@ public:
 	virtual std::string GetPropertyName(unsigned int propertyIndex) = 0;
 public:
 	eSymbol_ControlType type;
+	//控件所属窗口ID
+	unsigned int windowID;
 	//控件自身ID
 	unsigned int controlId;
 	//控件名称

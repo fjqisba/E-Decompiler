@@ -150,6 +150,9 @@
     <ClCompile Include="Module\EAppControlXref.cpp">
       <Filter>Module</Filter>
     </ClCompile>
+    <ClCompile Include="Module\ShowEventList.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SectionManager.h">
@@ -280,6 +283,9 @@
       <Filter>Module</Filter>
     </ClInclude>
     <ClInclude Include="Module\EAppControlXref.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="Module\ShowEventList.h">
       <Filter>Module</Filter>
     </ClInclude>
   </ItemGroup>

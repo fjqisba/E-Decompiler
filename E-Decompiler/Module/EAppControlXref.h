@@ -3,8 +3,6 @@
 #include <kernwin.hpp>
 #include <vector>
 
-
-
 //易语言控件交叉引用
 
 class ESymbol;

@@ -7,6 +7,7 @@
 #include "ECSigParser.h"
 #include "ImportsParser.h"
 #include <hexrays.hpp>
+#include "./Module/ShowEventList.h"
 
 hexdsp_t* hexdsp = NULL;
 
@@ -86,8 +87,6 @@ bool idaapi EDecompiler::run(size_t)
 	return true;
 }
 
-
-
 bool EDecompiler::InitDecompilerEngine()
 {
 	ImportsEStructure();
@@ -100,6 +99,8 @@ bool EDecompiler::InitDecompilerEngine()
 
 	ecSigMaker.RegisterAction(this);
 	eControlXref.RegisterAction(this);
+
+	gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("易语言/控件事件信息").c_str(), ShowEventList, &eSymbol);
 	return true;
 }
 
@@ -160,10 +161,6 @@ bool EDecompiler::Parse_EStatic(unsigned int eHeadAddr)
 	hide_wait_box();
 
 	return eSymbol.LoadEStaticSymbol(eHeadAddr,&eHead);
-
-#ifdef _DEBUG
-	ECSigParser::Debug_outputECSig();
-#endif
 
 	//识别易语言模块函数
 	//show_wait_box(getUTF8String("识别模块函数").c_str());

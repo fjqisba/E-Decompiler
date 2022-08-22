@@ -6,6 +6,7 @@
 #include <ua.hpp>
 #include <allins.hpp>
 #include "./Utils/Common.h"
+#include "./Utils/IDAMenu.h"
 #include "./EAppControl/EAppControlFactory.h"
 #include "./EAppControl/EAppControl.h"
 
@@ -109,10 +110,6 @@ bool ESymbol::LoadEStaticSymbol(unsigned int eHeadAddr, EComHead* eHead)
 		IDAWrapper::show_wait_box(LocalCpToUtf8("解析易语言控件资源").c_str());
 		loadGUIResource(eHead->lpEWindow, eHead->dwEWindowSize);
 		hide_wait_box();
-		//gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/窗口控件信息").c_str(), GuiParser::MenuHandle_ShowGuiInfo);
-		//if (GuiParser::GetEventCount()) {
-		//	gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("易语言/控件事件信息").c_str(), GuiParser::MenuHandle_ShowEventInfo);
-		//}
 	}
 
 	//if (eHead.dwApiCount) {
@@ -122,6 +119,7 @@ bool ESymbol::LoadEStaticSymbol(unsigned int eHeadAddr, EComHead* eHead)
 	//	gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/用户导入表").c_str(), ImportsParser::MenuHandle_ShowImportsInfo);
 	//}
 
+	setGuiEventName();
 
 	return true;
 }
@@ -236,7 +234,7 @@ bool ESymbol::scanBasicFunction()
 {
 	TrieTree BASICTREE;
 	qstring LibPath;
-	LibPath.sprnt("%s\\esig\\易语言基础命令.esig", IDAWrapper::idadir("plugin"));
+	LibPath.sprnt("%s\\esig\\易语言基础命令.esig", IDAWrapper::idadir("plugins"));
 
 	std::map<ea_t, qstring> mMap_BasicFunc;
 	if (!BASICTREE.LoadSig(LibPath.c_str())) {
@@ -430,9 +428,6 @@ bool ESymbol::loadGUIResource(unsigned int lpGUIStart, unsigned int infoSize)
 	for (unsigned int nIndexWindow = 0; nIndexWindow < dwTotalWindowCount; ++nIndexWindow) {
 		unsigned char* lpWindowInfo = lpCurrentParseAddr;
 
-		eSymbol_GuiInfo eGuiInfo;
-		eGuiInfo.windowId = vec_WindowId[nIndexWindow];
-
 		//暂时未知
 		uint32 unKnownFieldA = ReadUInt(lpWindowInfo);
 		lpWindowInfo += 4;
@@ -488,11 +483,13 @@ bool ESymbol::loadGUIResource(unsigned int lpGUIStart, unsigned int infoSize)
 				if (!eControlInfo) {
 					continue;
 				}
+				eControlInfo->windowID = vec_WindowId[nIndexWindow];
+		
 				if (dwControlTypeId == 0x10001) {
 					eControlInfo->controlName = ReadStr(lpControlInfo);
 					lpControlInfo += strlen((const char*)lpControlInfo) + 1;
 					if (eControlInfo->controlName.empty()) {
-						sprintf_s(sprinfBuf, "窗口0x%08X", eGuiInfo.windowId);
+						sprintf_s(sprinfBuf, "窗口0x%08X", eControlInfo->windowID);
 						eControlInfo->controlName = sprinfBuf;
 					}
 					parseControlBasciProperty(lpControlInfo, eControlInfo);
@@ -510,12 +507,10 @@ bool ESymbol::loadGUIResource(unsigned int lpGUIStart, unsigned int infoSize)
 				eControlInfo->controlTypeId = dwControlTypeId;
 				eControlInfo->controlTypeName = getControlTypeName(dwControlTypeId);
 				
-				allControlMap[eSymbol_ControlIndex(eGuiInfo.windowId, eControlInfo->controlId)] = eControlInfo;
-				eGuiInfo.controlInfoList.push_back(eControlInfo);
+				allControlMap[eSymbol_ControlIndex(eControlInfo->windowID, eControlInfo->controlId)] = eControlInfo;
+				allControlList.push_back(eControlInfo);
 			}
 		}
-
-		vec_GuiInfo.push_back(eGuiInfo);
 		lpCurrentParseAddr = lpWindowInfo + dwTotalControlSize;
 	}
 
@@ -569,16 +564,30 @@ bool ESymbol::registerKrnlJmpAddr(unsigned int callAddr, unsigned int setAddr)
 	return true;
 }
 
+void ESymbol::setGuiEventName()
+{
+	for (std::map<eSymbol_ControlIndex, EAppControl*>::iterator it = allControlMap.begin(); it != allControlMap.end(); ++it) {
+		EAppControl* tmpControl = it->second;
+		if (!tmpControl) {
+			continue;
+		}
+		for (unsigned int n = 0; n < tmpControl->eventList.size(); ++n) {
+			auto eventName = tmpControl->GetEventName(tmpControl->eventList[n].eventIndex);
+			qstring funcName;
+			funcName.sprnt("_%s_%s", tmpControl->controlName.c_str(), eventName.c_str());
+			IDAWrapper::setFuncName(tmpControl->eventList[n].eventAddr, funcName.c_str());
+		}
+	}
+}
+
 void ESymbol::clearControlData()
 {
 	allControlMap.clear();
-	for (unsigned int nWindowIndex = 0; nWindowIndex < vec_GuiInfo.size(); ++nWindowIndex) {
-		for (unsigned int nControlIndex = 0; nControlIndex < vec_GuiInfo[nWindowIndex].controlInfoList.size(); ++nControlIndex) {
-			EAppControl* eAppControl = vec_GuiInfo[nWindowIndex].controlInfoList[nControlIndex];
-			if (eAppControl) {
-				delete eAppControl;
-			}
+	for (unsigned int nControlIndex = 0; nControlIndex < allControlList.size(); ++nControlIndex) {
+		EAppControl* eAppControl = allControlList[nControlIndex];
+		if (eAppControl) {
+			delete eAppControl;
 		}
 	}
-	vec_GuiInfo.clear();
+	allControlList.clear();
 }
