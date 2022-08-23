@@ -242,6 +242,9 @@ private:
 	bool loadKrnlInterface(unsigned int lpKrnlEntry);
 	//加载界面资源信息
 	bool loadGUIResource(unsigned int lpGUIStart, unsigned int infoSize);
+	
+	//扫描易语言类虚表
+	bool scanEClassTable();
 	//解析控件基础属性
 	void parseControlBasciProperty(unsigned char* lpControlInfo, EAppControl* outControl);
 	//根据菜单的类型ID来得到名称,0x10001 -> 窗口

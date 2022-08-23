@@ -7,6 +7,7 @@ namespace IDAWrapper{
 	void hide_wait_box();
 	int get_bytes(void* buf, unsigned int size,unsigned int ea,int gmb_flags = 0,void* mask = nullptr);
 	unsigned int get_dword(unsigned int ea);
+	unsigned short get_word(unsigned int ea);
 	std::string get_shortstring(unsigned int addr);
 
 	const char* idadir(const char* subdir);

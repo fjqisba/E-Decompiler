@@ -46,11 +46,11 @@
 - [x] 易语言库函数的特征码识别引擎移植。
 - [ ] 易语言模块函数的特征码提取与识别。
 
-反编译部分
+反编译核心部分
 
-- [ ] 控件的交叉引用，尝试通过编写右键菜单来处理。
+- [x] 控件的交叉引用，控件事件的展示。
 - [ ] 易语言基础特征函数的优化。
-- [ ] 
+- [ ] DLL命令调用函数的优化。
 
 本项目完全是由个人利用业余时间开发，不定时更新。
 
@@ -71,3 +71,5 @@ https://chaotic.gd/ghidra-decompiler-docs-built/index.html
 [patois/HRDevHelper: Context-sensitive HexRays decompiler plugin that visualizes the ctree of decompiled functions. (github.com)](https://github.com/patois/HRDevHelper)
 
 https://github.com/OpenEpl/TextECode
+
+项目交流QQ群:633783602

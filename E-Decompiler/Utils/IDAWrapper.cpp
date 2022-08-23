@@ -26,6 +26,11 @@ unsigned int IDAWrapper::get_dword(unsigned int ea)
 	return ::get_dword(ea);
 }
 
+unsigned short IDAWrapper::get_word(unsigned int ea)
+{
+	return ::get_word(ea);
+}
+
 std::string IDAWrapper::get_shortstring(unsigned int addr)
 {
 	if (addr <= 0)

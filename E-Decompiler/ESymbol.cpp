@@ -5,6 +5,10 @@
 #include "SectionManager.h"
 #include <ua.hpp>
 #include <allins.hpp>
+#include <struct.hpp>
+#include <typeinf.hpp>
+#include <unordered_set>
+#include <hexrays.hpp>
 #include "./Utils/Common.h"
 #include "./Utils/IDAMenu.h"
 #include "./EAppControl/EAppControlFactory.h"
@@ -102,6 +106,10 @@ bool ESymbol::LoadEStaticSymbol(unsigned int eHeadAddr, EComHead* eHead)
 		return false;
 	}
 
+	IDAWrapper::show_wait_box(LocalCpToUtf8("扫描易语言类").c_str());
+	scanEClassTable();
+	IDAWrapper::hide_wait_box();
+
 	if (eHead->lpEString != 0 && eHead->dwEStringSize != 0) {
 		//To do... 易语言常量资源范围有什么用呢
 	}
@@ -139,7 +147,6 @@ bool ESymbol::loadELibInfomation(unsigned int lpLibStartAddr, unsigned int dwLib
 	if (!dwLibCount || !lpLibStartAddr) {
 		return true;
 	}
-
 
 	for (unsigned int nLibIndex = 0; nLibIndex < dwLibCount; ++nLibIndex) {
 		unsigned int controlTypeId = 0;
@@ -257,6 +264,9 @@ bool ESymbol::scanBasicFunction()
 			IDAWrapper::apply_cdecl(pFunc->start_ea, "char* __usercall strcat@<eax>(int argCount@<ecx>, ...);");
 			eSymbolFuncTypeMap[pFunc->start_ea] = eFunc_Strcat;
 		}
+		else if (funcName == "连续省略参数") {
+			IDAWrapper::apply_cdecl(pFunc->start_ea, "void __usercall pushDefaultParam(int argCount@<ebx>);");
+		}
 	}
 	return true;
 }
@@ -331,7 +341,7 @@ bool ESymbol::loadKrnlInterface(unsigned int lpKrnlEntry)
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MReadProperty, "krnlRet __usercall CallReadProperty@<eax:edx>(unsigned int,unsigned int,unsigned int,unsigned int);");
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MWriteProperty, "void __cdecl CallWriteProperty(unsigned int windowId,unsigned int controlId,unsigned int nPropertyIndex,unsigned int nDataSize,UNIT_PROPERTY_VALUE,unsigned int ppszTipText);");
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MFree, "void __cdecl CallFree(LPVOID lpMem);");
-
+	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MMalloc, "LPVOID __cdecl malloc(SIZE_T dwBytes);");
 	return true;
 }
 
@@ -516,6 +526,86 @@ bool ESymbol::loadGUIResource(unsigned int lpGUIStart, unsigned int infoSize)
 
 	return true;
 }
+
+bool ESymbol::scanEClassTable()
+{
+	//不信有区段大于0x1000000
+	qstring movClassTable;
+	movClassTable.sprnt("C7 03 ?? ?? ?? %02X", userCodeStartAddr >> 0x18);
+
+	compiled_binpat_vec_t binPat;
+	parse_binpat_str(&binPat, 0x0, movClassTable.c_str(), 16);
+
+	ea_t searchStartAddr = userCodeStartAddr;
+	std::unordered_set<unsigned int> guessClassTableList;
+	while (true)
+	{
+		searchStartAddr = bin_search2(searchStartAddr, userCodeEndAddr, binPat, 0x0);
+		if (searchStartAddr == BADADDR)
+		{
+			break;
+		}
+		auto guessAddr = IDAWrapper::get_dword(searchStartAddr + 0x2);
+		searchStartAddr = searchStartAddr + 6;
+		if (guessAddr < userCodeStartAddr) {
+			continue;
+		}
+		//判断虚表中是否含有拷贝函数,有待验证
+		auto copyHead = IDAWrapper::get_word(IDAWrapper::get_dword(guessAddr + 0x4));
+		if (copyHead != 0x6850) {
+			continue;
+		}
+		guessClassTableList.insert(guessAddr);
+	}
+
+	if (guessClassTableList.size() == 0) {
+		return true;
+	}
+
+	//根本无法确定虚表的大小,因此尽可能扩大
+	auto idati = (til_t*)get_idati();
+	for (std::unordered_set<unsigned int>::iterator it = guessClassTableList.begin(); it != guessClassTableList.end(); ++it) {
+		std::vector<unsigned int> vTable;
+		unsigned int vftPtr = *it;
+		vTable.push_back(IDAWrapper::get_dword(vftPtr));
+		vTable.push_back(IDAWrapper::get_dword(vftPtr + 4));
+		vftPtr = vftPtr + 8;
+		do
+		{
+			if (guessClassTableList.count(vftPtr)) {
+				break;
+			}
+			auto guessFunc = IDAWrapper::get_dword(vftPtr);
+			if (guessFunc <= userCodeStartAddr || guessFunc >= userCodeEndAddr) {
+				break;
+			}
+			vTable.push_back(guessFunc);
+			vftPtr = vftPtr + 4;
+		} while (true);
+
+		qstring vTableName;
+		vTableName.sprnt("VTable_%a",*it);
+		tid_t idStruct = add_struc(-1, vTableName.c_str(),false);
+		struc_t* pStruct = get_struc(idStruct);
+		if (!pStruct) {
+			continue;
+		}
+		qstring fieldName;
+		for (unsigned int n = 0; n < vTable.size(); ++n) {
+			get_func_name(&fieldName, vTable[n]);
+			if (fieldName.empty()) {
+				fieldName.sprnt("sub_%a", vTable[n]);
+			}
+			add_struc_member(pStruct, fieldName.c_str(), 4 * n, dword_flag(), NULL, 4);
+		}
+		tinfo_t info = create_typedef(vTableName.c_str());
+		apply_tinfo(*it,info, TINFO_GUESSED);
+	}
+
+	return true;
+}
+
+
 
 bool ESymbol::registerKrnlJmpAddr(unsigned int callAddr, unsigned int setAddr)
 {
