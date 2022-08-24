@@ -6,6 +6,12 @@ struct eSymbol_EventInfo
 	unsigned int eventAddr;  //ÊÂ¼þµØÖ·
 };
 
+struct eSymbol_ImportsApi
+{
+	std::string libName;
+	std::string apiName;
+};
+
 enum eSymbol_ControlType
 {
 	UnknownControl = 0,

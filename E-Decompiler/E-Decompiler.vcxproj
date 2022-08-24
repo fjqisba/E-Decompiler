@@ -146,6 +146,7 @@
     <ClCompile Include="Module\CTreeFixer.cpp" />
     <ClCompile Include="Module\ECSigMaker.cpp" />
     <ClCompile Include="Module\ShowEventList.cpp" />
+    <ClCompile Include="Module\ShowImports.cpp" />
     <ClCompile Include="SectionManager.cpp" />
     <ClCompile Include="TrieTree.cpp" />
     <ClCompile Include="Utils\Common.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="Module\CTreeFixer.h" />
     <ClInclude Include="Module\ECSigMaker.h" />
     <ClInclude Include="Module\ShowEventList.h" />
+    <ClInclude Include="Module\ShowImports.h" />
     <ClInclude Include="PropertyDelegate.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ControlInfoWidget.h" />

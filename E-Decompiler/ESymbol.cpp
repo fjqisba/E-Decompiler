@@ -120,15 +120,13 @@ bool ESymbol::LoadEStaticSymbol(unsigned int eHeadAddr, EComHead* eHead)
 		hide_wait_box();
 	}
 
-	//if (eHead.dwApiCount) {
-	//	show_wait_box(getUTF8String("解析易语言导入表").c_str());
-	//	ImportsParser::ParseUserImports(eHead.dwApiCount, eHead.lpModuleName, eHead.lpApiName);
-	//	hide_wait_box();
-	//	gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/用户导入表").c_str(), ImportsParser::MenuHandle_ShowImportsInfo);
-	//}
-
+	if (eHead->dwApiCount) {
+		IDAWrapper::show_wait_box(LocalCpToUtf8("解析易语言导入表").c_str());
+		loadUserImports(eHead->dwApiCount, eHead->lpModuleName, eHead->lpApiName);
+		hide_wait_box();
+	}
+	
 	setGuiEventName();
-
 	return true;
 }
 
@@ -266,6 +264,9 @@ bool ESymbol::scanBasicFunction()
 		}
 		else if (funcName == "连续省略参数") {
 			IDAWrapper::apply_cdecl(pFunc->start_ea, "void __usercall pushDefaultParam(int argCount@<ebx>);");
+		}
+		else if (funcName == "文本比较") {
+			IDAWrapper::apply_cdecl(pFunc->start_ea, "int __cdecl strcmp(char* _Str1,char* _Str2);");
 		}
 	}
 	return true;
@@ -527,6 +528,34 @@ bool ESymbol::loadGUIResource(unsigned int lpGUIStart, unsigned int infoSize)
 	return true;
 }
 
+bool ESymbol::loadUserImports(unsigned int dwApiCount, unsigned int lpModuleName, unsigned int lpApiName)
+{
+	importsApiList.clear();
+	tmpImportsApiList.clear();
+
+	unsigned char* pszLibnameAddr = SectionManager::LinearAddrToVirtualAddr(lpModuleName);
+	unsigned char* pszApinameAddr = SectionManager::LinearAddrToVirtualAddr(lpApiName);
+	for (unsigned int n = 0; n < dwApiCount; ++n) {
+		char* pszLibname = (char*)SectionManager::LinearAddrToVirtualAddr(ReadUInt(pszLibnameAddr));
+		char* pszApiname = (char*)SectionManager::LinearAddrToVirtualAddr(ReadUInt(pszApinameAddr));
+		eSymbol_ImportsApi eImportsApi;
+		eImportsApi.libName = pszLibname;
+		eImportsApi.apiName = pszApiname;
+		importsApiList.push_back(eImportsApi);
+
+		int iIndex = eImportsApi.libName.rfind('.');
+		if (iIndex != -1) {
+			eImportsApi.libName = eImportsApi.libName.substr(0, iIndex);
+		}
+		eImportsApi.libName = eImportsApi.libName + "." + eImportsApi.apiName;
+		tmpImportsApiList.push_back(LocalCpToUtf8(eImportsApi.libName.c_str()));
+		pszLibnameAddr += 4;
+		pszApinameAddr += 4;
+	}
+
+	return true;
+}
+
 bool ESymbol::scanEClassTable()
 {
 	//不信有区段大于0x1000000
@@ -584,7 +613,7 @@ bool ESymbol::scanEClassTable()
 		} while (true);
 
 		qstring vTableName;
-		vTableName.sprnt("VTable_%a",*it);
+		vTableName.sprnt("vtable_%a",*it);
 		tid_t idStruct = add_struc(-1, vTableName.c_str(),false);
 		struc_t* pStruct = get_struc(idStruct);
 		if (!pStruct) {

@@ -8,6 +8,7 @@
 #include "ImportsParser.h"
 #include <hexrays.hpp>
 #include "./Module/ShowEventList.h"
+#include "./Module/ShowImports.h"
 
 hexdsp_t* hexdsp = NULL;
 
@@ -100,7 +101,12 @@ bool EDecompiler::InitDecompilerEngine()
 	ecSigMaker.RegisterAction(this);
 	eControlXref.RegisterAction(this);
 
-	gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("易语言/控件事件信息").c_str(), ShowEventList, &eSymbol);
+	if (eSymbol.allControlList.size() > 0) {
+		gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("易语言/控件事件信息").c_str(), ShowEventList, &eSymbol);
+	}
+	if (eSymbol.tmpImportsApiList.size() > 0) {
+		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/用户导入表").c_str(), ShowImports, &eSymbol);
+	}
 	return true;
 }
 
