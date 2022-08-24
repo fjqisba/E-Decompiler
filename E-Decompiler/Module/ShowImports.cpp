@@ -4,6 +4,7 @@
 #include <kernwin.hpp>
 #include <ua.hpp>
 #include <allins.hpp>
+#include <funcs.hpp>
 #include "../Utils/IDAWrapper.h"
 
 int ShowImports(void* ud)
@@ -23,8 +24,8 @@ int ShowImports(void* ud)
 		std::vector<ImportsApi> importsList;
 		ESymbol& symbol;
 	protected:
-		const int widths_[3] = { 10,10,20 };
-		const char* header_[3] = { "order","addr","api" };
+		const int widths_[4] = { 10,10,20,20 };
+		const char* header_[4] = { "order","addr","funcName","api" };
 	public:
 		chooser_ImportsInfo(const char* title, ESymbol& s) :chooser_multi_t(0, qnumber(widths_), widths_, header_, title), symbol(s) {
 
@@ -68,7 +69,8 @@ int ShowImports(void* ud)
 			qstrvec_t& cols = *cols_;
 			cols[0].sprnt("%a", importsList[n].order);
 			cols[1].sprnt("%08X", importsList[n].addr);
-			cols[2].sprnt("%s", importsList[n].api.c_str());
+			get_func_name(&cols[2],importsList[n].addr);
+			cols[3].sprnt("%s", importsList[n].api.c_str());
 		}
 	};
 
