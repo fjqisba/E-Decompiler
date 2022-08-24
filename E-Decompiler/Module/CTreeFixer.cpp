@@ -8,6 +8,23 @@
 
 //嗯，现阶段目的是让代码可读化，不是直接到源码，因此没必要在代码转换细节进行过度优化
 
+void fix_KrnlDllCmd(cexpr_t* e, ESymbol& symbolTable)
+{
+	carglist_t& argList = *(e->a);
+	if (argList.size() < 1) {
+		return;
+	}
+
+	unsigned int order = argList[0].n->_value;
+	if (order >= symbolTable.tmpImportsApiList.size()) {
+		return;
+	}
+	cexpr_t* tmpHelper = create_helper(true, e->a->functype, "%s", symbolTable.tmpImportsApiList[order].c_str());
+	e->x->cleanup();
+	e->x->replace_by(tmpHelper);
+	int a = 0;
+}
+
 void fix_KrnlWriteProperty(cexpr_t* e, ESymbol& symbolTable)
 {
 	carglist_t& argList = *(e->a);
@@ -113,6 +130,8 @@ struct CTreeFixer_Vistor : public ctree_visitor_t
 			case eFunc_KrnlWriteProperty:
 				fix_KrnlWriteProperty(e, symbolTable);
 				break;
+			case eFunc_KrnlDllCmd:
+				fix_KrnlDllCmd(e,symbolTable);
 			case eFunc_Strcat:
 				break;
 			default:

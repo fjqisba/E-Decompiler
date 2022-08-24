@@ -189,6 +189,8 @@ enum eSymbolFuncType
 	eFunc_KrnlReadProerty,
 	//设置组件属性
 	eFunc_KrnlWriteProperty,
+	//调用DLL命令
+	eFunc_KrnlDllCmd,
 	//文本相加
 	eFunc_Strcat,
 };
