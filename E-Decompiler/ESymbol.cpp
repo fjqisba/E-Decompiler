@@ -250,6 +250,9 @@ bool ESymbol::scanBasicFunction()
 		if (!pFunc) {
 			continue;
 		}
+		if (pFunc->start_ea >= userCodeEndAddr) {
+			continue;
+		}
 		if (eSymbolFuncTypeMap[pFunc->start_ea] != 0x0) {
 			continue;
 		}
@@ -264,11 +267,20 @@ bool ESymbol::scanBasicFunction()
 		}
 		else if (funcName == "连续省略参数") {
 			IDAWrapper::apply_cdecl(pFunc->start_ea, "void __usercall pushDefaultParam(int argCount@<ebx>);");
+			eSymbolFuncTypeMap[pFunc->start_ea] = eFunc_PushDefaultArg;
+			handlePushDefaultArgFunc(pFunc->start_ea);
 		}
 		else if (funcName == "文本比较") {
 			IDAWrapper::apply_cdecl(pFunc->start_ea, "int __cdecl strcmp(char* _Str1,char* _Str2);");
 		}
 	}
+	return true;
+}
+
+bool ESymbol::handlePushDefaultArgFunc(unsigned int funcAddr)
+{
+	std::vector<unsigned int> xrefList = IDAWrapper::getAllCodeXrefAddr(funcAddr);
+
 	return true;
 }
 
@@ -336,6 +348,8 @@ bool ESymbol::loadKrnlInterface(unsigned int lpKrnlEntry)
 	eSymbolFuncTypeMap[krnlJmp.Jmp_MWriteProperty] = eFunc_KrnlWriteProperty;
 	eSymbolFuncTypeMap[krnlJmp.Jmp_MCallKrnlLibCmd] = eFunc_KrnlLibFunc;
 	eSymbolFuncTypeMap[krnlJmp.Jmp_MCallDllCmd] = eFunc_KrnlDllCmd;
+	eSymbolFuncTypeMap[krnlJmp.Jmp_MReportError] = eFunc_KrnlReportError;
+	eSymbolFuncTypeMap[krnlJmp.Jmp_MFree] = eFunc_KrnlFreeMem;
 
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MCallDllCmd, "krnlRet __usercall CallDllCmd@<eax:edx>(unsigned int index@<eax>,...);");
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MCallLibCmd, "krnlRet __usercall CallLibCmd@<eax:edx>(unsigned int libFunc@<ebx>, int argCount, ...);");
@@ -548,8 +562,10 @@ bool ESymbol::loadUserImports(unsigned int dwApiCount, unsigned int lpModuleName
 		if (iIndex != -1) {
 			eImportsApi.libName = eImportsApi.libName.substr(0, iIndex);
 		}
-		eImportsApi.libName = eImportsApi.libName + "." + eImportsApi.apiName;
-		tmpImportsApiList.push_back(LocalCpToUtf8(eImportsApi.libName.c_str()));
+		if (!eImportsApi.libName.empty()) {
+			eImportsApi.apiName = eImportsApi.libName + "." + eImportsApi.apiName;
+		}
+		tmpImportsApiList.push_back(LocalCpToUtf8(eImportsApi.apiName.c_str()));
 		pszLibnameAddr += 4;
 		pszApinameAddr += 4;
 	}

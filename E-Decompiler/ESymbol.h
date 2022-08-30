@@ -191,8 +191,14 @@ enum eSymbolFuncType
 	eFunc_KrnlWriteProperty,
 	//调用DLL命令
 	eFunc_KrnlDllCmd,
+	//错误回调
+	eFunc_KrnlReportError,
+	//释放内存
+	eFunc_KrnlFreeMem,
 	//文本相加
 	eFunc_Strcat,
+	//连续省略参数,
+	eFunc_PushDefaultArg,
 };
 
 struct EAppControl;
@@ -240,6 +246,8 @@ private:
 	bool scanELibFunction(unsigned int lpLibStartAddr, unsigned int dwLibCount);
 	//扫描并识别易语言基础命令
 	bool scanBasicFunction();
+	//处理连续省略参数函数
+	bool handlePushDefaultArgFunc(unsigned int funcAddr);
 	//加载易语言核心函数
 	bool loadKrnlInterface(unsigned int lpKrnlEntry);
 	//加载界面资源信息

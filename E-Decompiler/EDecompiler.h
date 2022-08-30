@@ -6,6 +6,7 @@
 #include "./Module/CTreeFixer.h"
 #include "./Module/ECSigMaker.h"
 #include "./Module/EAppControlXref.h"
+#include "./Module/MicroCodeFixer.h"
 
 enum EArchitectureType
 {

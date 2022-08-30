@@ -62,7 +62,7 @@ void IDAWrapper::setFuncName(unsigned int addr, const char* funcName, bool bForc
 	}
 	qstring newName;
 	acp_utf8(&newName, funcName);
-	set_name(addr, newName.c_str(), SN_NOWARN);
+	set_name(addr, newName.c_str(), SN_NOWARN | SN_FORCE);
 }
 
 void IDAWrapper::msg(const char* format, ...)

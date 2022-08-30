@@ -156,6 +156,9 @@
     <ClCompile Include="Module\ShowImports.cpp">
       <Filter>Module</Filter>
     </ClCompile>
+    <ClCompile Include="Module\MicroCodeFixer.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SectionManager.h">
@@ -292,6 +295,9 @@
       <Filter>Module</Filter>
     </ClInclude>
     <ClInclude Include="Module\ShowImports.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="Module\MicroCodeFixer.h">
       <Filter>Module</Filter>
     </ClInclude>
   </ItemGroup>

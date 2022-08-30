@@ -71,10 +71,12 @@ EDecompiler::~EDecompiler()
 		gMenu_ShowImportsInfo->DestroyMenu();
 		gMenu_ShowImportsInfo = nullptr;
 	}
+
+	cTreeFixer.UnInstall();
+	UnInstallMicroCodeFixer();
 	term_hexrays_plugin();
 	unhook_from_notification_point(HT_UI, PluginUI_Callback,this);
 }
-
 
 bool idaapi EDecompiler::run(size_t)
 {
@@ -107,6 +109,9 @@ bool EDecompiler::InitDecompilerEngine()
 	if (eSymbol.tmpImportsApiList.size() > 0) {
 		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/用户导入表").c_str(), ShowImports, &eSymbol);
 	}
+
+	cTreeFixer.Install();
+	InstallMicroCodeFixer(eSymbol);
 	return true;
 }
 
