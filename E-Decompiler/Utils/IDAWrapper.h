@@ -21,4 +21,6 @@ namespace IDAWrapper{
 
 	//获取代码交叉引用地址
 	std::vector<unsigned int> getAllCodeXrefAddr(unsigned int addr);
+
+	bool add_user_stkpnt(unsigned int ea, int delta);
 }

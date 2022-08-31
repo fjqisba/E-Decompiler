@@ -7,6 +7,7 @@
 #include "ECSigParser.h"
 #include "ImportsParser.h"
 #include <hexrays.hpp>
+#include <frame.hpp>
 #include "./Module/ShowEventList.h"
 #include "./Module/ShowImports.h"
 

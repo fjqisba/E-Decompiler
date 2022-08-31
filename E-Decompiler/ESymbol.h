@@ -246,15 +246,14 @@ private:
 	bool scanELibFunction(unsigned int lpLibStartAddr, unsigned int dwLibCount);
 	//扫描并识别易语言基础命令
 	bool scanBasicFunction();
-	//处理连续省略参数函数
-	bool handlePushDefaultArgFunc(unsigned int funcAddr);
 	//加载易语言核心函数
 	bool loadKrnlInterface(unsigned int lpKrnlEntry);
 	//加载界面资源信息
 	bool loadGUIResource(unsigned int lpGUIStart, unsigned int infoSize);
 	//加载用户导入表
 	bool loadUserImports(unsigned int dwApiCount, unsigned int lpModuleName, unsigned int lpApiName);
-
+	//处理连续省略参数
+	bool handleFuncPushDefaultArg(unsigned int callAddr);
 	//扫描易语言类虚表
 	bool scanEClassTable();
 	//解析控件基础属性

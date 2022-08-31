@@ -268,19 +268,12 @@ bool ESymbol::scanBasicFunction()
 		else if (funcName == "连续省略参数") {
 			IDAWrapper::apply_cdecl(pFunc->start_ea, "void __usercall pushDefaultParam(int argCount@<ebx>);");
 			eSymbolFuncTypeMap[pFunc->start_ea] = eFunc_PushDefaultArg;
-			handlePushDefaultArgFunc(pFunc->start_ea);
+			handleFuncPushDefaultArg(pFunc->start_ea);
 		}
 		else if (funcName == "文本比较") {
 			IDAWrapper::apply_cdecl(pFunc->start_ea, "int __cdecl strcmp(char* _Str1,char* _Str2);");
 		}
 	}
-	return true;
-}
-
-bool ESymbol::handlePushDefaultArgFunc(unsigned int funcAddr)
-{
-	std::vector<unsigned int> xrefList = IDAWrapper::getAllCodeXrefAddr(funcAddr);
-
 	return true;
 }
 
@@ -570,6 +563,24 @@ bool ESymbol::loadUserImports(unsigned int dwApiCount, unsigned int lpModuleName
 		pszApinameAddr += 4;
 	}
 
+	return true;
+}
+
+bool ESymbol::handleFuncPushDefaultArg(unsigned int callAddr)
+{
+	std::vector<unsigned int> xRefList = IDAWrapper::getAllCodeXrefAddr(callAddr);
+	for (unsigned int n = 0; n < xRefList.size(); ++n) {
+		insn_t tmpIns;
+		if (decode_prev_insn(&tmpIns, xRefList[n]) == BADADDR) {
+			continue;
+		}
+		//mov ebx,xxx
+		if (tmpIns.itype != NN_mov || tmpIns.ops[0].reg != 0x3) {
+			continue;
+		}
+		unsigned int argCount = tmpIns.ops[1].value;
+		IDAWrapper::add_user_stkpnt(xRefList[n] + 5, -(argCount * 4));
+	}
 	return true;
 }
 

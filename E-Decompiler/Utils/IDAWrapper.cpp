@@ -5,6 +5,7 @@
 #include <diskio.hpp>
 #include <name.hpp>
 #include <typeinf.hpp>
+#include <frame.hpp>
 
 void IDAWrapper::show_wait_box(const char* msg)
 {
@@ -77,6 +78,9 @@ void IDAWrapper::msg(const char* format, ...)
 bool IDAWrapper::apply_cdecl(unsigned int ea, const char* decl, int flags /*= 0*/)
 {
 	til_t* idati = (til_t*)get_idati();
+	if (!idati) {
+		return false;
+	}
 	return ::apply_cdecl(idati, ea, decl, flags);
 }
 
@@ -90,4 +94,9 @@ std::vector<unsigned int> IDAWrapper::getAllCodeXrefAddr(unsigned int addr)
 		XrefAddr = get_next_cref_to(addr, XrefAddr);
 	}
 	return retXrefList;
+}
+
+bool IDAWrapper::add_user_stkpnt(unsigned int ea, int delta)
+{
+	return ::add_user_stkpnt(ea,delta);
 }
