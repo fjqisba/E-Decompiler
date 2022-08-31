@@ -21,6 +21,12 @@
 #include "CKrnl_SliderBar.h"
 #include "CKrnl_Tab.h"
 #include "CKrnl_Timer.h"
+#include "CIext2_CartoonBox.h"
+#include "CIext2_IPEditBox.h"
+#include "CIext2_RichEdit.h"
+#include "CIext2_SplitterBar.h"
+#include "CIext2_SuperAnimateBox.h"
+#include "CIext2_SuperBtn.h"
 
 EAppControlFactory& EAppControlFactory::Instance()
 {
@@ -54,6 +60,7 @@ void EAppControlFactory::RegisterEAppControl(std::string eControlLibInfo,unsigne
 		tmpControlMap["d09f2340818511d396f6aaf844c7e325滑块条"] = fCreateEAppControl(CKrnl_SliderBar::create);
 		tmpControlMap["d09f2340818511d396f6aaf844c7e325选择夹"] = fCreateEAppControl(CKrnl_Tab::create);
 		tmpControlMap["d09f2340818511d396f6aaf844c7e325影像框"] = fCreateEAppControl(CKrnl_AnimateBox::create);
+
 		//tmpControlMap["d09f2340818511d396f6aaf844c7e325日期框"] = krnl_DatePicker;
 		//tmpControlMap["d09f2340818511d396f6aaf844c7e325月历"] = krnl_MonthCalendar;
 		//tmpControlMap["d09f2340818511d396f6aaf844c7e325驱动器框"] = krnl_DriverBox;
@@ -77,6 +84,13 @@ void EAppControlFactory::RegisterEAppControl(std::string eControlLibInfo,unsigne
 		//tmpControlMap["d09f2340818511d396f6aaf844c7e325外部数据库"] = krnl_ODBCDB;
 		//tmpControlMap["d09f2340818511d396f6aaf844c7e325外部数据提供者"] = krnl_ODBCProvider;
 		//tmpControlMap["{9DA96BF9CEBD45c5BFCF94CBE61671F5}拖放对象"] = krnl_DropTarget;
+
+		tmpControlMap["AF6AD80AA4244A59AFB3D83ECF5173CC超级按钮"] = fCreateEAppControl(CIext2_SuperBtn::create);
+		tmpControlMap["AF6AD80AA4244A59AFB3D83ECF5173CC高级影像框"] = fCreateEAppControl(CIext2_SuperAnimateBox::create);
+		tmpControlMap["AF6AD80AA4244A59AFB3D83ECF5173CC分割条"] = fCreateEAppControl(CIext2_SplitterBar::create);
+		tmpControlMap["AF6AD80AA4244A59AFB3D83ECF5173CC超级编辑框"] = fCreateEAppControl(CIext2_RichEdit::create);
+		tmpControlMap["AF6AD80AA4244A59AFB3D83ECF5173CCIP编辑框"] = fCreateEAppControl(CIext2_IPEditBox::create);
+		tmpControlMap["AF6AD80AA4244A59AFB3D83ECF5173CC动画框"] = fCreateEAppControl(CIext2_CartoonBox::create);
 	}
 
 	std::map<std::string, fCreateEAppControl>::iterator it = tmpControlMap.find(eControlLibInfo);
@@ -105,7 +119,7 @@ EAppControl_Unknow* EAppControl_Unknow::create()
 
 std::string EAppControl_Unknow::GetEventName(int eventIndex)
 {
-	return "";
+	return "未知事件";
 }
 
 bool EAppControl_Unknow::InitControlExtraData(unsigned int propertyAddr, unsigned int propertySize)

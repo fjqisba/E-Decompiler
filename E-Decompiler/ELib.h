@@ -58,4 +58,12 @@ enum eSymbol_ControlType
 	krnl_ODBCDB,      //外部数据库
 	krnl_ODBCProvider,//外部数据提供者
 	krnl_DropTarget,  //拖放对象
+
+
+	iext2_CartoonBox,
+	iext2_IPEditBox,
+	iext2_RichEdit,
+	iext2_SplitterBar,
+	iext2_SuperAnimateBox,
+	iext2_SuperBtn,
 };

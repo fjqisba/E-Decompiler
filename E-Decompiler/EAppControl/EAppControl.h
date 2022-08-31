@@ -12,6 +12,8 @@ public:
 	virtual bool InitControlExtraData(unsigned int propertyAddr, unsigned int propertySize);
 	//获取属性名称
 	virtual std::string GetPropertyName(unsigned int propertyIndex) = 0;
+	//公共事件名称
+	std::string GetCommonEventName(int eventIndex);
 public:
 	eSymbol_ControlType type;
 	//控件所属窗口ID

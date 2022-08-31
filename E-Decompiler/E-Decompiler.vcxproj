@@ -113,6 +113,12 @@
     <ClCompile Include="common\md5.cpp" />
     <ClCompile Include="common\public.cpp" />
     <ClCompile Include="ControlInfoWidget.cpp" />
+    <ClCompile Include="EAppControl\CIext2_CartoonBox.cpp" />
+    <ClCompile Include="EAppControl\CIext2_IPEditBox.cpp" />
+    <ClCompile Include="EAppControl\CIext2_RichEdit.cpp" />
+    <ClCompile Include="EAppControl\CIext2_SplitterBar.cpp" />
+    <ClCompile Include="EAppControl\CIext2_SuperAnimateBox.cpp" />
+    <ClCompile Include="EAppControl\CIext2_SuperBtn.cpp" />
     <ClCompile Include="EAppControl\EAppControl.cpp" />
     <ClCompile Include="EAppControl\EAppControlFactory.cpp" />
     <ClCompile Include="EAppControl\CKrnl_Button.cpp" />
@@ -158,6 +164,12 @@
   <ItemGroup>
     <ClInclude Include="common\md5.h" />
     <ClInclude Include="common\public.h" />
+    <ClInclude Include="EAppControl\CIext2_CartoonBox.h" />
+    <ClInclude Include="EAppControl\CIext2_IPEditBox.h" />
+    <ClInclude Include="EAppControl\CIext2_RichEdit.h" />
+    <ClInclude Include="EAppControl\CIext2_SplitterBar.h" />
+    <ClInclude Include="EAppControl\CIext2_SuperAnimateBox.h" />
+    <ClInclude Include="EAppControl\CIext2_SuperBtn.h" />
     <ClInclude Include="EAppControl\EAppControl.h" />
     <ClInclude Include="EAppControl\EAppControlFactory.h" />
     <ClInclude Include="EAppControl\CKrnl_Button.h" />

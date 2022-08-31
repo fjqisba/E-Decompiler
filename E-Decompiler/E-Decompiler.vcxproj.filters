@@ -159,6 +159,24 @@
     <ClCompile Include="Module\MicroCodeFixer.cpp">
       <Filter>Module</Filter>
     </ClCompile>
+    <ClCompile Include="EAppControl\CIext2_IPEditBox.cpp">
+      <Filter>EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\CIext2_RichEdit.cpp">
+      <Filter>EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\CIext2_SplitterBar.cpp">
+      <Filter>EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\CIext2_SuperAnimateBox.cpp">
+      <Filter>EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\CIext2_SuperBtn.cpp">
+      <Filter>EAppControl</Filter>
+    </ClCompile>
+    <ClCompile Include="EAppControl\CIext2_CartoonBox.cpp">
+      <Filter>EAppControl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SectionManager.h">
@@ -299,6 +317,24 @@
     </ClInclude>
     <ClInclude Include="Module\MicroCodeFixer.h">
       <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\CIext2_IPEditBox.h">
+      <Filter>EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\CIext2_RichEdit.h">
+      <Filter>EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\CIext2_SplitterBar.h">
+      <Filter>EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\CIext2_SuperAnimateBox.h">
+      <Filter>EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\CIext2_SuperBtn.h">
+      <Filter>EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="EAppControl\CIext2_CartoonBox.h">
+      <Filter>EAppControl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
