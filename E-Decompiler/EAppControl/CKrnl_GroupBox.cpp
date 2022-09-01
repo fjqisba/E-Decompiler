@@ -12,37 +12,7 @@ CKrnl_GroupBox* CKrnl_GroupBox::create()
 
 std::string CKrnl_GroupBox::GetEventName(int eventIndex)
 {
-	std::string ret;
-	switch (eventIndex)
-	{
-	case -1:
-		ret = "鼠标左键被按下";
-		break;
-	case -2:
-		ret = "鼠标左键被放开";
-		break;
-	case -3:
-		ret = "被双击";
-		break;
-	case -4:
-		ret = "鼠标右键被按下";
-		break;
-	case -5:
-		ret = "鼠标右键被放开";
-		break;
-	case -6:
-		ret = "鼠标位置被移动";
-		break;
-	case -12:
-		ret = "滚轮被滚动";
-		break;
-	default:
-		ret = "未知事件";
-		break;
-	}
-
-	return ret;
-
+	return GetCommonEventName(eventIndex);
 }
 
 bool CKrnl_GroupBox::InitControlExtraData(unsigned int propertyAddr, unsigned int propertySize)

@@ -132,6 +132,8 @@ struct CTreeFixer_Vistor : public ctree_visitor_t
 			case eFunc_KrnlDllCmd:
 				fix_KrnlDllCmd(e,symbolTable);
 				break;
+			case eFunc_KrnlReportError:
+				break;
 			case eFunc_Strcat:
 				break;
 			default:
