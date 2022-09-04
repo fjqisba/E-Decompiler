@@ -273,6 +273,10 @@ bool ESymbol::scanBasicFunction()
 		else if (funcName == "文本比较") {
 			IDAWrapper::apply_cdecl(pFunc->start_ea, "int __cdecl strcmp(char* _Str1,char* _Str2);");
 		}
+		else if (funcName == "计算多维数组下标") {
+			IDAWrapper::apply_cdecl(pFunc->start_ea, "int __usercall addMutilVecIndex@<edx>(int index@<eax>,int dim@<ecx>,DWORD* pBounds);");
+			eSymbolFuncTypeMap[pFunc->start_ea] = eFunc_CalMultiArrayIndex;
+		}
 	}
 	return true;
 }
@@ -344,6 +348,7 @@ bool ESymbol::loadKrnlInterface(unsigned int lpKrnlEntry)
 	eSymbolFuncTypeMap[krnlJmp.Jmp_MReportError] = eFunc_KrnlReportError;
 	eSymbolFuncTypeMap[krnlJmp.Jmp_MFree] = eFunc_KrnlFreeMem;
 
+	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MOtherHelp, "krnlRet __usercall CallOtherHelp@<eax:edx>(unsigned int index@<eax>,...);");
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MCallDllCmd, "krnlRet __usercall CallDllCmd@<eax:edx>(unsigned int index@<eax>,...);");
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MCallLibCmd, "krnlRet __usercall CallLibCmd@<eax:edx>(unsigned int libFunc@<ebx>, int argCount, ...);");
 	IDAWrapper::apply_cdecl(krnlJmp.Jmp_MCallKrnlLibCmd, "krnlRet __usercall CallKrnlLibCmd@<eax:edx>(unsigned int libFunc@<ebx>, int argCount, ...);");

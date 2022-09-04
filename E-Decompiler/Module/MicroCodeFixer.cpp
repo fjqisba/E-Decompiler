@@ -6,13 +6,6 @@
 
 //microcodeÐÞ¸´
 
-
-void microFix_KrnlReportError(mblock_t* blk, minsn_t* ins, ESymbol* symbolTable)
-{
-	blk->remove_from_block(ins);
-	blk->mark_lists_dirty();
-}
-
 void microGen_PushDefaultArg(codegen_t& cdg)
 {
 	//cdg.insn.create_stkvar(cdg.insn.ops[0], 0x30, 0);
@@ -68,29 +61,7 @@ void microFix_PushDefaultArg(mblock_t* blk, minsn_t* ins, ESymbol* symbolTable)
 
 void microFix_KrnlFreeMem(mblock_t* blk, minsn_t* ins, ESymbol* symbolTable)
 {
-	struct MyVistor : public minsn_visitor_t
-	{
-		MyVistor() {}
-		int idaapi visit_minsn(void)
-		{
-			int a = 0;
-			//blk->remove_from_block(curins);
-			return 0;
-		}
-	};
-	MyVistor vistor;
-	auto lastIns = ins->prev;
-	while (lastIns != NULL) {
-		blk->remove_from_block(lastIns);
-		lastIns = lastIns->prev;
-	}
-	auto nextIns = ins->next;
-	while (nextIns != NULL) {
-		blk->remove_from_block(nextIns);
-		nextIns = nextIns->next;
-	}
-	blk->remove_from_block(ins);
-	blk->mark_lists_dirty();
+	ins->_make_nop();
 }
 
 struct MicrocodeFixer :public optinsn_t
@@ -104,8 +75,6 @@ public:
 	}
 	int func(mblock_t* blk, minsn_t* ins, int optflags)
 	{
-		int a = 0;
-		return 0;
 		if (ins->opcode == m_call)
 		{
 			eSymbolFuncType symbolT = symbolTable->GetFuncSymbolType(ins->l.r);
@@ -114,14 +83,8 @@ public:
 			}
 			switch (symbolT)
 			{
-			case eFunc_PushDefaultArg:
-				microFix_PushDefaultArg(blk, ins, symbolTable);
-				break;
-			case eFunc_KrnlReportError:
-				//microFix_KrnlReportError(blk, ins, symbolTable);
-				break;
 			case eFunc_KrnlFreeMem:
-				//microFix_KrnlFreeMem(blk, ins, symbolTable);
+				microFix_KrnlFreeMem(blk, ins, symbolTable);
 				break;
 			default:
 				break;
@@ -220,8 +183,8 @@ MyBlockTester gBlockTester;
 
 void InstallMicroCodeFixer(ESymbol& symbol)
 {
-	//gMicrocodeFixer.setSymbolTable(&symbol);
-	//install_optinsn_handler(&gMicrocodeFixer);
+	gMicrocodeFixer.setSymbolTable(&symbol);
+	install_optinsn_handler(&gMicrocodeFixer);
 
 	//gMicrocodeGenerator.setSymbolTable(&symbol);
 	//install_microcode_filter(&gMicrocodeGenerator, true);
@@ -232,7 +195,7 @@ void InstallMicroCodeFixer(ESymbol& symbol)
 
 void UnInstallMicroCodeFixer()
 {
-	//remove_optinsn_handler(&gMicrocodeFixer);
+	remove_optinsn_handler(&gMicrocodeFixer);
 }
 
 

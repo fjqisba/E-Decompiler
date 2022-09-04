@@ -6,8 +6,9 @@
 #include "../Utils/Strings.h"
 #include <typeinf.hpp>
 #include <frame.hpp>
+#include <allins.hpp>
 
-//嗯，现阶段目的是让代码可读化，不是直接到源码，因此没必要在代码转换细节进行过度优化
+//现阶段目的是让代码可读化，不是直接到源码，因此没必要在代码转换细节进行过度优化
 
 void fix_KrnlDllCmd(cexpr_t* e, ESymbol& symbolTable)
 {
@@ -105,6 +106,13 @@ void fix_KrnlReadProperty(cexpr_t* e, ESymbol& symbolTable)
 	//argList.erase(argList.begin(),argList.end());
 }
 
+
+void fix_CalMultiArrayIndex(cexpr_t* e, ESymbol& symbolTable)
+{
+	
+
+}
+
 struct CTreeFixer_Vistor : public ctree_visitor_t
 {
 	CTreeFixer_Vistor(ESymbol& s) :ctree_visitor_t(CV_FAST),symbolTable(s) {};
@@ -132,7 +140,8 @@ struct CTreeFixer_Vistor : public ctree_visitor_t
 			case eFunc_KrnlDllCmd:
 				fix_KrnlDllCmd(e,symbolTable);
 				break;
-			case eFunc_KrnlReportError:
+			case eFunc_CalMultiArrayIndex:
+				fix_CalMultiArrayIndex(e, symbolTable);
 				break;
 			case eFunc_Strcat:
 				break;
@@ -182,14 +191,42 @@ void copyBlock(mblock_t* dst,mblock_t* src)
 	}
 }
 
+void fixBlock_KrnlReportError(mba_t* mba, mblock_t* blk, ESymbol& symbolTable)
+{
+	if (!blk->tail) {
+		return;
+	}
+	if (blk->tail->opcode == m_call && blk->tail->l.r == symbolTable.krnlJmp.Jmp_MReportError)
+	{
+		if (!blk->prevb) {
+			return;
+		}
+		minsn_t* modifyIns = blk->prevb->tail;
+		if (!modifyIns) {
+			return;
+		}
+		if (modifyIns->opcode == m_jcnd) {
+			modifyIns->opcode = m_goto;
+			modifyIns->l.make_gvar(modifyIns->d.g);
+			modifyIns->d.erase();
+		}
+	}
+}
+
+void fixMicrocode_KrnlReportError(mba_t* mba, ESymbol& symbolTable)
+{	
+	mblock_t* startBlock = mba->get_mblock(0);
+	while (startBlock != NULL) {
+		fixBlock_KrnlReportError(mba, startBlock, symbolTable);
+		startBlock = startBlock->nextb;
+	}
+}
 
 void tryFixMicroCode(mba_t* mba, ESymbol& symbolTable)
 {
-	//mblock_t* startBlock =  mba->get_mblock(0);
-	//while (startBlock != NULL) {
-	//	checkBlock(mba,startBlock);
-	//	startBlock = startBlock->nextb;
-	//}
+	fixMicrocode_KrnlReportError(mba,symbolTable);
+
+	
 
 	//for (unsigned int n = 0; n < finder.pushArgList.size(); ++n) {
 	//	minsn_t* callIns = finder.pushArgList[n];
@@ -227,10 +264,12 @@ ssize_t idaapi CTreeFixCallback(void* ud, hexrays_event_t e, va_list va)
 	case hxe_microcode:
 	{
 		mba_t* mba = va_arg(va, mba_t*);
-		//tryFixMicroCode(mba, *symbol);
+		tryFixMicroCode(mba, *symbol);
 		return 0;
 	}
 	break;
+	default:
+		break;
 	}
 	return 0;
 }

@@ -197,8 +197,10 @@ enum eSymbolFuncType
 	eFunc_KrnlFreeMem,
 	//文本相加
 	eFunc_Strcat,
-	//连续省略参数,
+	//连续省略参数
 	eFunc_PushDefaultArg,
+	//计算多维数组下标
+	eFunc_CalMultiArrayIndex,
 };
 
 struct EAppControl;
