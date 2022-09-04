@@ -1,7 +1,6 @@
 #include "ControlInfoWidget.h"
 
 #include <bytes.hpp>
-#include "common/public.h"
 #include "PropertyDelegate.h"
 
 

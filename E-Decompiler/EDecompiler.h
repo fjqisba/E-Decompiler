@@ -24,7 +24,6 @@ public:
 	~EDecompiler();
 public:
 	bool idaapi run(size_t) override;
-
 	//初始化易语言反编译引擎
 	bool InitDecompilerEngine();
 private:

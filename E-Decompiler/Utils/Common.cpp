@@ -1,4 +1,5 @@
 #include "Common.h"
+#include <windows.h>
 
 unsigned char BinMap[256] = {
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -48,3 +49,5 @@ unsigned char HexToBin(unsigned char HexCode)
 {
 	return BinMap[HexCode];
 }
+
+

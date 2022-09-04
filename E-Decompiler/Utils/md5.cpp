@@ -258,13 +258,13 @@ void md5bin(const void* dat, size_t len, unsigned char out[16]) {
 	MD5_Final(out, &c);
 }
 
-qstring md5sum(const void* dat, size_t len) {
-	qstring res;
+std::string md5sum(const void* dat, size_t len) {
+	std::string res;
 	unsigned char out[16];
 	md5bin(dat, len, out);
 	for (size_t i = 0; i < 16; ++i) {
-		res.append(hb2hex(out[i] >> 4));
-		res.append(hb2hex(out[i]));
+		res.append(1,hb2hex(out[i] >> 4));
+		res.append(1,hb2hex(out[i]));
 	}
 	return res;
 }

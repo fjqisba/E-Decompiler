@@ -10,12 +10,6 @@
     <Filter Include="Form Files">
       <UniqueIdentifier>{df496baf-0008-43e1-852a-199d94cd6425}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\EParserModule">
-      <UniqueIdentifier>{7e8b0502-070c-46e6-8e45-10eb25138482}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\common">
-      <UniqueIdentifier>{2b62291f-f5ea-4689-82d2-deed85d98d58}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Module">
       <UniqueIdentifier>{44960231-3168-4e90-8be2-91f6d7fe373d}</UniqueIdentifier>
     </Filter>
@@ -38,21 +32,6 @@
     </ClCompile>
     <ClCompile Include="ControlInfoWidget.cpp">
       <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ESigScanner.cpp">
-      <Filter>头文件\EParserModule</Filter>
-    </ClCompile>
-    <ClCompile Include="ImportsParser.cpp">
-      <Filter>头文件\EParserModule</Filter>
-    </ClCompile>
-    <ClCompile Include="ECSigParser.cpp">
-      <Filter>头文件\EParserModule</Filter>
-    </ClCompile>
-    <ClCompile Include="common\public.cpp">
-      <Filter>头文件\common</Filter>
-    </ClCompile>
-    <ClCompile Include="common\md5.cpp">
-      <Filter>头文件\common</Filter>
     </ClCompile>
     <ClCompile Include="ESymbol.cpp">
       <Filter>源文件</Filter>
@@ -177,6 +156,12 @@
     <ClCompile Include="EAppControl\CIext2_CartoonBox.cpp">
       <Filter>EAppControl</Filter>
     </ClCompile>
+    <ClCompile Include="Module\ECSigScanner.cpp">
+      <Filter>Module</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\md5.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SectionManager.h">
@@ -192,23 +177,8 @@
     <ClInclude Include="PropertyDelegate.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="EsigScanner.h">
-      <Filter>头文件\EParserModule</Filter>
-    </ClInclude>
     <ClInclude Include="EDecompiler.h">
       <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ImportsParser.h">
-      <Filter>头文件\EParserModule</Filter>
-    </ClInclude>
-    <ClInclude Include="ECSigParser.h">
-      <Filter>头文件\EParserModule</Filter>
-    </ClInclude>
-    <ClInclude Include="common\public.h">
-      <Filter>头文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="common\md5.h">
-      <Filter>头文件\common</Filter>
     </ClInclude>
     <ClInclude Include="ESymbol.h">
       <Filter>源文件</Filter>
@@ -335,6 +305,12 @@
     </ClInclude>
     <ClInclude Include="EAppControl\CIext2_CartoonBox.h">
       <Filter>EAppControl</Filter>
+    </ClInclude>
+    <ClInclude Include="Module\ECSigScanner.h">
+      <Filter>Module</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\md5.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -239,8 +239,6 @@ public:
 	eSymbolFuncType GetFuncSymbolType(unsigned int addr);
 	//通过窗口ID和控件ID索引到控件
 	EAppControl* GetEAppControl(unsigned int windowID,unsigned int controID);
-
-
 private:
 	//加载支持库信息
 	bool loadELibInfomation(unsigned int lpLibStartAddr, unsigned int dwLibCount);

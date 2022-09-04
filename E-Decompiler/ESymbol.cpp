@@ -13,6 +13,7 @@
 #include "./Utils/IDAMenu.h"
 #include "./EAppControl/EAppControlFactory.h"
 #include "./EAppControl/EAppControl.h"
+#include "./Module/ECSigScanner.h"
 
 ESymbol::ESymbol()
 {
@@ -127,6 +128,9 @@ bool ESymbol::LoadEStaticSymbol(unsigned int eHeadAddr, EComHead* eHead)
 	}
 	
 	setGuiEventName();
+
+	
+	ECSigScanner::Instance().ScanECSigFunction();
 	return true;
 }
 
@@ -280,6 +284,7 @@ bool ESymbol::scanBasicFunction()
 	}
 	return true;
 }
+
 
 bool ESymbol::loadKrnlInterface(unsigned int lpKrnlEntry)
 {

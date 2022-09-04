@@ -2,14 +2,13 @@
 
 #include <auto.hpp>
 #include "Utils/IDAMenu.h"
-#include "common/public.h"
-#include "EsigScanner.h"
 #include "ECSigParser.h"
 #include "ImportsParser.h"
 #include <hexrays.hpp>
 #include <frame.hpp>
 #include "./Module/ShowEventList.h"
 #include "./Module/ShowImports.h"
+#include "./Utils/Strings.h"
 
 hexdsp_t* hexdsp = NULL;
 
@@ -46,7 +45,7 @@ void EDecompiler::makeFunction(ea_t startAddr, ea_t endAddr)
 	}
 }
 
-EDecompiler::EDecompiler() :cTreeFixer(eSymbol),eControlXref(eSymbol)
+EDecompiler::EDecompiler() :cTreeFixer(eSymbol),eControlXref(eSymbol),ecSigMaker(eSymbol)
 {
 	arch = E_STATIC;
 	hook_to_notification_point(HT_UI, PluginUI_Callback, this);
@@ -81,7 +80,7 @@ EDecompiler::~EDecompiler()
 
 bool idaapi EDecompiler::run(size_t)
 {
-	show_wait_box(getUTF8String("等待IDA初始化分析完毕").c_str());
+	show_wait_box(LocalCpToUtf8("等待IDA初始化分析完毕").c_str());
 	auto_wait();
 	hide_wait_box();
 	if (!this->InitDecompilerEngine()) {
@@ -105,10 +104,10 @@ bool EDecompiler::InitDecompilerEngine()
 	eControlXref.RegisterAction(this);
 
 	if (eSymbol.allControlList.size() > 0) {
-		gMenu_ShowEventInfo = IDAMenu::CreateMenu(getUTF8String("易语言/控件事件信息").c_str(), ShowEventList, &eSymbol);
+		gMenu_ShowEventInfo = IDAMenu::CreateMenu(LocalCpToUtf8("易语言/控件事件信息").c_str(), ShowEventList, &eSymbol);
 	}
 	if (eSymbol.tmpImportsApiList.size() > 0) {
-		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(getUTF8String("易语言/用户导入表").c_str(), ShowImports, &eSymbol);
+		gMenu_ShowGUIInfo = IDAMenu::CreateMenu(LocalCpToUtf8("易语言/用户导入表").c_str(), ShowImports, &eSymbol);
 	}
 
 	cTreeFixer.Install();
@@ -167,21 +166,12 @@ bool EDecompiler::Parse_EStatic(unsigned int eHeadAddr)
 	eSymbol.userCodeStartAddr = eHead.lpStartCode;
 	eSymbol.userCodeEndAddr = eHeadAddr;
 
-	show_wait_box(getUTF8String("扫描易语言函数").c_str());
+	show_wait_box(LocalCpToUtf8("扫描易语言函数").c_str());
 	makeFunction(eSymbol.userCodeStartAddr, eSymbol.userCodeEndAddr);
 	auto_wait();
 	hide_wait_box();
 
 	return eSymbol.LoadEStaticSymbol(eHeadAddr,&eHead);
-
-	//识别易语言模块函数
-	//show_wait_box(getUTF8String("识别模块函数").c_str());
-	//qstring mainECpath;
-	//mainECpath.sprnt("%s\\esig\\精易模块.msig", idadir(PLG_SUBDIR));
-	//ECSigParser::ScanMSig(mainECpath.c_str(), m_eAppInfo.m_UserCodeStartAddr, m_eAppInfo.m_UserCodeEndAddr);
-	//hide_wait_box();
-	//msg("%s\n", getUTF8String("检测到是易语言静态编译程序").c_str());
-	return true;
 }
 
 static plugmod_t* idaapi init()

@@ -2113,91 +2113,63 @@ void ECSigParser::Debug_outputECSig()
 
 void ECSigParser::ScanMSig(const char* lpsigPath, ea_t rangeStart, ea_t rangeEnd)
 {
-	qstring str_filePath;
-	acp_utf8(&str_filePath, lpsigPath);
+	//mSave_SubFunc.clear();
+	//bFuzzySig = false;
+	//size_t funcCount = get_func_qty();
+	//for (unsigned int idx = 0; idx < funcCount; ++idx)
+	//{
+	//	func_t* pFunc = getn_func(idx);
 
-	FILE* hFile = fopenRB(str_filePath.c_str());
-	if (!hFile)
-	{
-		return;
-	}
+	//	if (pFunc->start_ea < rangeStart || pFunc->start_ea >= rangeEnd) {
+	//		continue;
+	//	}
 
-	std::multimap<qstring, qstring> map_MSig;
+	//	if (pFunc->start_ea == 0x4A50CF) {
+	//		int a = 0;
+	//	}
 
-	qstring str_Line;
-	while (-1 != qgetline(&str_Line, hFile)) {
-		size_t spitIndex = str_Line.find(":");
-		if (spitIndex == qstring::npos) {
-			continue;
-		}
-		qstring funcName = str_Line.substr(0, spitIndex);
-		qstring funcSig = str_Line.substr(spitIndex + 1);
-		if (funcSig.last() == '\r') {
-			funcSig.remove_last();
-		}
-		if (funcSig.length() != 32) {
-			continue;
-		}
-		map_MSig.insert(std::make_pair(funcSig, funcName));
-	}
+	//	qstring goodMD5 = GetFunctionMD5(pFunc->start_ea);
+	//	auto funcCount = map_MSig.count(goodMD5);
 
-	mSave_SubFunc.clear();
-	bFuzzySig = false;
-	size_t funcCount = get_func_qty();
-	for (unsigned int idx = 0; idx < funcCount; ++idx)
-	{
-		func_t* pFunc = getn_func(idx);
+	//	if (funcCount == 1) {
+	//		auto it = map_MSig.find(goodMD5);
+	//		//setFuncName(pFunc->start_ea, it->second.c_str(), SN_FORCE);
+	//		msg("%s%a--%s\n", getUTF8String("识别模块函数").c_str(), pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
+	//		continue;
+	//	}
+	//	else if (funcCount != 0) {
+	//		auto it = map_MSig.find(goodMD5);
+	//		//setFuncName(pFunc->start_ea, it->second.c_str());
+	//		msg("%s%a--%s\n", getUTF8String("识别模块函数").c_str(), pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
+	//		continue;
+	//	}
+	//	
+	//}
 
-		if (pFunc->start_ea < rangeStart || pFunc->start_ea >= rangeEnd) {
-			continue;
-		}
+	//mSave_SubFunc.clear();
+	//funcCount = get_func_qty();
+	//bFuzzySig = true;
+	//for (unsigned int idx = 0; idx < funcCount; ++idx)
+	//{
+	//	func_t* pFunc = getn_func(idx);
 
-		if (pFunc->start_ea == 0x4A50CF) {
-			int a = 0;
-		}
+	//	if (pFunc->start_ea < rangeStart || pFunc->start_ea >= rangeEnd) {
+	//		continue;
+	//	}
 
-		qstring goodMD5 = GetFunctionMD5(pFunc->start_ea);
-		auto funcCount = map_MSig.count(goodMD5);
+	//	qstring badMD5 = GetFunctionMD5(pFunc->start_ea);
+	//	funcCount = map_MSig.count(badMD5);
+	//	if (funcCount) {
+	//		auto it = map_MSig.find(badMD5);
+	//		//setFuncName(pFunc->start_ea, it->second.c_str());
+	//		msg("%s%a--%s\n", getUTF8String("识别模块函数").c_str(), pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
+	//		continue;
+	//	}
+	//	if (funcCount != 0) {
 
-		if (funcCount == 1) {
-			auto it = map_MSig.find(goodMD5);
-			//setFuncName(pFunc->start_ea, it->second.c_str(), SN_FORCE);
-			msg("%s%a--%s\n", getUTF8String("识别模块函数").c_str(), pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
-			continue;
-		}
-		else if (funcCount != 0) {
-			auto it = map_MSig.find(goodMD5);
-			//setFuncName(pFunc->start_ea, it->second.c_str());
-			msg("%s%a--%s\n", getUTF8String("识别模块函数").c_str(), pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
-			continue;
-		}
-		
-	}
-
-	mSave_SubFunc.clear();
-	funcCount = get_func_qty();
-	bFuzzySig = true;
-	for (unsigned int idx = 0; idx < funcCount; ++idx)
-	{
-		func_t* pFunc = getn_func(idx);
-
-		if (pFunc->start_ea < rangeStart || pFunc->start_ea >= rangeEnd) {
-			continue;
-		}
-
-		qstring badMD5 = GetFunctionMD5(pFunc->start_ea);
-		funcCount = map_MSig.count(badMD5);
-		if (funcCount) {
-			auto it = map_MSig.find(badMD5);
-			//setFuncName(pFunc->start_ea, it->second.c_str());
-			msg("%s%a--%s\n", getUTF8String("识别模块函数").c_str(), pFunc->start_ea, getUTF8String(it->second.c_str()).c_str());
-			continue;
-		}
-		if (funcCount != 0) {
-
-		}
-	}
-	qfclose(hFile);
+	//	}
+	//}
+	//qfclose(hFile);
 	return;
 }
 
@@ -2422,8 +2394,7 @@ qstring ECSigParser::GetFunctionMD5(ea_t FuncStartAddr)
 		STRING_RESULT.append(vec_SaveSig[n]);
 	}
 
-	ret_MD5 = CalculateMD5(STRING_RESULT);
-
+	//ret_MD5 = CalculateMD5(STRING_RESULT);
 
 #ifdef _DEBUG
 	if (!bFuzzySig) {

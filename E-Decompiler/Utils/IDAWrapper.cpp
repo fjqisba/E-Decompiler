@@ -98,5 +98,37 @@ std::vector<unsigned int> IDAWrapper::getAllCodeXrefAddr(unsigned int addr)
 
 bool IDAWrapper::add_user_stkpnt(unsigned int ea, int delta)
 {
+	
 	return ::add_user_stkpnt(ea,delta);
 }
+
+
+
+int idaapi EnumerateTypeLib(const char* file, void* ud)
+{
+	qvector<qstring>* pRecvData = (qvector<qstring>*)ud;
+	pRecvData->push_back(file);
+	return 0;
+}
+
+std::vector<std::string> IDAWrapper::enumerate_files(const char* dir, const char* fname)
+{
+	std::vector<std::string> retFileList;
+	struct MyFileEnumerator :public file_enumerator_t
+	{
+	public:
+		std::vector<std::string>& fileList;
+		MyFileEnumerator(std::vector<std::string>& f) :fileList(f) {};
+		int visit_file(const char* file)
+		{
+			fileList.push_back(file);
+			return 0;
+		}
+	};
+	MyFileEnumerator fileEnumFunc(retFileList);
+	enumerate_files2(0, 0, dir, fname, fileEnumFunc);
+	return retFileList;
+}
+
+
+
