@@ -15,3 +15,5 @@ unsigned char HexToBin(unsigned char HexCode);
 //枚举目录文件
 
 std::vector<std::string> enumDirectoryFiles(const char *dir);
+
+const char* UCharToStr(unsigned char c);

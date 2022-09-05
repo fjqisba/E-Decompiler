@@ -11,6 +11,5 @@ public:
 	void Install();
 	void UnInstall();
 private:
-private:
 	ESymbol& eSymbol;
 };

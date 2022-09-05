@@ -55,6 +55,14 @@
 
 本项目完全是由个人利用业余时间开发，不定时更新。
 
+
+
+### 关于模块函数特征识别
+
+通过定制化开发一套轻量级的特征识别引擎，来实现模块函数特征识别。 
+
+
+
 ### 参考资料
 
 https://chaotic.gd/ghidra-decompiler-docs-built/index.html

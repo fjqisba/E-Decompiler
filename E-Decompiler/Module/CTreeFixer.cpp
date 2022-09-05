@@ -164,6 +164,7 @@ void tryFixCTree(cfunc_t* cfunc,ESymbol& symbolTable)
 }
 
 //将块fromBlk移动到块toBlk尾部
+
 void mergeBlocks(mblock_t* dst, mblock_t* src)
 {
 	auto firstIns = src->head;
@@ -284,7 +285,6 @@ CTreeFixer::~CTreeFixer()
 {
 	
 }
-
 
 void CTreeFixer::Install()
 {

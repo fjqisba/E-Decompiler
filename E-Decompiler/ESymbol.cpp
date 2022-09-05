@@ -118,19 +118,20 @@ bool ESymbol::LoadEStaticSymbol(unsigned int eHeadAddr, EComHead* eHead)
 	if (eHead->lpEWindow != 0 && eHead->dwEWindowSize > 4) {
 		IDAWrapper::show_wait_box(LocalCpToUtf8("解析易语言控件资源").c_str());
 		loadGUIResource(eHead->lpEWindow, eHead->dwEWindowSize);
-		hide_wait_box();
+		IDAWrapper::hide_wait_box();
 	}
 
 	if (eHead->dwApiCount) {
 		IDAWrapper::show_wait_box(LocalCpToUtf8("解析易语言导入表").c_str());
 		loadUserImports(eHead->dwApiCount, eHead->lpModuleName, eHead->lpApiName);
-		hide_wait_box();
+		IDAWrapper::hide_wait_box();
 	}
 	
 	setGuiEventName();
 
-	
-	ECSigScanner::Instance().ScanECSigFunction();
+	IDAWrapper::show_wait_box(LocalCpToUtf8("识别模块函数").c_str());
+	//ECSigScanner::Instance().ScanECSigFunction(this);
+	IDAWrapper::hide_wait_box();
 	return true;
 }
 

@@ -98,17 +98,7 @@ std::vector<unsigned int> IDAWrapper::getAllCodeXrefAddr(unsigned int addr)
 
 bool IDAWrapper::add_user_stkpnt(unsigned int ea, int delta)
 {
-	
 	return ::add_user_stkpnt(ea,delta);
-}
-
-
-
-int idaapi EnumerateTypeLib(const char* file, void* ud)
-{
-	qvector<qstring>* pRecvData = (qvector<qstring>*)ud;
-	pRecvData->push_back(file);
-	return 0;
 }
 
 std::vector<std::string> IDAWrapper::enumerate_files(const char* dir, const char* fname)
