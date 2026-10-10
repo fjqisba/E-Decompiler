@@ -1,10 +1,16 @@
-# E-Decompiler — IDA 9.4 插件构建
-# 用法 (BuildTools 自带 CMake):
-#   "D:\Aiagent tool\VS2022BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -S . -B build
+# E-Decompiler — IDA 9.x 插件构建
+# 用法 (SDK: https://github.com/HexRaysSA/ida-sdk, git clone 即可):
+#   cmake -S . -B build -DIDASDK="<IDA SDK 根目录>"
 #   cmake --build build --config Release
 cmake_minimum_required(VERSION 3.25)
 
-set(IDASDK "D:/Aiagent tool/ida-sdk/src" CACHE PATH "IDA SDK root (git clone: HexRaysSA/ida-sdk)")
+set(IDASDK "" CACHE PATH "IDA SDK root (git clone: HexRaysSA/ida-sdk)")
+if(NOT IDASDK OR NOT EXISTS "${IDASDK}/cmake/idasdk_standalone.cmake")
+    message(FATAL_ERROR
+        "未找到 IDA SDK: ${IDASDK}\n"
+        "请指定 SDK 根目录: cmake -S . -B build -DIDASDK=\"<SDK根目录>\"\n"
+        "SDK 获取: https://github.com/HexRaysSA/ida-sdk")
+endif()
 include("${IDASDK}/cmake/idasdk_standalone.cmake")
 project(EDecompiler CXX)
 set(CMAKE_CXX_STANDARD 17)

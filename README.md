@@ -1,6 +1,6 @@
 # E-Decompiler
 
-用来辅助分析易语言程序的IDA 7.5插件，实验性项目。
+用来辅助分析易语言程序的IDA插件，实验性项目。支持 IDA 7.5 / IDA 9.x (推荐 9.4)。
 
 反编译思路一:
 
@@ -20,7 +20,19 @@
 
 ### 如何编译项目
 
-开发环境为: Windows + Visual Studio 2019 + Qt 5.6.3.0 + IDA SDK75
+**IDA 9.x (推荐)**: 开发环境为 Windows + Visual Studio 2022 (MSVC v143) + IDA SDK 9.4，
+使用 SDK 自带的 CMake 构建，无需安装 Qt (Qt 属性窗口组件暂未迁入 9.4 构建):
+
+```powershell
+cd E-Decompiler
+cmake -S . -B build -DIDASDK="<IDA SDK 根目录>"   # SDK: github.com/HexRaysSA/ida-sdk
+cmake --build build --config Release
+```
+
+产物为 `E-Decompiler.dll`，复制到 `<IDA>\plugins\` 即可。
+迁移细节 (API 适配 / HEXRAYS_API_MAGIC 版本匹配 / UTF-8 编码策略) 见 [IDA9.4-PORT.md](IDA9.4-PORT.md)。
+
+**IDA 7.5 (历史)**: 开发环境为: Windows + Visual Studio 2019 + Qt 5.6.3.0 + IDA SDK75
 
 - 因为IDA自身使用的QT版本为Qt 5.6.3.0，因此必须和它保持同步，目前有效的下载地址为:https://download.qt.io/new_archive/qt/5.6/5.6.3/qt-opensource-windows-x86-msvc2015_64-5.6.3.exe
 - 使用了Qt Vs插件，目前有效的下载地址为:https://download.qt.io/official_releases/vsaddin/
@@ -35,9 +47,17 @@
 
 ### 使用说明
 
-1. 在使用本插件之前，需要给IDA7.5做一个patch，使之支持中文函数。详细情况见[IDA7.5支持中文函数命名的办法](https://www.52pojie.cn/thread-1414525-1-1.html)
-2. 将E-Decompiler.dll和esig文件夹放置于插件目录，例如D:\IDA 7.5 SP3\plugins
+1. (仅IDA 7.5) 需要先给IDA做一个patch，使之支持中文函数。详细情况见[IDA7.5支持中文函数命名的办法](https://www.52pojie.cn/thread-1414525-1-1.html)；IDA 9.x 原生支持中文函数名，无需此步骤。
+2. 将E-Decompiler.dll和esig文件夹放置于插件目录，例如D:\IDA Pro 9.4\plugins
 3. 运行IDA后，按Ctrl+3快捷键呼出插件菜单，运行插件即可。
+
+### E-MCP: 纯 Python 版 + AI Agent (MCP) 支持
+
+[e-mcp/](e-mcp/README.md) 将本插件的核心解析逻辑 (含Hex-Rays反编译修正) 移植为
+纯 IDAPython，**无需 IDA SDK、无需编译**，即可在 IDA 9.x 上运行；并通过
+[ida-pro-mcp](https://github.com/mrexodia/ida-pro-mcp) 暴露为 MCP 工具，
+让 Claude / ZCode 等 AI 客户端可以直接解析易语言程序、按中文事件名下断点、
+解读调试现场。一键安装: `python e-mcp/install.py`。
 
 ### 项目进度
 

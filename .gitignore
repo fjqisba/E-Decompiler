@@ -5,3 +5,7 @@ build/
 # user-specific IDE state
 *.vcxproj.user
 .vs/
+
+# python (e-mcp)
+__pycache__/
+*.pyc

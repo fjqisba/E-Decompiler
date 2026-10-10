@@ -18,7 +18,7 @@
 
 ```powershell
 cd E-Decompiler
-cmake -S . -B build          # IDASDK 缓存变量指向 SDK 根目录 (含 src/ 的 git 形态)
+cmake -S . -B build -DIDASDK="<IDA SDK 根目录>"   # SDK: github.com/HexRaysSA/ida-sdk (含 src/ 的 git 形态)
 cmake --build build --config Release
 ```
 
